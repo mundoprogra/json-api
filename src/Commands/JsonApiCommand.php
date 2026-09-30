@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace MundoProgra\JsonApi\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class JsonApiCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'json-api';
 
     public $description = 'My command';
 
