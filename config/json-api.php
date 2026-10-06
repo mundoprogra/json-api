@@ -1,6 +1,6 @@
 <?php
 
-// config for MundoProgra/JsonApi
-return [
+  // Configuración de MundoProgra/JsonApi. Las claves se definen en la Fase 1.
+  return [
 
-];
+  ];

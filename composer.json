@@ -1,74 +1,68 @@
 {
-    "name": "mundoprogra/json-api",
-    "description": "Repository containing the docker container designed to work with larvel.",
-    "keywords": [
-        "MundoProgra",
-        "laravel",
-        "json-api"
-    ],
-    "homepage": "https://github.com/mundoprogra/json-api",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Alvaro Romero",
-            "email": "alvaro.romero@mundoprogra.com",
-            "role": "Developer"
-        }
-    ],
-    "require": {
-        "php": "^8.4",
-        "spatie/laravel-package-tools": "^1.16",
-        "illuminate/contracts": "^11.0||^12.0||^13.0"
-    },
-    "require-dev": {
-        "laravel/pint": "^1.14",
-        "nunomaduro/collision": "^8.8",
-        "larastan/larastan": "^3.0",
-        "orchestra/testbench": "^11.0.0||^10.0.0||^9.0.0",
-        "pestphp/pest": "^4.0",
-        "pestphp/pest-plugin-arch": "^4.0",
-        "pestphp/pest-plugin-laravel": "^4.0",
-        "phpstan/extension-installer": "^1.4",
-        "phpstan/phpstan-deprecation-rules": "^2.0",
-        "phpstan/phpstan-phpunit": "^2.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "MundoProgra\\JsonApi\\": "src/",
-            "MundoProgra\\JsonApi\\Database\\Factories\\": "database/factories/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "MundoProgra\\JsonApi\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/"
-        }
-    },
-    "scripts": {
-        "post-autoload-dump": "@composer run prepare",
-        "prepare": "@php vendor/bin/testbench package:discover --ansi",
-        "analyse": "vendor/bin/phpstan analyse",
-        "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --coverage",
-        "format": "vendor/bin/pint"
-    },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "phpstan/extension-installer": true
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "MundoProgra\\JsonApi\\JsonApiServiceProvider"
-            ],
-            "aliases": {
-                "JsonApi": "MundoProgra\\JsonApi\\Facades\\JsonApi"
-            }
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+  "name": "mundoprogra/json-api",
+  "description": "JSON:API 1.1 request validation and responses for Laravel 10 to 13.",
+  "keywords": [
+    "MundoProgra",
+    "laravel",
+    "json-api",
+    "jsonapi"
+  ],
+  "homepage": "https://github.com/mundoprogra/json-api",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alvaro Romero",
+      "email": "alvaro.romero@mundoprogra.com",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/mundoprogra/json-api/issues",
+    "source": "https://github.com/mundoprogra/json-api"
+  },
+  "require": {
+    "php": "^8.1",
+    "illuminate/contracts": "^10.0||^11.0||^12.0||^13.0",
+    "illuminate/database": "^10.0||^11.0||^12.0||^13.0",
+    "illuminate/http": "^10.0||^11.0||^12.0||^13.0",
+    "illuminate/pagination": "^10.0||^11.0||^12.0||^13.0",
+    "illuminate/routing": "^10.0||^11.0||^12.0||^13.0",
+    "illuminate/support": "^10.0||^11.0||^12.0||^13.0",
+    "illuminate/translation": "^10.0||^11.0||^12.0||^13.0",
+    "illuminate/validation": "^10.0||^11.0||^12.0||^13.0"
+  },
+  "require-dev": {
+    "larastan/larastan": "^2.9||^3.0",
+    "laravel/pint": "^1.14",
+    "opis/json-schema": "^2.3",
+    "orchestra/testbench": "^8.0||^9.0||^10.0||^11.0",
+    "phpunit/phpunit": "^10.5||^11.0||^12.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "MundoProgra\\JsonApi\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "MundoProgra\\JsonApi\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit",
+    "analyse": "vendor/bin/phpstan analyse",
+    "format": "vendor/bin/pint"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "MundoProgra\\JsonApi\\JsonApiServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
 }

@@ -1,25 +1,17 @@
 <?php
 
-namespace MundoProgra\JsonApi;
+  namespace MundoProgra\JsonApi;
 
-use Spatie\LaravelPackageTools\Package;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
-use MundoProgra\JsonApi\Commands\JsonApiCommand;
+  use Illuminate\Support\ServiceProvider;
 
-class JsonApiServiceProvider extends PackageServiceProvider
-{
-    public function configurePackage(Package $package): void
-    {
-        /*
-         * This class is a Package Service Provider
-         *
-         * More info: https://github.com/spatie/laravel-package-tools
-         */
-        $package
-            ->name('json-api')
-            ->hasConfigFile()
-            ->hasViews()
-            ->hasMigration('create_json_api_table')
-            ->hasCommand(JsonApiCommand::class);
+  class JsonApiServiceProvider extends ServiceProvider {
+    public function register(): void {
+      $this->mergeConfigFrom(__DIR__ . '/../config/json-api.php', 'json-api');
     }
-}
+
+    public function boot(): void {
+      $this->publishes([
+        __DIR__ . '/../config/json-api.php' => config_path('json-api.php'),
+      ], 'json-api-config');
+    }
+  }
