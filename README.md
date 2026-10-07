@@ -1,84 +1,150 @@
-# Repository containing the docker container designed to work with larvel.
+# MundoProgra JSON:API
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mundoprogra/json-api.svg?style=flat-square)](https://packagist.org/packages/mundoprogra/json-api)
-[![GitHub Tests Action Status](https://github.com/spatie/package-json-api-laravel/actions/workflows/run-tests.yml/badge.svg)](https://github.com/mundoprogra/json-api/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://github.com/spatie/package-json-api-laravel/actions/workflows/fix-php-code-style-issues.yml/badge.svg)](https://github.com/mundoprogra/json-api/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![Tests](https://img.shields.io/github/actions/workflow/status/mundoprogra/json-api/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/mundoprogra/json-api/actions?query=workflow%3Arun-tests+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/mundoprogra/json-api.svg?style=flat-square)](https://packagist.org/packages/mundoprogra/json-api)
+[![License](https://img.shields.io/packagist/l/mundoprogra/json-api.svg?style=flat-square)](LICENSE.md)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+**Español** · [English](#english)
 
-## Support us
+---
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/json-api.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/json-api)
+## Español
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
+Paquete para Laravel que convierte una API en un servicio [JSON:API 1.1](https://jsonapi.org/format/) de punta a punta: acepta y valida las peticiones en el estándar y responde en el estándar, tanto en éxito como en error.
 
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+> **Estado: en desarrollo (aún sin versión publicada).** Hoy el repositorio contiene el esqueleto, el entorno de pruebas y la infraestructura de calidad. La API pública se irá agregando por fases y se documentará aquí al publicarse la versión `0.1.0`.
 
-## Installation
+### Qué busca resolver
 
-You can install the package via composer:
+- Aceptar y validar peticiones JSON:API (cabeceras, documento, parámetros de consulta y relaciones).
+- Responder en JSON:API, tanto las respuestas exitosas como las de error.
+- Configuración base al instalar, con valores sobrescribibles por petición (por ejemplo, el tamaño de página).
+- Modo "API pura" (todas las respuestas en JSON:API) o limitado a un prefijo de rutas.
+
+### Requisitos
+
+- PHP 8.1 o superior
+- Laravel 10, 11, 12 o 13
+
+### Instalación
+
+El paquete estará disponible en Packagist a partir de la versión `0.1.0`:
 
 ```bash
 composer require mundoprogra/json-api
 ```
 
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="json-api-migrations"
-php artisan migrate
-```
-
-You can publish the config file with:
+Publicar el archivo de configuración:
 
 ```bash
 php artisan vendor:publish --tag="json-api-config"
 ```
 
-This is the contents of the published config file:
+### Desarrollo y pruebas
 
-```php
-return [
-];
-```
-
-Optionally, you can publish the views using
+No necesitas PHP instalado: todo se ejecuta en Docker. Cada servicio de `docker-compose.yml` corresponde a una versión de Laravel:
 
 ```bash
-php artisan vendor:publish --tag="json-api-views"
+docker compose run --rm l13                              # Laravel 13 (uso diario)
+docker compose run --rm l10                              # Laravel 10 (PHP 8.1, la versión mínima)
+docker compose run --rm -e ARGS="--filter=Provider" l13  # un subconjunto de pruebas
+docker compose run --rm -e STABILITY=prefer-lowest l12   # dependencias en su versión mínima
 ```
 
-## Usage
+Servicios disponibles: `l10`, `l11`, `l12` y `l13`. Ejecútalos **uno por uno**, no en paralelo: comparten la carpeta del paquete.
 
-```php
-$jsonApi = new MundoProgra\JsonApi();
-echo $jsonApi->echoPhrase('Hello, MundoProgra!');
-```
-
-## Testing
+Calidad de código:
 
 ```bash
-composer test
+docker compose run --rm l13 vendor/bin/pint --test
+docker compose run --rm l13 vendor/bin/phpstan analyse --no-progress
 ```
 
-## Changelog
+### Changelog
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+Consulta el [CHANGELOG](CHANGELOG.md) para ver los cambios recientes.
 
-## Contributing
+### Seguridad
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+Para reportar una vulnerabilidad, revisa la [política de seguridad](../../security/policy).
 
-## Security Vulnerabilities
+### Créditos
 
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+- [Alvaro Romero](https://github.com/mundoprogra)
+- [Todos los colaboradores](../../contributors)
 
-## Credits
+### Licencia
+
+Licencia MIT. Consulta el archivo [LICENSE](LICENSE.md) para más información.
+
+---
+
+## English
+
+A Laravel package that turns an API into an end-to-end [JSON:API 1.1](https://jsonapi.org/format/) service: it accepts and validates requests in the standard and responds in the standard, for both success and error responses.
+
+> **Status: under development (no release published yet).** Today the repository contains the skeleton, the test environment and the quality tooling. The public API will be added in phases and documented here when version `0.1.0` is released.
+
+### What it aims to solve
+
+- Accept and validate JSON:API requests (headers, document, query parameters and relationships).
+- Respond in JSON:API, for both successful and error responses.
+- Sensible defaults chosen at install time, overridable per request (for example, the page size).
+- "Pure API" mode (every response in JSON:API) or limited to a route prefix.
+
+### Requirements
+
+- PHP 8.1 or higher
+- Laravel 10, 11, 12 or 13
+
+### Installation
+
+The package will be available on Packagist starting with version `0.1.0`:
+
+```bash
+composer require mundoprogra/json-api
+```
+
+Publish the config file:
+
+```bash
+php artisan vendor:publish --tag="json-api-config"
+```
+
+### Development and testing
+
+You don't need PHP installed: everything runs in Docker. Each service in `docker-compose.yml` maps to a Laravel version:
+
+```bash
+docker compose run --rm l13                              # Laravel 13 (daily use)
+docker compose run --rm l10                              # Laravel 10 (PHP 8.1, the minimum version)
+docker compose run --rm -e ARGS="--filter=Provider" l13  # a subset of tests
+docker compose run --rm -e STABILITY=prefer-lowest l12   # dependencies at their lowest versions
+```
+
+Available services: `l10`, `l11`, `l12` and `l13`. Run them **one at a time**, not in parallel: they share the package folder.
+
+Code quality:
+
+```bash
+docker compose run --rm l13 vendor/bin/pint --test
+docker compose run --rm l13 vendor/bin/phpstan analyse --no-progress
+```
+
+### Changelog
+
+See the [CHANGELOG](CHANGELOG.md) for recent changes.
+
+### Security
+
+To report a vulnerability, please review the [security policy](../../security/policy).
+
+### Credits
 
 - [Alvaro Romero](https://github.com/mundoprogra)
 - [All Contributors](../../contributors)
 
-## License
+### License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+The MIT License (MIT). Please see the [License File](LICENSE.md) for more information.
