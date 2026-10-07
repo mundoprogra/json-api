@@ -1,0 +1,74 @@
+# Matriz de pruebas del paquete: un servicio por versión de Laravel.
+#
+# Uso (igual en Windows y Mac, cualquier terminal):
+#   docker compose run --rm l13
+#   docker compose run --rm -e ARGS="--filter=MediaType" l13
+#   docker compose run --rm -e STABILITY=prefer-lowest l10
+#
+# Cambiar la versión de PHP de un servicio:  L12_TAG=12-php8.2 docker compose run --rm l12
+#
+# Ejecuta los servicios UNO POR UNO (no en paralelo): comparten la carpeta y composer.lock.
+#
+# Las imágenes alvar0rm/laravel son de aplicación: su CMD (entrypoint.sh) despliega un
+# Laravel base y levanta Apache. Aquí se reemplaza con `command:` para solo correr pruebas.
+
+x-common: &common
+  working_dir: /package
+  command: ["sh", "/package/docker/run-tests.sh"]
+
+x-environment: &environment
+  COMPOSER_ALLOW_SUPERUSER: "1"
+  COMPOSER_CACHE_DIR: /composer-cache
+  ARGS: ${ARGS:-}
+  STABILITY: ${STABILITY:-}
+
+services:
+  l10:
+    <<: *common
+    image: alvar0rm/laravel:${L10_TAG:-10-php8.1}
+    environment:
+      <<: *environment
+      TESTBENCH: "8.*"
+    volumes:
+      - .:/package
+      - vendor-l10:/package/vendor
+      - composer-cache:/composer-cache
+
+  l11:
+    <<: *common
+    image: alvar0rm/laravel:${L11_TAG:-11-php8.2}
+    environment:
+      <<: *environment
+      TESTBENCH: "9.*"
+    volumes:
+      - .:/package
+      - vendor-l11:/package/vendor
+      - composer-cache:/composer-cache
+
+  l12:
+    <<: *common
+    image: alvar0rm/laravel:${L12_TAG:-12-php8.3}
+    environment:
+      <<: *environment
+      TESTBENCH: "10.*"
+    volumes:
+      - .:/package
+      - vendor-l12:/package/vendor
+      - composer-cache:/composer-cache
+
+  # Servicio de uso diario: usa el vendor del host para que el IDE lo indexe.
+  l13:
+    <<: *common
+    image: alvar0rm/laravel:${L13_TAG:-13-php8.3}
+    environment:
+      <<: *environment
+      TESTBENCH: "11.*"
+    volumes:
+      - .:/package
+      - composer-cache:/composer-cache
+
+volumes:
+  vendor-l10:
+  vendor-l11:
+  vendor-l12:
+  composer-cache:
