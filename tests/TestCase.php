@@ -1,37 +1,18 @@
 <?php
 
-namespace MundoProgra\JsonApi\Tests;
+  namespace MundoProgra\JsonApi\Tests;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Orchestra\Testbench\TestCase as Orchestra;
-use MundoProgra\JsonApi\JsonApiServiceProvider;
+  use MundoProgra\JsonApi\JsonApiServiceProvider;
+  use Orchestra\Testbench\TestCase as Orchestra;
 
-class TestCase extends Orchestra
-{
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'MundoProgra\\JsonApi\\Database\\Factories\\'.class_basename($modelName).'Factory'
-        );
+  abstract class TestCase extends Orchestra {
+    protected function getPackageProviders($app): array {
+      return [
+        JsonApiServiceProvider::class,
+      ];
     }
 
-    protected function getPackageProviders($app)
-    {
-        return [
-            JsonApiServiceProvider::class,
-        ];
+    protected function defineEnvironment($app): void {
+      $app['config']->set('database.default', 'testing');
     }
-
-    public function getEnvironmentSetUp($app)
-    {
-        config()->set('database.default', 'testing');
-
-        /*
-         foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__ . '/../database/migrations') as $migration) {
-            (include $migration->getRealPath())->up();
-         }
-         */
-    }
-}
+  }
