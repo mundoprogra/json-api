@@ -1,16 +1,23 @@
 # Matriz de pruebas del paquete: un servicio por versión de Laravel.
+# Package test matrix: one service per Laravel version.
 #
 # Uso (igual en Windows y Mac, cualquier terminal):
+# Usage (same on Windows and Mac, any terminal):
 #   docker compose run --rm l13
 #   docker compose run --rm -e ARGS="--filter=MediaType" l13
 #   docker compose run --rm -e STABILITY=prefer-lowest l10
 #
-# Cambiar la versión de PHP de un servicio:  L12_TAG=12-php8.2 docker compose run --rm l12
+# Cambiar la versión de PHP de un servicio:
+# Change the PHP version of a service:
+#   L12_TAG=12-php8.2 docker compose run --rm l12
 #
 # Ejecuta los servicios UNO POR UNO (no en paralelo): comparten la carpeta y composer.lock.
+# Run the services ONE AT A TIME (not in parallel): they share the folder and composer.lock.
 #
 # Las imágenes alvar0rm/laravel son de aplicación: su CMD (entrypoint.sh) despliega un
 # Laravel base y levanta Apache. Aquí se reemplaza con `command:` para solo correr pruebas.
+# The alvar0rm/laravel images are application images: their CMD (entrypoint.sh) deploys a
+# base Laravel and starts Apache. Here it is replaced with `command:` to only run tests.
 
 x-common: &common
   working_dir: /package
@@ -57,6 +64,7 @@ services:
       - composer-cache:/composer-cache
 
   # Servicio de uso diario: usa el vendor del host para que el IDE lo indexe.
+  # Daily-use service: it uses the host vendor folder so the IDE can index it.
   l13:
     <<: *common
     image: alvar0rm/laravel:${L13_TAG:-13-php8.3}

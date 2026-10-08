@@ -2,9 +2,11 @@
 # https://www.kernel.org/pub/software/scm/git/docs/gitattributes.html
 
 # Los scripts se ejecutan dentro de contenedores Linux: siempre saltos de línea LF.
+# Scripts run inside Linux containers: always LF line endings.
 *.sh text eol=lf
 
 # Todo lo que no es parte del paquete distribuido (composer require) se excluye con "export-ignore".
+# Everything that is not part of the distributed package (composer require) is excluded with "export-ignore".
 /.editorconfig          export-ignore
 /.gitattributes         export-ignore
 /.github                export-ignore

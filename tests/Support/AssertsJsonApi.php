@@ -9,6 +9,8 @@
   /**
    * Valida un documento contra el JSON Schema oficial de JSON:API (versión 1.0).
    * El schema solo cubre respuestas; los puntos propios de 1.1 se comprueban con asserts adicionales.
+   * Validates a document against the official JSON:API JSON Schema (version 1.0).
+   * The schema only covers responses; 1.1-only points are checked with additional assertions.
    */
   trait AssertsJsonApi {
     protected function assertJsonApiDocument(array|string $document, string $message = ''): void {
