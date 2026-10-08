@@ -8,3 +8,8 @@ parameters:
     - src
     - config
   tmpDir: build/phpstan
+
+  # Larastan asume la carpeta config/ de una app; aquí es la del propio paquete, donde sí se permite env().
+  # Larastan assumes an app's config/ folder; here it is the package's own, where env() is allowed.
+  configDirectories:
+    - %currentWorkingDirectory%/config
