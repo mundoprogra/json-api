@@ -16,3 +16,8 @@ All notable changes to `json-api` will be documented in this file.
 - Recursive configuration merge: an app that overrides only part of a group (for example `pagination.size`) keeps the remaining defaults of that group.
 - `Settings` class: typed, always up-to-date access to the configuration, shared as a singleton.
 - Configuration validation at boot: invalid values stop the application with an `InvalidConfigurationException` that reports every problem at once.
+- `Pointer`: builds and reads JSON Pointers (RFC 6901) for the `source.pointer` of errors, with correct escaping of `~` and `/`.
+- `MemberName`: converts attribute and relationship names between the configured style (`camel`, `kebab` or `snake`) and `snake_case`, for names and for first-level array keys.
+- `MediaType`: strict reader, comparer and writer of a single media type, with `ext` and `profile` lists (RFC 7230 tokens and quoted values).
+- `ContentNegotiator`: JSON:API 1.1 content negotiation rules for the `Content-Type` (415) and `Accept` (406) headers, with a strict and a permissive mode; unsupported extensions are rejected and profiles are ignored.
+- Contract tests that pin what the official JSON:API schema accepts and rejects, documented in `tests/Fixtures/schema/NOTICE.md`.
