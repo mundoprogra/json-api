@@ -4,6 +4,7 @@
 
   use Illuminate\Contracts\Foundation\CachesConfiguration;
   use Illuminate\Support\ServiceProvider;
+  use MundoProgra\JsonApi\Errors\ErrorMessages;
   use MundoProgra\JsonApi\Support\ConfigValidator;
   use MundoProgra\JsonApi\Support\Settings;
 
@@ -14,6 +15,10 @@
       // Una sola instancia para todo el paquete; lee la configuración en cada llamada, así que no se queda con valores viejos.
       // A single instance for the whole package; it reads the config on every call, so it never holds stale values.
       $this->app->singleton(Settings::class, fn($app) => new Settings($app->make('config')));
+
+      // Los textos de los errores se buscan en el idioma que tenga Laravel en cada llamada.
+      // The error texts are looked up in the language Laravel has at each call.
+      $this->app->singleton(ErrorMessages::class, fn($app) => new ErrorMessages($app->make('translator')));
     }
 
     public function boot(): void {
@@ -24,6 +29,13 @@
       $this->publishes([
         __DIR__ . '/../config/json-api.php' => config_path('json-api.php'),
       ], 'json-api-config');
+
+      // Se publican en lang/vendor/json-api: ahí Laravel los lee por encima de los del paquete, y solo reemplaza lo que se edite.
+      // They are published to lang/vendor/json-api: Laravel reads them there on top of the package ones, replacing only what is edited.
+      $this->loadTranslationsFrom(__DIR__ . '/../lang', 'json-api');
+      $this->publishes([
+        __DIR__ . '/../lang' => lang_path('vendor/json-api'),
+      ], 'json-api-lang');
     }
 
     /**
