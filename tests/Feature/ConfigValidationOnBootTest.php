@@ -78,6 +78,33 @@
       $this->bootProviderWith([]);
     }
 
+    #[Test]
+    public function fails_to_boot_when_the_error_code_replacements_are_not_a_map_of_texts(): void {
+      $this->expectException(InvalidConfigurationException::class);
+      $this->expectExceptionMessageMatches('/"errors.codes"/');
+
+      $this->bootProviderWith(['errors' => ['codes' => ['validation.required' => 1001]]]);
+    }
+
+    #[Test]
+    public function fails_to_boot_when_the_include_code_environment_variable_is_not_a_valid_boolean(): void {
+      $this->setEnvironmentVariable('JSON_API_INCLUDE_CODE', 'maybe');
+
+      $this->expectException(InvalidConfigurationException::class);
+      $this->expectExceptionMessageMatches('/"errors.include_code"/');
+
+      $this->bootProviderWith([]);
+    }
+
+    #[Test]
+    public function boots_with_an_empty_code_prefix_and_with_custom_code_replacements(): void {
+      $this->bootProviderWith(['errors' => ['code_prefix' => '', 'codes' => ['resource.not_found' => 'ERR-4040']]]);
+
+      $this->assertSame('', config('json-api.errors.code_prefix'));
+      $this->assertSame(['resource.not_found' => 'ERR-4040'], config('json-api.errors.codes'));
+      $this->assertTrue(config('json-api.errors.include_code'));
+    }
+
     /**
      * Simula el arranque de una app cuyo config/json-api.php ya tenía estos valores: se registra de nuevo el provider.
      * Simulates booting an app whose config/json-api.php already had these values: the provider is registered again.

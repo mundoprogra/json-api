@@ -16,6 +16,8 @@
       'allow_client_ids',
       'allow_put',
       'reject_unknown_query_params',
+      'errors.include_code',
+      'errors.include_id',
     ];
 
     /**
@@ -36,6 +38,8 @@
         ...$this->positiveInteger($config, 'query.max_include_depth'),
         ...$this->string($config, 'links.route_name_prefix'),
         ...$this->nullableBoolean($config, 'errors.expose_details'),
+        ...$this->string($config, 'errors.code_prefix'),
+        ...$this->codeReplacements($config),
       ];
 
       foreach (self::BOOLEANS as $key) {
@@ -139,6 +143,32 @@
       return is_string($value)
         ? []
         : [sprintf('"%s" must be a string, %s given.', $key, $this->describe($value))];
+    }
+
+    /**
+     * Un mapa de textos no vacíos: el código por defecto (sin prefijo) y el código que lo reemplaza. Puede estar vacío.
+     * A map of non-empty texts: the default code (without prefix) and the code that replaces it. It may be empty.
+     *
+     * @param  array<string, mixed>  $config
+     * @return list<string>
+     */
+    private function codeReplacements(array $config): array {
+      $value = Arr::get($config, 'errors.codes');
+      $valid = is_array($value) && ($value === [] || !array_is_list($value));
+
+      if ($valid) {
+        foreach ($value as $key => $replacement) {
+          if (!is_string($key) || $key === '' || !is_string($replacement) || $replacement === '') {
+            $valid = false;
+
+            break;
+          }
+        }
+      }
+
+      return $valid
+        ? []
+        : [sprintf('"errors.codes" must be a map of non-empty texts (default code => your code), %s given.', $this->describe($value))];
     }
 
     /**

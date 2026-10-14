@@ -37,6 +37,11 @@
         'links.route_name_prefix' => ['links.route_name_prefix', 'api.v1.'],
         'errors.expose_details true' => ['errors.expose_details', true],
         'errors.expose_details false' => ['errors.expose_details', false],
+        'errors.include_code false' => ['errors.include_code', false],
+        'errors.include_id true' => ['errors.include_id', true],
+        'errors.code_prefix empty, which means no prefix' => ['errors.code_prefix', ''],
+        'errors.code_prefix custom' => ['errors.code_prefix', 'acme.api'],
+        'errors.codes with replacements' => ['errors.codes', ['validation.required' => 'ERR-1001', 'resource.not_found' => 'ERR-4040']],
       ];
     }
 
@@ -78,6 +83,16 @@
         'except with a number inside' => ['except', [5]],
         'links.route_name_prefix as number' => ['links.route_name_prefix', 5],
         'errors.expose_details as text' => ['errors.expose_details', 'yes'],
+        'errors.include_code as text' => ['errors.include_code', 'yes'],
+        'errors.include_code null' => ['errors.include_code', null],
+        'errors.include_id as number' => ['errors.include_id', 1],
+        'errors.code_prefix as number' => ['errors.code_prefix', 5],
+        'errors.code_prefix null' => ['errors.code_prefix', null],
+        'errors.codes as text' => ['errors.codes', 'validation.required'],
+        'errors.codes as a list' => ['errors.codes', ['ERR-1001', 'ERR-4040']],
+        'errors.codes with a number as value' => ['errors.codes', ['validation.required' => 1001]],
+        'errors.codes with an empty value' => ['errors.codes', ['validation.required' => '']],
+        'errors.codes with an empty key' => ['errors.codes', ['' => 'ERR-1']],
       ];
     }
 

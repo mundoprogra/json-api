@@ -31,7 +31,27 @@
         'paginationOnExceed' => ['paginationOnExceed', 'clamp'],
         'maxIncludeDepth' => ['maxIncludeDepth', 3],
         'routeNamePrefix' => ['routeNamePrefix', ''],
+        'includeErrorCode' => ['includeErrorCode', true],
+        'errorCodePrefix' => ['errorCodePrefix', 'mundoprogra.json-api'],
+        'errorCodes' => ['errorCodes', []],
+        'includeErrorId' => ['includeErrorId', false],
       ];
+    }
+
+    #[Test]
+    public function reads_the_error_code_settings_at_call_time(): void {
+      $config = new Repository(['json-api' => $this->defaultConfig(), 'app' => ['debug' => false]]);
+      $settings = new Settings($config);
+
+      $config->set('json-api.errors.include_code', false);
+      $config->set('json-api.errors.code_prefix', 'acme');
+      $config->set('json-api.errors.codes', ['resource.not_found' => 'ERR-4040']);
+      $config->set('json-api.errors.include_id', true);
+
+      $this->assertFalse($settings->includeErrorCode());
+      $this->assertSame('acme', $settings->errorCodePrefix());
+      $this->assertSame(['resource.not_found' => 'ERR-4040'], $settings->errorCodes());
+      $this->assertTrue($settings->includeErrorId());
     }
 
     #[Test]

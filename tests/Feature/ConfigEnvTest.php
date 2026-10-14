@@ -33,6 +33,12 @@
         'links.route_name_prefix' => ['JSON_API_ROUTE_NAME_PREFIX', 'api.v1.', 'links.route_name_prefix', 'api.v1.'],
         'errors.expose_details true' => ['JSON_API_EXPOSE_DETAILS', 'true', 'errors.expose_details', true],
         'errors.expose_details false' => ['JSON_API_EXPOSE_DETAILS', 'false', 'errors.expose_details', false],
+        'errors.include_code false' => ['JSON_API_INCLUDE_CODE', 'false', 'errors.include_code', false],
+        'errors.code_prefix' => ['JSON_API_CODE_PREFIX', 'acme.api', 'errors.code_prefix', 'acme.api'],
+        // Un prefijo vacío en el .env significa "sin prefijo".
+        // An empty prefix in .env means "no prefix".
+        'errors.code_prefix empty' => ['JSON_API_CODE_PREFIX', '', 'errors.code_prefix', ''],
+        'errors.include_id true' => ['JSON_API_INCLUDE_ID', 'true', 'errors.include_id', true],
       ];
     }
 

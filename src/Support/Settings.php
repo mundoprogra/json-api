@@ -82,6 +82,32 @@
       return (string) $this->get('links.route_name_prefix');
     }
 
+    public function includeErrorCode(): bool {
+      return (bool) $this->get('errors.include_code');
+    }
+
+    /**
+     * El prefijo de los códigos por defecto; vacío significa sin prefijo.
+     * The prefix of the default codes; empty means no prefix.
+     */
+    public function errorCodePrefix(): string {
+      return (string) $this->get('errors.code_prefix');
+    }
+
+    /**
+     * Los códigos que reemplazan a los del paquete: código base (sin prefijo) => código propio.
+     * The codes that replace the package ones: base code (without prefix) => own code.
+     *
+     * @return array<string, string>
+     */
+    public function errorCodes(): array {
+      return array_map('strval', (array) $this->get('errors.codes'));
+    }
+
+    public function includeErrorId(): bool {
+      return (bool) $this->get('errors.include_id');
+    }
+
     /**
      * Si `errors.expose_details` es null, se sigue el valor de `app.debug`; si no, manda lo configurado.
      * If `errors.expose_details` is null, the value of `app.debug` is followed; otherwise the configured value wins.

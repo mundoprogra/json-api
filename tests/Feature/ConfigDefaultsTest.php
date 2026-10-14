@@ -27,6 +27,10 @@
         'query.max_include_depth' => ['query.max_include_depth', 3],
         'links.route_name_prefix' => ['links.route_name_prefix', ''],
         'errors.expose_details' => ['errors.expose_details', null],
+        'errors.include_code' => ['errors.include_code', true],
+        'errors.code_prefix' => ['errors.code_prefix', 'mundoprogra.json-api'],
+        'errors.codes' => ['errors.codes', []],
+        'errors.include_id' => ['errors.include_id', false],
       ];
     }
 

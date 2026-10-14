@@ -85,5 +85,22 @@
       // Mostrar el detalle de las excepciones en los errores 500. null: se sigue el valor de `app.debug` (env: JSON_API_EXPOSE_DETAILS).
       // Show exception details in 500 errors. null: follow the value of `app.debug` (env: JSON_API_EXPOSE_DETAILS).
       'expose_details' => env('JSON_API_EXPOSE_DETAILS') === null ? null : $bool(env('JSON_API_EXPOSE_DETAILS')),
+
+      // Enviar el miembro `code` en cada error. Apagado significa nunca: ningún error lleva `code` (env: JSON_API_INCLUDE_CODE).
+      // Send the `code` member in every error. Off means never: no error carries a `code` (env: JSON_API_INCLUDE_CODE).
+      'include_code' => $bool(env('JSON_API_INCLUDE_CODE', true)),
+
+      // Prefijo de los códigos por defecto del paquete, por ejemplo mundoprogra.json-api.validation.required. Vacío: sin prefijo (env: JSON_API_CODE_PREFIX).
+      // Prefix of the package default codes, for example mundoprogra.json-api.validation.required. Empty: no prefix (env: JSON_API_CODE_PREFIX).
+      'code_prefix' => env('JSON_API_CODE_PREFIX', 'mundoprogra.json-api'),
+
+      // Reemplaza cualquier código por defecto con el tuyo: la clave es el código base sin prefijo y el valor se usa tal cual, sin prefijo.
+      // Replaces any default code with yours: the key is the base code without prefix and the value is used as is, without prefix.
+      // Ejemplo / Example: ['validation.required' => 'ERR-1001', 'resource.not_found' => 'ERR-4040']
+      'codes' => [],
+
+      // Agregar a cada error un `id` único y escribirlo también en el log, para encontrar una ocurrencia concreta (env: JSON_API_INCLUDE_ID).
+      // Add a unique `id` to every error and write it to the log as well, to find one specific occurrence (env: JSON_API_INCLUDE_ID).
+      'include_id' => $bool(env('JSON_API_INCLUDE_ID', false)),
     ],
   ];
