@@ -78,6 +78,30 @@
     }
 
     /**
+     * El código base que corresponde a un estado HTTP; los estados sin código propio dan `http.<estado>`.
+     * The base code for an HTTP status; statuses without a code of their own give `http.<status>`.
+     */
+    public static function forStatus(int $status): string {
+      return match ($status) {
+        400 => self::BAD_REQUEST,
+        401 => self::UNAUTHENTICATED,
+        403 => self::FORBIDDEN,
+        404 => self::RESOURCE_NOT_FOUND,
+        405 => self::METHOD_NOT_ALLOWED,
+        406 => self::NOT_ACCEPTABLE,
+        409 => self::CONFLICT,
+        413 => self::PAYLOAD_TOO_LARGE,
+        415 => self::UNSUPPORTED_MEDIA_TYPE,
+        419 => self::TOKEN_MISMATCH,
+        422 => self::VALIDATION_FAILED,
+        429 => self::TOO_MANY_REQUESTS,
+        500 => self::SERVER_ERROR,
+        503 => self::SERVICE_UNAVAILABLE,
+        default => "http.$status",
+      };
+    }
+
+    /**
      * El código final de un código base, o null si los códigos están apagados.
      * Un reemplazo se usa tal cual (sin prefijo); si no, se aplica el prefijo, salvo que esté vacío.
      * The final code for a base code, or null if codes are turned off.

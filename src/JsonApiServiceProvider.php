@@ -2,11 +2,16 @@
 
   namespace MundoProgra\JsonApi;
 
+  use Illuminate\Contracts\Debug\ExceptionHandler;
   use Illuminate\Contracts\Foundation\CachesConfiguration;
+  use Illuminate\Http\Request;
   use Illuminate\Support\ServiceProvider;
+  use MundoProgra\JsonApi\Errors\ErrorCodes;
   use MundoProgra\JsonApi\Errors\ErrorMessages;
+  use MundoProgra\JsonApi\Errors\ExceptionRenderer;
   use MundoProgra\JsonApi\Support\ConfigValidator;
   use MundoProgra\JsonApi\Support\Settings;
+  use Throwable;
 
   class JsonApiServiceProvider extends ServiceProvider {
     public function register(): void {
@@ -19,6 +24,14 @@
       // Los textos de los errores se buscan en el idioma que tenga Laravel en cada llamada.
       // The error texts are looked up in the language Laravel has at each call.
       $this->app->singleton(ErrorMessages::class, fn($app) => new ErrorMessages($app->make('translator')));
+      $this->app->singleton(ErrorCodes::class, fn($app) => new ErrorCodes($app->make(Settings::class)));
+      $this->app->singleton(ExceptionRenderer::class, fn($app) => new ExceptionRenderer(
+        $app->make(Settings::class),
+        $app->make(ErrorCodes::class),
+        $app->make(ErrorMessages::class),
+      ));
+
+      $this->hookIntoTheExceptionHandler();
     }
 
     public function boot(): void {
@@ -36,6 +49,22 @@
       $this->publishes([
         __DIR__ . '/../lang' => lang_path('vendor/json-api'),
       ], 'json-api-lang');
+    }
+
+    /**
+     * Se engancha al manejo de excepciones de Laravel con una función de renderizado, que funciona igual de Laravel 10 a 13.
+     * Si el manejador no tiene `renderable` (uno hecho a mano), no se hace nada. Si la función devuelve null, Laravel sigue como siempre.
+     * It hooks into Laravel's exception handling with a render callback, which works the same from Laravel 10 to 13.
+     * If the handler has no `renderable` (a hand-made one), nothing is done. If the callback returns null, Laravel carries on as usual.
+     */
+    private function hookIntoTheExceptionHandler(): void {
+      $this->callAfterResolving(ExceptionHandler::class, function ($handler) {
+        if (!method_exists($handler, 'renderable')) {
+          return;
+        }
+
+        $handler->renderable(fn(Throwable $e, Request $request) => $this->app->make(ExceptionRenderer::class)->render($e, $request));
+      });
     }
 
     /**

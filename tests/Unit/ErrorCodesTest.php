@@ -60,6 +60,38 @@
       }
     }
 
+    /**
+     * @return array<string, array{int, string}>
+     */
+    public static function statuses(): array {
+      // [estado HTTP, código base] / [HTTP status, base code]. Los estados sin código propio dan `http.<estado>`.
+      return [
+        '400' => [400, ErrorCodes::BAD_REQUEST],
+        '401' => [401, ErrorCodes::UNAUTHENTICATED],
+        '403' => [403, ErrorCodes::FORBIDDEN],
+        '404' => [404, ErrorCodes::RESOURCE_NOT_FOUND],
+        '405' => [405, ErrorCodes::METHOD_NOT_ALLOWED],
+        '406' => [406, ErrorCodes::NOT_ACCEPTABLE],
+        '409' => [409, ErrorCodes::CONFLICT],
+        '413' => [413, ErrorCodes::PAYLOAD_TOO_LARGE],
+        '415' => [415, ErrorCodes::UNSUPPORTED_MEDIA_TYPE],
+        '419' => [419, ErrorCodes::TOKEN_MISMATCH],
+        '422' => [422, ErrorCodes::VALIDATION_FAILED],
+        '429' => [429, ErrorCodes::TOO_MANY_REQUESTS],
+        '500' => [500, ErrorCodes::SERVER_ERROR],
+        '503' => [503, ErrorCodes::SERVICE_UNAVAILABLE],
+        '402 has no code of its own' => [402, 'http.402'],
+        '418 has no code of its own' => [418, 'http.418'],
+        '502 has no code of its own' => [502, 'http.502'],
+      ];
+    }
+
+    #[Test]
+    #[DataProvider('statuses')]
+    public function maps_an_http_status_to_its_base_code(int $status, string $expected): void {
+      $this->assertSame($expected, ErrorCodes::forStatus($status));
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Prefijo / Prefix
     // ---------------------------------------------------------------------------------------------
