@@ -9,6 +9,7 @@
   use MundoProgra\JsonApi\Errors\ErrorCodes;
   use MundoProgra\JsonApi\Errors\ErrorMessages;
   use MundoProgra\JsonApi\Errors\ExceptionRenderer;
+  use MundoProgra\JsonApi\Errors\ValidationSource;
   use MundoProgra\JsonApi\Support\ConfigValidator;
   use MundoProgra\JsonApi\Support\Settings;
   use Throwable;
@@ -25,13 +26,19 @@
       // The error texts are looked up in the language Laravel has at each call.
       $this->app->singleton(ErrorMessages::class, fn($app) => new ErrorMessages($app->make('translator')));
       $this->app->singleton(ErrorCodes::class, fn($app) => new ErrorCodes($app->make(Settings::class)));
+      $this->app->singleton(ValidationSource::class, fn($app) => new ValidationSource($app->make(Settings::class)));
       $this->app->singleton(ExceptionRenderer::class, fn($app) => new ExceptionRenderer(
         $app->make(Settings::class),
         $app->make(ErrorCodes::class),
         $app->make(ErrorMessages::class),
+        $app->make(ValidationSource::class),
       ));
 
-      $this->hookIntoTheExceptionHandler();
+      // Se engancha cuando la app ya terminó de arrancar, para quedar al final de la fila de funciones de renderizado:
+      // así cualquier respuesta propia que la app haya registrado (en bootstrap/app.php, en Handler o en el boot() de sus providers) gana.
+      // It hooks in once the app has finished booting, to end up last in the line of render callbacks:
+      // that way any response of its own the app registered (in bootstrap/app.php, in Handler or in the boot() of its providers) wins.
+      $this->app->booted(fn() => $this->hookIntoTheExceptionHandler());
     }
 
     public function boot(): void {

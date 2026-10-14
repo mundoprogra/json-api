@@ -13,22 +13,23 @@
   use Throwable;
 
   /**
-   * Convierte una excepción en la respuesta de error de JSON:API. Devuelve null cuando no la maneja, para que Laravel siga con su comportamiento normal.
-   * Turns an exception into the JSON:API error response. It returns null when it does not handle it, so Laravel continues with its normal behavior.
+   * Convierte una excepción en la respuesta de error de JSON:API. Siempre devuelve una respuesta; decidir si el paquete debe actuar
+   * en una petición (y ceder a Laravel devolviendo null) es cosa de quien lo invoca, y llega con el modo prefix/global de la Fase 4.
+   * Turns an exception into the JSON:API error response. It always returns a response; deciding whether the package should act on a
+   * request (and yield to Laravel by returning null) is up to the caller, and arrives with the prefix/global mode of Phase 4.
    */
   final class ExceptionRenderer {
     public function __construct(
       private readonly Settings $settings,
       private readonly ErrorCodes $codes,
       private readonly ErrorMessages $messages,
+      private readonly ValidationSource $validationSource,
     ) {
     }
 
-    public function render(Throwable $e, Request $request): ?JsonResponse {
-      // Por ahora quedan para Laravel; los puntos 3.8b (validación) y 3.8c (autenticación) los convertirán.
-      // For now they are left to Laravel; points 3.8b (validation) and 3.8c (authentication) will convert them.
-      if ($e instanceof ValidationException || $e instanceof AuthenticationException) {
-        return null;
+    public function render(Throwable $e, Request $request): JsonResponse {
+      if ($e instanceof ValidationException) {
+        return ErrorDocument::make($this->validationErrors($e, $request), $this->settings->jsonApiObject())->toResponse();
       }
 
       if ($e instanceof JsonApiException) {
@@ -43,13 +44,58 @@
     }
 
     /**
+     * Un error por cada mensaje de cada campo. El mensaje es el que Laravel ya generó (en el idioma de la app) y el código sale de la regla
+     * que falló: Laravel guarda las reglas fallidas en el mismo orden que los mensajes. Una excepción hecha a mano no tiene reglas.
+     * One error for each message of each field. The message is the one Laravel already produced (in the app language) and the code comes from
+     * the rule that failed: Laravel stores the failed rules in the same order as the messages. A hand-made exception has no rules.
+     *
+     * @return list<Error>
+     */
+    private function validationErrors(ValidationException $e, Request $request): array {
+      $failed = $e->validator->failed();
+      $title = $this->messages->title(ErrorCodes::VALIDATION_FAILED);
+      $errors = [];
+
+      foreach ($e->errors() as $key => $messages) {
+        $rules = array_keys($failed[$key] ?? []);
+        $source = $this->validationSource->resolve((string) $key, $request);
+
+        foreach (array_values($messages) as $index => $message) {
+          $errors[] = Error::make(
+            status: $e->status,
+            title: $title,
+            detail: $message,
+            code: $this->codes->validation($rules[$index] ?? null),
+            pointer: $source['pointer'] ?? null,
+            parameter: $source['parameter'] ?? null,
+          );
+        }
+      }
+
+      // Una excepción sin mensajes igual debe producir un error.
+      // An exception with no messages must still produce an error.
+      return $errors !== [] ? $errors : [Error::make(
+        status: $e->status,
+        title: $title,
+        detail: $this->messages->detail(ErrorCodes::VALIDATION_FAILED),
+        code: $this->codes->validation(null),
+      )];
+    }
+
+    /**
      * El error de una excepción cualquiera: el estado sale de la excepción HTTP (o es 500), y los textos y el código, del catálogo.
      * The error of any exception: the status comes from the HTTP exception (or is 500), and the texts and code, from the catalog.
      *
      * @param  array<string, string>  $headers
      */
     private function errorFor(Throwable $e, Request $request, array $headers): Error {
-      $status = $e instanceof HttpExceptionInterface ? $e->getStatusCode() : 500;
+      // Una AuthenticationException siempre es un 401 y nunca redirige al login, como haría Laravel con quien no pide JSON.
+      // An AuthenticationException is always a 401 and never redirects to the login, as Laravel would for whoever does not ask for JSON.
+      $status = match (true) {
+        $e instanceof HttpExceptionInterface => $e->getStatusCode(),
+        $e instanceof AuthenticationException => 401,
+        default => 500,
+      };
       $base = $e instanceof InvalidSignatureException ? ErrorCodes::INVALID_SIGNATURE : $this->baseFor($status, $request);
 
       $detail = $this->messages->detail($base, [

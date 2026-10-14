@@ -3,7 +3,6 @@
   namespace MundoProgra\JsonApi\Tests\Feature;
 
   use Illuminate\Auth\Access\AuthorizationException;
-  use Illuminate\Auth\AuthenticationException;
   use Illuminate\Contracts\Debug\ExceptionHandler;
   use Illuminate\Database\Eloquent\ModelNotFoundException;
   use Illuminate\Http\Exceptions\HttpResponseException;
@@ -12,7 +11,6 @@
   use Illuminate\Routing\Exceptions\InvalidSignatureException;
   use Illuminate\Session\TokenMismatchException;
   use Illuminate\Support\Arr;
-  use Illuminate\Validation\ValidationException;
   use MundoProgra\JsonApi\Errors\Error;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
   use MundoProgra\JsonApi\JsonApiServiceProvider;
@@ -48,8 +46,6 @@
       $router->get('abort403-secret', fn() => abort(403, 'secret internal reason'));
       $router->get('abort503-message', fn() => abort(503, 'database maintenance'));
       $router->get('boom', fn() => throw new RuntimeException('boom'));
-      $router->get('validation', fn() => throw ValidationException::withMessages(['title' => 'bad']));
-      $router->get('auth', fn() => throw new AuthenticationException());
       $router->get('response-exception', fn() => throw new HttpResponseException(response('custom', 202)));
       $router->get('jsonapi-single', fn() => throw JsonApiException::make(
         status: 402,
@@ -333,28 +329,8 @@
     }
 
     // ---------------------------------------------------------------------------------------------
-    // Lo que todavía no es de este punto / What is not part of this point yet
+    // Lo que se deja intacto / What is left untouched
     // ---------------------------------------------------------------------------------------------
-
-    #[Test]
-    public function for_now_a_validation_exception_is_left_to_laravel(): void {
-      // Se reemplaza en el punto 3.8b, que lo convierte en errores con puntero y código por regla.
-      // It is replaced in point 3.8b, which turns it into errors with a pointer and a code per rule.
-      $response = $this->get('validation', ['Accept' => 'application/json']);
-
-      $response->assertStatus(422);
-      $this->assertStringNotContainsString('vnd.api+json', (string) $response->headers->get('Content-Type'));
-    }
-
-    #[Test]
-    public function for_now_an_authentication_exception_is_left_to_laravel(): void {
-      // Se reemplaza en el punto 3.8c.
-      // It is replaced in point 3.8c.
-      $response = $this->get('auth', ['Accept' => 'application/json']);
-
-      $response->assertStatus(401);
-      $this->assertStringNotContainsString('vnd.api+json', (string) $response->headers->get('Content-Type'));
-    }
 
     #[Test]
     public function an_exception_that_already_carries_its_response_is_left_untouched(): void {
