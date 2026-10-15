@@ -21,6 +21,14 @@
       return [AppRenderableAtRegister::class, ...parent::getPackageProviders($app), AppRenderableAtBoot::class];
     }
 
+    protected function setUp(): void {
+      parent::setUp();
+
+      // Estas pruebas ejercitan el orden del renderizador, no el alcance: en modo global el paquete aplica a todas las rutas de prueba.
+      // These tests exercise the renderer order, not the scope: in global mode the package applies to every test route.
+      config()->set('json-api.mode', 'global');
+    }
+
     protected function defineRoutes($router): void {
       foreach ([402, 403, 409] as $status) {
         $router->get("abort$status", fn() => abort($status));

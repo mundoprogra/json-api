@@ -30,6 +30,10 @@
 
       $this->app->setLocale('en');
       config()->set('app.debug', false);
+
+      // Estas pruebas ejercitan el renderizador, no el alcance: en modo global el paquete aplica a todas las rutas de prueba.
+      // These tests exercise the renderer, not the scope: in global mode the package applies to every test route.
+      config()->set('json-api.mode', 'global');
     }
 
     protected function defineRoutes($router): void {

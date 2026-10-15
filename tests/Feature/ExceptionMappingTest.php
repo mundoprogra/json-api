@@ -31,6 +31,10 @@
 
       config()->set('app.debug', false);
 
+      // Estas pruebas ejercitan el renderizador, no el alcance: en modo global el paquete aplica a todas las rutas de prueba.
+      // These tests exercise the renderer, not the scope: in global mode the package applies to every test route.
+      config()->set('json-api.mode', 'global');
+
       $this->log = new TestHandler();
       $this->app->instance(LoggerInterface::class, new Logger(new Monolog('test', [$this->log])));
     }

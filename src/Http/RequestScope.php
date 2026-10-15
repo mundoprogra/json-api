@@ -3,7 +3,9 @@
   namespace MundoProgra\JsonApi\Http;
 
   use Illuminate\Http\Request;
+  use MundoProgra\JsonApi\Exceptions\JsonApiException;
   use MundoProgra\JsonApi\Support\Settings;
+  use Throwable;
 
   /**
    * La única regla que decide si el paquete actúa sobre una petición. De mayor a menor:
@@ -19,6 +21,14 @@
     private const MEDIA_TYPE = 'application/vnd.api+json';
 
     public function __construct(private readonly Settings $settings) {
+    }
+
+    /**
+     * Si el paquete debe responder a esta excepción. Un JsonApiException lanzado a mano siempre se responde en JSON:API: quien lo lanza ya eligió ese formato.
+     * Whether the package should answer this exception. A JsonApiException thrown by hand is always answered as JSON:API: whoever throws it already chose that format.
+     */
+    public function shouldAnswer(Throwable $e, Request $request): bool {
+      return $e instanceof JsonApiException || $this->appliesTo($request);
     }
 
     public function appliesTo(Request $request): bool {

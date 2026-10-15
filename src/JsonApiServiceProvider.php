@@ -11,6 +11,7 @@
   use MundoProgra\JsonApi\Errors\ErrorMessages;
   use MundoProgra\JsonApi\Errors\ExceptionRenderer;
   use MundoProgra\JsonApi\Errors\ValidationSource;
+  use MundoProgra\JsonApi\Http\RequestScope;
   use MundoProgra\JsonApi\Support\ConfigValidator;
   use MundoProgra\JsonApi\Support\Settings;
   use Throwable;
@@ -28,7 +29,8 @@
       $this->app->singleton(ErrorMessages::class, fn($app) => new ErrorMessages($app->make('translator')));
       $this->app->singleton(ErrorCodes::class, fn($app) => new ErrorCodes($app->make(Settings::class)));
       $this->app->singleton(ValidationSource::class, fn($app) => new ValidationSource($app->make(Settings::class)));
-      $this->app->singleton(ErrorIds::class, fn($app) => new ErrorIds($app->make(Settings::class), $app));
+      $this->app->singleton(RequestScope::class, fn($app) => new RequestScope($app->make(Settings::class)));
+      $this->app->singleton(ErrorIds::class, fn($app) => new ErrorIds($app->make(Settings::class), $app, $app->make(RequestScope::class)));
       $this->app->singleton(ExceptionRenderer::class, fn($app) => new ExceptionRenderer(
         $app->make(Settings::class),
         $app->make(ErrorCodes::class),
@@ -81,7 +83,11 @@
           return;
         }
 
-        $handler->renderable(fn(Throwable $e, Request $request) => $this->app->make(ExceptionRenderer::class)->render($e, $request));
+        // Fuera del alcance devuelve null: Laravel responde como siempre.
+        // Outside the scope it returns null: Laravel answers as usual.
+        $handler->renderable(fn(Throwable $e, Request $request) => $this->app->make(RequestScope::class)->shouldAnswer($e, $request)
+          ? $this->app->make(ExceptionRenderer::class)->render($e, $request)
+          : null);
       });
     }
 

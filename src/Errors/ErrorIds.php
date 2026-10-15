@@ -6,6 +6,7 @@
   use Illuminate\Http\Request;
   use Illuminate\Support\Str;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
+  use MundoProgra\JsonApi\Http\RequestScope;
   use MundoProgra\JsonApi\Support\Settings;
   use Throwable;
 
@@ -23,6 +24,7 @@
     public function __construct(
       private readonly Settings $settings,
       private readonly Application $container,
+      private readonly RequestScope $scope,
     ) {
     }
 
@@ -39,11 +41,19 @@
         return;
       }
 
+      // Fuera del alcance del paquete la respuesta no llevaría el id, así que tampoco se anota en el log.
+      // Outside the package scope the response would not carry the id, so it is not noted in the log either.
+      $request = $this->container->make('request');
+
+      if (!$this->scope->shouldAnswer($e, $request)) {
+        return;
+      }
+
       // Un id que el desarrollador puso a mano en el primer error se respeta.
       // An id the developer set by hand on the first error is respected.
       $id = ($e instanceof JsonApiException ? ($e->errors()[0] ?? null)?->id() : null) ?? $this->generate();
 
-      $this->container->make('request')->attributes->set(self::ATTRIBUTE, $id);
+      $request->attributes->set(self::ATTRIBUTE, $id);
       $this->container->make('log')->withContext([self::CONTEXT_KEY => $id]);
     }
 
