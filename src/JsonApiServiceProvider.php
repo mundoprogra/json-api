@@ -13,6 +13,7 @@
   use MundoProgra\JsonApi\Errors\ExceptionRenderer;
   use MundoProgra\JsonApi\Errors\ValidationSource;
   use MundoProgra\JsonApi\Http\Middleware\ApplyJsonApi;
+  use MundoProgra\JsonApi\Http\Middleware\NegotiateContent;
   use MundoProgra\JsonApi\Http\RequestScope;
   use MundoProgra\JsonApi\Support\ConfigValidator;
   use MundoProgra\JsonApi\Support\Settings;
@@ -66,6 +67,10 @@
       // Para marcar a mano una ruta fuera del alcance: `->middleware('json-api')`.
       // To mark a route outside the scope by hand: `->middleware('json-api')`.
       $this->app->make('router')->aliasMiddleware('json-api', ApplyJsonApi::class);
+
+      // Para negociar el contenido (Content-Type y Accept) en una ruta: `->middleware('json-api.negotiate')`.
+      // To negotiate the content (Content-Type and Accept) on a route: `->middleware('json-api.negotiate')`.
+      $this->app->make('router')->aliasMiddleware('json-api.negotiate', NegotiateContent::class);
 
       $this->publishes([
         __DIR__ . '/../config/json-api.php' => config_path('json-api.php'),
