@@ -7,6 +7,7 @@
   use Illuminate\Http\Request;
   use Illuminate\Support\ServiceProvider;
   use MundoProgra\JsonApi\Errors\ErrorCodes;
+  use MundoProgra\JsonApi\Errors\ErrorIds;
   use MundoProgra\JsonApi\Errors\ErrorMessages;
   use MundoProgra\JsonApi\Errors\ExceptionRenderer;
   use MundoProgra\JsonApi\Errors\ValidationSource;
@@ -27,11 +28,13 @@
       $this->app->singleton(ErrorMessages::class, fn($app) => new ErrorMessages($app->make('translator')));
       $this->app->singleton(ErrorCodes::class, fn($app) => new ErrorCodes($app->make(Settings::class)));
       $this->app->singleton(ValidationSource::class, fn($app) => new ValidationSource($app->make(Settings::class)));
+      $this->app->singleton(ErrorIds::class, fn($app) => new ErrorIds($app->make(Settings::class), $app));
       $this->app->singleton(ExceptionRenderer::class, fn($app) => new ExceptionRenderer(
         $app->make(Settings::class),
         $app->make(ErrorCodes::class),
         $app->make(ErrorMessages::class),
         $app->make(ValidationSource::class),
+        $app->make(ErrorIds::class),
       ));
 
       // Se engancha cuando la app ya terminó de arrancar, para quedar al final de la fila de funciones de renderizado:
@@ -63,9 +66,17 @@
      * Si el manejador no tiene `renderable` (uno hecho a mano), no se hace nada. Si la función devuelve null, Laravel sigue como siempre.
      * It hooks into Laravel's exception handling with a render callback, which works the same from Laravel 10 to 13.
      * If the handler has no `renderable` (a hand-made one), nothing is done. If the callback returns null, Laravel carries on as usual.
+     * También anota el id del error justo antes de que Laravel lo escriba en el log (`reportable`); esa función no devuelve nada, así que el log sigue igual.
+     * It also notes the error id right before Laravel writes it to the log (`reportable`); that callback returns nothing, so logging carries on as usual.
      */
     private function hookIntoTheExceptionHandler(): void {
       $this->callAfterResolving(ExceptionHandler::class, function ($handler) {
+        if (method_exists($handler, 'reportable')) {
+          $handler->reportable(function (Throwable $e) {
+            $this->app->make(ErrorIds::class)->reported($e);
+          });
+        }
+
         if (!method_exists($handler, 'renderable')) {
           return;
         }

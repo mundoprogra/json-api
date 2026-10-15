@@ -24,23 +24,31 @@
       private readonly ErrorCodes $codes,
       private readonly ErrorMessages $messages,
       private readonly ValidationSource $validationSource,
+      private readonly ErrorIds $ids,
     ) {
     }
 
     public function render(Throwable $e, Request $request): JsonResponse {
       if ($e instanceof ValidationException) {
-        return ErrorDocument::make($this->validationErrors($e, $request), $this->settings->jsonApiObject())->toResponse();
+        return $this->document($this->validationErrors($e, $request), $request)->toResponse();
       }
 
       if ($e instanceof JsonApiException) {
         $errors = array_map(fn(Error $error) => $this->complete($error, $request), $e->errors());
 
-        return ErrorDocument::make($errors, $this->settings->jsonApiObject())->toResponse($e->headers());
+        return $this->document($errors, $request)->toResponse($e->headers());
       }
 
       $headers = $e instanceof HttpExceptionInterface ? $e->getHeaders() : [];
 
-      return ErrorDocument::make($this->errorFor($e, $request, $headers), $this->settings->jsonApiObject())->toResponse($headers);
+      return $this->document([$this->errorFor($e, $request, $headers)], $request)->toResponse($headers);
+    }
+
+    /**
+     * @param  list<Error>  $errors
+     */
+    private function document(array $errors, Request $request): ErrorDocument {
+      return ErrorDocument::make($this->ids->assign($errors, $request), $this->settings->jsonApiObject());
     }
 
     /**
