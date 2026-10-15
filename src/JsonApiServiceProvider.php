@@ -4,6 +4,7 @@
 
   use Illuminate\Contracts\Debug\ExceptionHandler;
   use Illuminate\Contracts\Foundation\CachesConfiguration;
+  use Illuminate\Contracts\Http\Kernel as HttpKernel;
   use Illuminate\Http\Request;
   use Illuminate\Support\ServiceProvider;
   use MundoProgra\JsonApi\Errors\ErrorCodes;
@@ -11,6 +12,7 @@
   use MundoProgra\JsonApi\Errors\ErrorMessages;
   use MundoProgra\JsonApi\Errors\ExceptionRenderer;
   use MundoProgra\JsonApi\Errors\ValidationSource;
+  use MundoProgra\JsonApi\Http\Middleware\ApplyJsonApi;
   use MundoProgra\JsonApi\Http\RequestScope;
   use MundoProgra\JsonApi\Support\ConfigValidator;
   use MundoProgra\JsonApi\Support\Settings;
@@ -44,12 +46,26 @@
       // It hooks in once the app has finished booting, to end up last in the line of render callbacks:
       // that way any response of its own the app registered (in bootstrap/app.php, in Handler or in the boot() of its providers) wins.
       $this->app->booted(fn() => $this->hookIntoTheExceptionHandler());
+
+      // El middleware se agrega al inicio de la fila global cuando se crea el kernel HTTP: corre antes de que se busque la ruta
+      // (así cubre las rutas que no existen) y antes que `auth`. En consola el kernel HTTP no se crea, así que no hay nada que tocar.
+      // The middleware is added at the start of the global stack when the HTTP kernel is created: it runs before the route is looked up
+      // (so it covers routes that do not exist) and before `auth`. In the console the HTTP kernel is not created, so there is nothing to touch.
+      $this->callAfterResolving(HttpKernel::class, function ($kernel) {
+        if (method_exists($kernel, 'prependMiddleware')) {
+          $kernel->prependMiddleware(ApplyJsonApi::class . ':scope');
+        }
+      });
     }
 
     public function boot(): void {
       // Se valida en boot() y no en register(): para entonces otros providers ya pudieron modificar la configuración.
       // It is validated in boot() rather than register(): by then other providers may have modified the config.
       (new ConfigValidator())->validate((array) $this->app->make('config')->get('json-api', []));
+
+      // Para marcar a mano una ruta fuera del alcance: `->middleware('json-api')`.
+      // To mark a route outside the scope by hand: `->middleware('json-api')`.
+      $this->app->make('router')->aliasMiddleware('json-api', ApplyJsonApi::class);
 
       $this->publishes([
         __DIR__ . '/../config/json-api.php' => config_path('json-api.php'),
