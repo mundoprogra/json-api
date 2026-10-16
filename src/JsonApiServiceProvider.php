@@ -48,12 +48,17 @@
       // that way any response of its own the app registered (in bootstrap/app.php, in Handler or in the boot() of its providers) wins.
       $this->app->booted(fn() => $this->hookIntoTheExceptionHandler());
 
-      // El middleware se agrega al inicio de la fila global cuando se crea el kernel HTTP: corre antes de que se busque la ruta
-      // (así cubre las rutas que no existen) y antes que `auth`. En consola el kernel HTTP no se crea, así que no hay nada que tocar.
-      // The middleware is added at the start of the global stack when the HTTP kernel is created: it runs before the route is looked up
-      // (so it covers routes that do not exist) and before `auth`. In the console the HTTP kernel is not created, so there is nothing to touch.
+      // Los middleware se agregan al inicio de la fila global cuando se crea el kernel HTTP: corren antes de que se busque la ruta
+      // (así cubren las rutas que no existen) y antes que `auth`. En consola el kernel HTTP no se crea, así que no hay nada que tocar.
+      // Cada `prependMiddleware` queda por delante del anterior, así que se agregan en orden inverso: primero ApplyJsonApi (guarda el Accept
+      // original) y justo después NegotiateContent, que lo lee.
+      // The middleware are added at the start of the global stack when the HTTP kernel is created: they run before the route is looked up
+      // (so they cover routes that do not exist) and before `auth`. In the console the HTTP kernel is not created, so there is nothing to touch.
+      // Each `prependMiddleware` ends up in front of the previous one, so they are added in reverse order: ApplyJsonApi first (it keeps the
+      // original Accept) and right after it NegotiateContent, which reads it.
       $this->callAfterResolving(HttpKernel::class, function ($kernel) {
         if (method_exists($kernel, 'prependMiddleware')) {
+          $kernel->prependMiddleware(NegotiateContent::class . ':scope');
           $kernel->prependMiddleware(ApplyJsonApi::class . ':scope');
         }
       });

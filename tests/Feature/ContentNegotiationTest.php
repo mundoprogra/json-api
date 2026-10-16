@@ -21,6 +21,8 @@
   class ContentNegotiationTest extends TestCase {
     use AssertsJsonApi;
 
+    protected bool $negotiates = true;
+
     private const MEDIA_TYPE = 'application/vnd.api+json';
 
     protected function setUp(): void {

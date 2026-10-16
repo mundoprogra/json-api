@@ -7,6 +7,7 @@
   use MundoProgra\JsonApi\Errors\ErrorCodes;
   use MundoProgra\JsonApi\Errors\ErrorMessages;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
+  use MundoProgra\JsonApi\Http\RequestScope;
   use MundoProgra\JsonApi\Support\ContentNegotiator;
   use MundoProgra\JsonApi\Support\NegotiationFailure;
   use MundoProgra\JsonApi\Support\Settings;
@@ -26,15 +27,25 @@
     public function __construct(
       private readonly Settings $settings,
       private readonly ErrorMessages $messages,
+      private readonly RequestScope $scope,
     ) {
     }
 
     /**
+     * Sin parámetro (el alias `json-api.negotiate` en una ruta) negocia siempre.
+     * Con `scope` (el que registra el paquete para toda la app) solo negocia si la petición está dentro del alcance.
+     * Without a parameter (the `json-api.negotiate` alias on a route) it always negotiates.
+     * With `scope` (the one the package registers for the whole app) it only negotiates if the request is inside the scope.
+     *
      * @param  Closure(Request): Response  $next
      *
      * @throws JsonApiException
      */
-    public function handle(Request $request, Closure $next): Response {
+    public function handle(Request $request, Closure $next, string $how = 'always'): Response {
+      if ($how === 'scope' && !$this->scope->appliesTo($request)) {
+        return $next($request);
+      }
+
       // Se crea en cada petición: lee la configuración al momento, así un cambio de `strict_headers` se nota enseguida.
       // It is created on each request: it reads the config at that moment, so a `strict_headers` change shows up right away.
       $negotiator = new ContentNegotiator($this->settings->strictHeaders());
