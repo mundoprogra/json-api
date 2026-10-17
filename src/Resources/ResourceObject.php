@@ -82,7 +82,70 @@
         $data['attributes'] = $attributes;
       }
 
+      // Igual que `attributes`: un miembro vacío se omite porque una lista vacía no sería un objeto.
+      // Like `attributes`: an empty member is left out because an empty list would not be an object.
+      $links = $this->filter(array_merge($this->selfLink(), $this->jsonApiLinks($request)));
+      $meta = $this->filter($this->jsonApiMeta($request));
+
+      if ($links !== []) {
+        $data['links'] = $links;
+      }
+
+      if ($meta !== []) {
+        $data['meta'] = $meta;
+      }
+
       return $data;
+    }
+
+    /**
+     * El nombre corto de la ruta de consulta de este recurso (por ejemplo `authors.show`), de donde sale su `links.self`.
+     * Si es null no hay `links.self`. Se le antepone `links.route_name_prefix`.
+     * The short name of the show route of this resource (for example `authors.show`), where its `links.self` comes from.
+     * If it is null there is no `links.self`. `links.route_name_prefix` is put in front of it.
+     */
+    protected function jsonApiRoute(): ?string {
+      return null;
+    }
+
+    /**
+     * Más links del recurso. Se agregan después del `self`, y uno con el mismo nombre reemplaza al que armó el paquete.
+     * More links of the resource. They are added after the `self`, and one with the same name replaces the one the package built.
+     *
+     * @return array<string, mixed>
+     */
+    protected function jsonApiLinks(Request $request): array {
+      return [];
+    }
+
+    /**
+     * El `meta` del recurso. Es de formato libre: sus nombres no se convierten.
+     * The `meta` of the resource. It is free-form: its names are not converted.
+     *
+     * @return array<string, mixed>
+     */
+    protected function jsonApiMeta(Request $request): array {
+      return [];
+    }
+
+    /**
+     * El link `self` armado con la ruta declarada. Si no se declaró, o si no existe una ruta con ese nombre (ya con el prefijo), no hay link.
+     * El `id` del recurso es el parámetro de la ruta.
+     * The `self` link built from the declared route. If none was declared, or no route with that name exists (prefix included), there is no link.
+     * The id of the resource is the route parameter.
+     *
+     * @return array<string, string>
+     */
+    private function selfLink(): array {
+      $name = $this->jsonApiRoute();
+
+      if ($name === null) {
+        return [];
+      }
+
+      $route = app(Settings::class)->routeNamePrefix() . $name;
+
+      return app('router')->has($route) ? ['self' => route($route, [$this->id()])] : [];
     }
 
     /**
@@ -108,6 +171,14 @@
       $status = $this->resource instanceof Model && $this->resource->wasRecentlyCreated ? 201 : 200;
       $response = new JsonResponse($document + $extra, $status, [], $this->jsonOptions());
       $response->headers->set('Content-Type', ErrorDocument::MEDIA_TYPE);
+
+      // Un recurso recién creado dice dónde quedó: su propio `links.self`.
+      // A newly created resource says where it ended up: its own `links.self`.
+      $self = $document['data']['links']['self'] ?? null;
+
+      if ($status === 201 && is_string($self)) {
+        $response->headers->set('Location', $self);
+      }
 
       $this->withResponse($request, $response);
 
