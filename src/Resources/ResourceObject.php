@@ -3,10 +3,12 @@
   namespace MundoProgra\JsonApi\Resources;
 
   use Illuminate\Database\Eloquent\Model;
+  use Illuminate\Http\JsonResponse;
   use Illuminate\Http\Request;
   use Illuminate\Http\Resources\Json\JsonResource;
   use InvalidArgumentException;
   use LogicException;
+  use MundoProgra\JsonApi\Errors\ErrorDocument;
   use MundoProgra\JsonApi\Support\MemberName;
   use MundoProgra\JsonApi\Support\Settings;
 
@@ -81,6 +83,35 @@
       }
 
       return $data;
+    }
+
+    /**
+     * El documento de JSON:API: `jsonapi` (si está activo), `data` y los miembros que agreguen `with()` y `additional()`.
+     * Esos nunca pueden pisar `jsonapi` ni `data`. Sale con el `Content-Type` exacto de JSON:API, `200`, o `201` si el modelo se acaba de crear.
+     * The JSON:API document: `jsonapi` (if on), `data` and the members `with()` and `additional()` add.
+     * Those can never override `jsonapi` or `data`. It goes out with the exact JSON:API `Content-Type`, `200`, or `201` if the model was just created.
+     *
+     * @param  Request  $request
+     */
+    final public function toResponse($request): JsonResponse {
+      $document = [];
+
+      if (app(Settings::class)->jsonApiObject()) {
+        $document['jsonapi'] = ['version' => ErrorDocument::JSON_API_VERSION];
+      }
+
+      $document['data'] = $this->resolve($request);
+
+      $extra = array_merge_recursive($this->with($request), $this->additional);
+      unset($extra['jsonapi'], $extra['data']);
+
+      $status = $this->resource instanceof Model && $this->resource->wasRecentlyCreated ? 201 : 200;
+      $response = new JsonResponse($document + $extra, $status, [], $this->jsonOptions());
+      $response->headers->set('Content-Type', ErrorDocument::MEDIA_TYPE);
+
+      $this->withResponse($request, $response);
+
+      return $response;
     }
 
     /**

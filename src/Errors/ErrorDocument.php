@@ -11,9 +11,9 @@
    * A JSON:API error document: the complete response with the `errors` list. It is immutable.
    */
   final class ErrorDocument implements JsonSerializable {
-    private const JSON_API_VERSION = '1.1';
+    public const JSON_API_VERSION = '1.1';
 
-    private const MEDIA_TYPE = 'application/vnd.api+json';
+    public const MEDIA_TYPE = 'application/vnd.api+json';
 
     /**
      * @param  list<Error>  $errors
