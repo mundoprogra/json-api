@@ -3,6 +3,7 @@
   namespace MundoProgra\JsonApi\Tests\Feature;
 
   use Illuminate\Http\Request;
+  use LogicException;
   use MundoProgra\JsonApi\Resources\ResourceObject;
   use MundoProgra\JsonApi\Tests\Fixtures\Models\Author;
   use MundoProgra\JsonApi\Tests\Fixtures\Models\Tag;
@@ -156,10 +157,40 @@
     // ---------------------------------------------------------------------------------------------
 
     #[Test]
-    public function more_links_are_added_after_the_self_link(): void {
-      $data = $this->resolve($this->resourceWith('authors.show', links: ['related' => 'https://example.com/related']));
+    public function a_link_other_than_self_is_an_error_because_the_spec_defines_only_self_for_a_resource(): void {
+      // La spec 1.1 define solo `self` en el `links` de un recurso y no admite miembros adicionales: un documento con otro nombre sería inválido.
+      // Spec 1.1 defines only `self` in a resource `links` and admits no additional members: a document with another name would be invalid.
+      $this->expectException(LogicException::class);
+      $this->expectExceptionMessageMatches('/"related"/');
+      $this->expectExceptionMessageMatches('/self/');
 
-      $this->assertSame(['self' => 'http://localhost/api/authors/7', 'related' => 'https://example.com/related'], $data['links']);
+      $this->resolve($this->resourceWith('authors.show', links: ['related' => 'https://example.com/related']));
+    }
+
+    #[Test]
+    public function the_error_is_raised_even_when_self_is_also_given(): void {
+      $this->expectException(LogicException::class);
+      $this->expectExceptionMessageMatches('/"first"/');
+
+      $this->resolve($this->resourceWith(null, links: ['self' => 'https://example.com/me', 'first' => 'https://example.com/first']));
+    }
+
+    #[Test]
+    public function the_self_link_can_be_a_link_object_with_its_own_members(): void {
+      $link = ['href' => 'https://example.com/me', 'title' => 'Me', 'meta' => ['a' => 1]];
+
+      $data = $this->resolve($this->resourceWith(null, links: ['self' => $link]));
+
+      $this->assertSame(['self' => $link], $data['links']);
+    }
+
+    #[Test]
+    public function a_link_object_for_self_also_replaces_the_one_the_package_built(): void {
+      $link = ['href' => 'https://example.com/me', 'meta' => ['a' => 1]];
+
+      $data = $this->resolve($this->resourceWith('authors.show', links: ['self' => $link]));
+
+      $this->assertSame(['self' => $link], $data['links']);
     }
 
     #[Test]
@@ -233,5 +264,27 @@
 
       $response->assertStatus(201);
       $this->assertSame('https://example.com/me', $response->headers->get('Location'));
+    }
+
+    #[Test]
+    public function the_location_follows_the_href_of_a_self_link_object(): void {
+      $this->app->make('router')->post('api/handmade-object', fn() => $this->resourceWith(null, links: ['self' => ['href' => 'https://example.com/me', 'meta' => ['a' => 1]]], model: $this->author(created: true)));
+
+      $response = $this->post('api/handmade-object', [], ['Accept' => self::MEDIA_TYPE]);
+
+      $response->assertStatus(201);
+      $this->assertSame('https://example.com/me', $response->headers->get('Location'));
+    }
+
+    #[Test]
+    public function a_self_link_object_without_href_gives_no_location(): void {
+      // Un objeto de link sin `href` no dice adónde ir: no se inventa una cabecera.
+      // A link object without `href` does not say where to go: a header is not made up.
+      $this->app->make('router')->post('api/no-href', fn() => $this->resourceWith(null, links: ['self' => ['title' => 'Me']], model: $this->author(created: true)));
+
+      $response = $this->post('api/no-href', [], ['Accept' => self::MEDIA_TYPE]);
+
+      $response->assertStatus(201);
+      $this->assertFalse($response->headers->has('Location'));
     }
   }

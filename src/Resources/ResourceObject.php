@@ -95,7 +95,7 @@
 
       // Igual que `attributes`: un miembro vacío se omite porque una lista vacía no sería un objeto.
       // Like `attributes`: an empty member is left out because an empty list would not be an object.
-      $links = $this->filter(array_merge($this->selfLink(), $this->jsonApiLinks($request)));
+      $links = $this->filter(array_merge($this->selfLink(), $this->resourceLinks($request)));
       $meta = $this->filter($this->jsonApiMeta($request));
 
       if ($links !== []) {
@@ -120,13 +120,35 @@
     }
 
     /**
-     * Más links del recurso. Se agregan después del `self`, y uno con el mismo nombre reemplaza al que armó el paquete.
-     * More links of the resource. They are added after the `self`, and one with the same name replaces the one the package built.
+     * Los links del recurso. La spec define solo `self` para un recurso (y no admite miembros adicionales), así que cualquier otro nombre es un
+     * error. Sirve para escribir el `self` a mano, o como objeto de link (`href`, `title`, `meta`...); reemplaza al que armó el paquete.
+     * The links of the resource. The spec defines only `self` for a resource (and admits no additional members), so any other name is an
+     * error. It serves to write the `self` by hand, or as a link object (`href`, `title`, `meta`...); it replaces the one the package built.
      *
      * @return array<string, mixed>
      */
     protected function jsonApiLinks(Request $request): array {
       return [];
+    }
+
+    /**
+     * Los links que devuelve `jsonApiLinks()`, ya revisados.
+     * The links `jsonApiLinks()` returns, already checked.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws LogicException si hay un link que no se llama `self` / if there is a link not named `self`
+     */
+    private function resourceLinks(Request $request): array {
+      $links = $this->jsonApiLinks($request);
+
+      foreach (array_keys($links) as $name) {
+        if ($name !== 'self') {
+          throw new LogicException(sprintf('%s has a link named "%s": the JSON:API spec defines only "self" for the links of a resource object.', static::class, $name));
+        }
+      }
+
+      return $links;
     }
 
     /**
@@ -240,9 +262,10 @@
       // Un recurso recién creado dice dónde quedó: su propio `links.self`.
       // A newly created resource says where it ended up: its own `links.self`.
       $self = $document['data']['links']['self'] ?? null;
+      $location = is_array($self) ? ($self['href'] ?? null) : $self;
 
-      if ($status === 201 && is_string($self)) {
-        $response->headers->set('Location', $self);
+      if ($status === 201 && is_string($location)) {
+        $response->headers->set('Location', $location);
       }
 
       $this->withResponse($request, $response);
