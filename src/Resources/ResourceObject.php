@@ -195,14 +195,21 @@
     }
 
     /**
-     * El documento de JSON:API: `jsonapi` (si está activo), `data` y los miembros que agreguen `with()` y `additional()`.
-     * Esos nunca pueden pisar `jsonapi` ni `data`. Sale con el `Content-Type` exacto de JSON:API, `200`, o `201` si el modelo se acaba de crear.
-     * The JSON:API document: `jsonapi` (if on), `data` and the members `with()` and `additional()` add.
-     * Those can never override `jsonapi` or `data`. It goes out with the exact JSON:API `Content-Type`, `200`, or `201` if the model was just created.
+     * El cuerpo completo del documento de JSON:API como arreglo: `jsonapi` (si está activo), `data` y los miembros que agreguen
+     * `with()` y `additional()`, que nunca pueden pisar `jsonapi` ni `data`. No necesita una petición HTTP (sirve para un job, un comando
+     * o una prueba): sin ella usa la que haya en el contenedor y, si no hay ninguna, una vacía. Es el mismo cuerpo que la respuesta; el
+     * estado y las cabeceras son solo de la respuesta.
+     * The full JSON:API document body as an array: `jsonapi` (if on), `data` and the members `with()` and `additional()` add, which can
+     * never override `jsonapi` or `data`. It needs no HTTP request (it serves a job, a command or a test): without one it uses the one in
+     * the container and, if there is none, an empty one. It is the same body as the response; the status and the headers are the response's alone.
      *
-     * @param  Request  $request
+     * @return array<string, mixed>
      */
-    final public function toResponse($request): JsonResponse {
+    public function document(?Request $request = null): array {
+      // Se lee del contenedor directamente: `resolveRequestFromContainer()` de JsonResource solo existe desde Laravel 12.
+      // It is read from the container directly: JsonResource's `resolveRequestFromContainer()` only exists since Laravel 12.
+      $request ??= app()->bound('request') ? app('request') : Request::create('/');
+
       $document = [];
 
       if (app(Settings::class)->jsonApiObject()) {
@@ -214,8 +221,20 @@
       $extra = array_merge_recursive($this->with($request), $this->additional);
       unset($extra['jsonapi'], $extra['data']);
 
+      return $document + $extra;
+    }
+
+    /**
+     * La respuesta HTTP: el documento con el `Content-Type` exacto de JSON:API, `200`, o `201` si el modelo se acaba de crear.
+     * The HTTP response: the document with the exact JSON:API `Content-Type`, `200`, or `201` if the model was just created.
+     *
+     * @param  Request  $request
+     */
+    final public function toResponse($request): JsonResponse {
+      $document = $this->document($request);
+
       $status = $this->resource instanceof Model && $this->resource->wasRecentlyCreated ? 201 : 200;
-      $response = new JsonResponse($document + $extra, $status, [], $this->jsonOptions());
+      $response = new JsonResponse($document, $status, [], $this->jsonOptions());
       $response->headers->set('Content-Type', ErrorDocument::MEDIA_TYPE);
 
       // Un recurso recién creado dice dónde quedó: su propio `links.self`.
