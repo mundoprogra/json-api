@@ -5,7 +5,10 @@
   use Illuminate\Database\Eloquent\Model;
   use Illuminate\Http\Request;
   use Illuminate\Http\Resources\Json\JsonResource;
+  use InvalidArgumentException;
   use LogicException;
+  use MundoProgra\JsonApi\Support\MemberName;
+  use MundoProgra\JsonApi\Support\Settings;
 
   /**
    * Un objeto de recurso de JSON:API: `type`, `id` (siempre texto) y `attributes`.
@@ -69,7 +72,7 @@
 
       // Se quitan antes los valores omitidos para saber si quedó algún atributo: una lista vacía no sería un objeto.
       // The omitted values are removed first to know whether any attribute is left: an empty list would not be an object.
-      $attributes = $this->filter($this->jsonApiAttributes($request));
+      $attributes = $this->memberNames($this->filter($this->jsonApiAttributes($request)));
 
       $data = ['type' => $this->type(), 'id' => $id];
 
@@ -78,5 +81,36 @@
       }
 
       return $data;
+    }
+
+    /**
+     * Revisa los nombres de los atributos y los convierte del snake_case en que se escriben al estilo de `member_case`, solo en el primer nivel.
+     * La spec prohíbe llamar `id` o `type` a un atributo, que `attributes` sea una lista sin nombres y que dos nombres terminen iguales:
+     * son errores del programador y se avisan en lugar de mandar un documento inválido.
+     * Checks the attribute names and converts them from the snake_case they are written in to the `member_case` style, first level only.
+     * The spec forbids naming an attribute `id` or `type`, `attributes` being a list without names, and two names ending up equal:
+     * those are developer errors and are reported instead of sending an invalid document.
+     *
+     * @param  array<int|string, mixed>  $attributes
+     * @return array<int|string, mixed>
+     *
+     * @throws LogicException
+     */
+    private function memberNames(array $attributes): array {
+      if ($attributes !== [] && array_is_list($attributes)) {
+        throw new LogicException(sprintf('The attributes of %s must have names (an object), not be a list of values.', static::class));
+      }
+
+      foreach (['id', 'type'] as $reserved) {
+        if (array_key_exists($reserved, $attributes)) {
+          throw new LogicException(sprintf('%s has an attribute named "%s", which the JSON:API spec reserves for the resource object.', static::class, $reserved));
+        }
+      }
+
+      try {
+        return MemberName::for(app(Settings::class)->memberCase())->keysFromSnake($attributes);
+      } catch (InvalidArgumentException $e) {
+        throw new LogicException(sprintf('The attributes of %s are repeated: %s', static::class, $e->getMessage()), 0, $e);
+      }
     }
   }
