@@ -4,6 +4,7 @@
 
   use Illuminate\Http\Request;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
+  use MundoProgra\JsonApi\Support\MediaType;
   use MundoProgra\JsonApi\Support\Settings;
   use Throwable;
 
@@ -17,8 +18,6 @@
    */
   final class RequestScope {
     private const MARK = 'json-api.marked';
-
-    private const MEDIA_TYPE = 'application/vnd.api+json';
 
     public function __construct(private readonly Settings $settings) {
     }
@@ -75,7 +74,7 @@
      */
     private function asksForTheMediaType(Request $request): bool {
       foreach ($request->getAcceptableContentTypes() as $type) {
-        if (strtolower(trim(explode(';', $type)[0])) === self::MEDIA_TYPE) {
+        if (strtolower(trim(explode(';', $type)[0])) === MediaType::JSON_API) {
           return true;
         }
       }

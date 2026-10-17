@@ -301,4 +301,11 @@
     public function can_be_used_wherever_a_string_is_expected(): void {
       $this->assertInstanceOf(Stringable::class, MediaType::parse('application/json'));
     }
+
+    #[Test]
+    public function it_is_the_single_source_of_the_json_api_media_type_and_version(): void {
+      $this->assertSame('application/vnd.api+json', MediaType::JSON_API);
+      $this->assertSame('1.1', MediaType::JSON_API_VERSION);
+      $this->assertTrue(MediaType::parse(MediaType::JSON_API)->isJsonApi());
+    }
   }

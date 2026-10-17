@@ -303,4 +303,25 @@
 
       $this->assertSame(['type', 'id', 'attributes'], array_keys($data));
     }
+
+    // ---------------------------------------------------------------------------------------------
+    // Colecciones: llegan en la Fase 10 / Collections: they arrive in Phase 10
+    // ---------------------------------------------------------------------------------------------
+
+    #[Test]
+    public function collection_is_not_available_yet_and_says_so_instead_of_giving_a_wrong_document(): void {
+      // Mientras no esté la Fase 10, `collection()` heredaría el comportamiento de JsonResource y no daría un documento JSON:API completo.
+      // Until Phase 10 is there, `collection()` would inherit JsonResource's behavior and would not give a full JSON:API document.
+      $this->expectException(LogicException::class);
+      $this->expectExceptionMessageMatches('/collection/i');
+
+      AuthorResource::collection([$this->author(['id' => 7, 'name' => 'Ada'])]);
+    }
+
+    #[Test]
+    public function collection_refuses_even_an_empty_list(): void {
+      $this->expectException(LogicException::class);
+
+      AuthorResource::collection([]);
+    }
   }

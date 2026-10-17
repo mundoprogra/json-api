@@ -12,7 +12,11 @@
    * It represents a single type (not a list) and is immutable.
    */
   final class MediaType implements Stringable {
-    private const JSON_API = 'application/vnd.api+json';
+    // La única fuente del media type de JSON:API y de su versión: el resto del código usa estas constantes.
+    // The single source of the JSON:API media type and of its version: the rest of the code uses these constants.
+    public const JSON_API = 'application/vnd.api+json';
+
+    public const JSON_API_VERSION = '1.1';
 
     /**
      * Parámetros de JSON:API cuyo valor es una lista de direcciones separadas por espacios.

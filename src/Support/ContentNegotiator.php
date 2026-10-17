@@ -11,8 +11,6 @@
    * It returns null if the header is acceptable, or a NegotiationFailure with status 415 or 406.
    */
   final class ContentNegotiator {
-    private const RESPONSE_MEDIA_TYPE = 'application/vnd.api+json';
-
     /**
      * Parámetros que JSON:API permite en el tipo de medio.
      * Parameters JSON:API allows on the media type.
@@ -30,7 +28,7 @@
      * The response always uses the type without parameters: no extension or profile is applied.
      */
     public function responseContentType(): string {
-      return self::RESPONSE_MEDIA_TYPE;
+      return MediaType::JSON_API;
     }
 
     /**

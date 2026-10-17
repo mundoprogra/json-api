@@ -5,6 +5,7 @@
   use Closure;
   use Illuminate\Http\Request;
   use MundoProgra\JsonApi\Http\RequestScope;
+  use MundoProgra\JsonApi\Support\MediaType;
   use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
   use Symfony\Component\HttpFoundation\Response;
 
@@ -18,8 +19,6 @@
    */
   final class ApplyJsonApi {
     public const ORIGINAL_ACCEPT = 'json-api.original_accept';
-
-    private const MEDIA_TYPE = 'application/vnd.api+json';
 
     public function __construct(private readonly RequestScope $scope) {
     }
@@ -57,7 +56,7 @@
         return;
       }
 
-      $request->headers->set('Accept', self::MEDIA_TYPE);
+      $request->headers->set('Accept', MediaType::JSON_API);
       $this->forgetParsedAccept($request);
     }
 

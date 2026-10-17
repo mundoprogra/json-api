@@ -8,7 +8,7 @@
   use Illuminate\Http\Resources\Json\JsonResource;
   use InvalidArgumentException;
   use LogicException;
-  use MundoProgra\JsonApi\Errors\ErrorDocument;
+  use MundoProgra\JsonApi\Support\MediaType;
   use MundoProgra\JsonApi\Support\MemberName;
   use MundoProgra\JsonApi\Support\Settings;
 
@@ -28,6 +28,20 @@
      * @return array<string, mixed>
      */
     abstract protected function jsonApiAttributes(Request $request): array;
+
+    /**
+     * Las colecciones llegan en la Fase 10. Mientras tanto se rechaza: `JsonResource::collection()` no daría un documento JSON:API completo
+     * y el error aparecería lejos de su causa.
+     * Collections arrive in Phase 10. Until then it is refused: `JsonResource::collection()` would not give a full JSON:API document
+     * and the mistake would show up far from its cause.
+     *
+     * @param  mixed  $resource
+     *
+     * @throws LogicException
+     */
+    public static function collection($resource): never {
+      throw new LogicException(sprintf('%s::collection() is not available yet: collections of JSON:API resources arrive in a later phase of the package.', static::class));
+    }
 
     /**
      * Por defecto, la tabla del modelo.
@@ -235,7 +249,7 @@
       $document = [];
 
       if (app(Settings::class)->jsonApiObject()) {
-        $document['jsonapi'] = ['version' => ErrorDocument::JSON_API_VERSION];
+        $document['jsonapi'] = ['version' => MediaType::JSON_API_VERSION];
       }
 
       $document['data'] = $this->resolve($request);
@@ -257,7 +271,7 @@
 
       $status = $this->resource instanceof Model && $this->resource->wasRecentlyCreated ? 201 : 200;
       $response = new JsonResponse($document, $status, [], $this->jsonOptions());
-      $response->headers->set('Content-Type', ErrorDocument::MEDIA_TYPE);
+      $response->headers->set('Content-Type', MediaType::JSON_API);
 
       // Un recurso recién creado dice dónde quedó: su propio `links.self`.
       // A newly created resource says where it ended up: its own `links.self`.

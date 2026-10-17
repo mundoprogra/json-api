@@ -5,16 +5,13 @@
   use Illuminate\Http\JsonResponse;
   use InvalidArgumentException;
   use JsonSerializable;
+  use MundoProgra\JsonApi\Support\MediaType;
 
   /**
    * Un documento de error de JSON:API: la respuesta completa con la lista `errors`. Es inmutable.
    * A JSON:API error document: the complete response with the `errors` list. It is immutable.
    */
   final class ErrorDocument implements JsonSerializable {
-    public const JSON_API_VERSION = '1.1';
-
-    public const MEDIA_TYPE = 'application/vnd.api+json';
-
     /**
      * @param  list<Error>  $errors
      */
@@ -70,7 +67,7 @@
       $document = [];
 
       if ($this->jsonApiObject) {
-        $document['jsonapi'] = ['version' => self::JSON_API_VERSION];
+        $document['jsonapi'] = ['version' => MediaType::JSON_API_VERSION];
       }
 
       $document['errors'] = array_map(fn(Error $error) => $error->toArray(), $this->errors);
@@ -101,7 +98,7 @@
         JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
       );
 
-      $response->headers->set('Content-Type', self::MEDIA_TYPE);
+      $response->headers->set('Content-Type', MediaType::JSON_API);
 
       return $response;
     }
