@@ -74,12 +74,23 @@
 
       // Se quitan antes los valores omitidos para saber si quedó algún atributo: una lista vacía no sería un objeto.
       // The omitted values are removed first to know whether any attribute is left: an empty list would not be an object.
-      $attributes = $this->memberNames($this->filter($this->jsonApiAttributes($request)));
+      $attributes = $this->memberNames($this->filter($this->jsonApiAttributes($request)), 'attribute');
+      $relationships = $this->memberNames($this->relationshipObjects($this->filter($this->jsonApiRelationships($request))), 'relationship');
+
+      // La spec comparte un solo espacio de nombres entre atributos y relaciones: se compara ya convertido.
+      // The spec shares a single namespace between attributes and relationships: they are compared already converted.
+      foreach (array_keys(array_intersect_key($attributes, $relationships)) as $shared) {
+        throw new LogicException(sprintf('%s has an attribute and a relationship both named "%s": the JSON:API spec makes them share one namespace.', static::class, $shared));
+      }
 
       $data = ['type' => $this->type(), 'id' => $id];
 
       if ($attributes !== []) {
         $data['attributes'] = $attributes;
+      }
+
+      if ($relationships !== []) {
+        $data['relationships'] = $relationships;
       }
 
       // Igual que `attributes`: un miembro vacío se omite porque una lista vacía no sería un objeto.
@@ -126,6 +137,41 @@
      */
     protected function jsonApiMeta(Request $request): array {
       return [];
+    }
+
+    /**
+     * Las relaciones del recurso, por nombre. Cada valor es un `Relationship`. Se usa `whenLoaded` para que solo salgan las cargadas: una
+     * relación sin cargar se omite, y una a uno cargada pero vacía llega como `null` (así lo entrega `whenLoaded`) y sale como `data: null`.
+     * The relationships of the resource, by name. Each value is a `Relationship`. `whenLoaded` is used so only the loaded ones come out: a
+     * relation that is not loaded is left out, and a to-one that is loaded but empty arrives as `null` (that is how `whenLoaded` hands it over) and comes out as `data: null`.
+     *
+     * @return array<string, mixed>
+     */
+    protected function jsonApiRelationships(Request $request): array {
+      return [];
+    }
+
+    /**
+     * Pasa cada relación a su objeto de JSON:API. Un `null` es una relación a uno vacía.
+     * Turns each relationship into its JSON:API object. A `null` is an empty to-one relationship.
+     *
+     * @param  array<int|string, mixed>  $relationships
+     * @return array<int|string, mixed>
+     *
+     * @throws LogicException si un valor no es un Relationship ni null / if a value is neither a Relationship nor null
+     */
+    private function relationshipObjects(array $relationships): array {
+      return array_map(function ($relationship) {
+        if ($relationship === null) {
+          return ['data' => null];
+        }
+
+        if (!$relationship instanceof Relationship) {
+          throw new LogicException(sprintf('The relationships of %s must be %s objects (or null for an empty to-one), %s given.', static::class, Relationship::class, get_debug_type($relationship)));
+        }
+
+        return $relationship->toArray();
+      }, $relationships);
     }
 
     /**
@@ -198,21 +244,21 @@
      *
      * @throws LogicException
      */
-    private function memberNames(array $attributes): array {
+    private function memberNames(array $attributes, string $label): array {
       if ($attributes !== [] && array_is_list($attributes)) {
-        throw new LogicException(sprintf('The attributes of %s must have names (an object), not be a list of values.', static::class));
+        throw new LogicException(sprintf('The %ss of %s must have names (an object), not be a list of values.', $label, static::class));
       }
 
       foreach (['id', 'type'] as $reserved) {
         if (array_key_exists($reserved, $attributes)) {
-          throw new LogicException(sprintf('%s has an attribute named "%s", which the JSON:API spec reserves for the resource object.', static::class, $reserved));
+          throw new LogicException(sprintf('%s has %s named "%s", which the JSON:API spec reserves for the resource object.', static::class, $label === 'attribute' ? 'an attribute' : 'a relationship', $reserved));
         }
       }
 
       try {
         return MemberName::for(app(Settings::class)->memberCase())->keysFromSnake($attributes);
       } catch (InvalidArgumentException $e) {
-        throw new LogicException(sprintf('The attributes of %s are repeated: %s', static::class, $e->getMessage()), 0, $e);
+        throw new LogicException(sprintf('The %ss of %s are repeated: %s', $label, static::class, $e->getMessage()), 0, $e);
       }
     }
   }
