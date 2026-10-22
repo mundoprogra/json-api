@@ -39,6 +39,7 @@
         'TOO_MANY_REQUESTS' => ['TOO_MANY_REQUESTS', 'request.too_many_requests'],
         'SERVER_ERROR' => ['SERVER_ERROR', 'server.error'],
         'SERVICE_UNAVAILABLE' => ['SERVICE_UNAVAILABLE', 'server.unavailable'],
+        'BAD_QUERY' => ['BAD_QUERY', 'request.bad_query'],
       ];
     }
 

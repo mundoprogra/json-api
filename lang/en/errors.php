@@ -11,6 +11,16 @@
         'title' => 'Bad request',
         'detail' => 'The request could not be understood or is malformed.',
       ],
+      'bad_query' => [
+        'title' => 'Invalid query parameter',
+        'detail' => 'A query parameter of the request is not valid.',
+        'reasons' => [
+          'malformed' => 'This query parameter does not have the form the JSON:API specification defines for it.',
+          'invalid_name' => 'This query parameter has a name that is not valid: names may only contain letters, digits, hyphens and underscores, and must start and end with a letter or a digit.',
+          'empty_item' => 'This query parameter has an empty item in its comma-separated list.',
+          'invalid_page' => 'The page number and the page size must be positive integers.',
+        ],
+      ],
       'method_not_allowed' => [
         'title' => 'Method not allowed',
         'detail' => 'The :method method is not supported for this route. Supported methods: :allowed.',

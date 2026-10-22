@@ -58,6 +58,10 @@
         $cases["not_acceptable: $reason"] = [ErrorCodes::NOT_ACCEPTABLE, $reason];
       }
 
+      foreach (['malformed', 'invalid_name', 'empty_item', 'invalid_page'] as $reason) {
+        $cases["bad_query: $reason"] = [ErrorCodes::BAD_QUERY, $reason];
+      }
+
       return $cases;
     }
 

@@ -17,6 +17,8 @@
   final class ErrorCodes {
     public const BAD_REQUEST = 'request.bad_request';
 
+    public const BAD_QUERY = 'request.bad_query';
+
     public const UNAUTHENTICATED = 'auth.unauthenticated';
 
     public const FORBIDDEN = 'auth.forbidden';
@@ -59,6 +61,7 @@
     public static function catalog(): array {
       return [
         self::BAD_REQUEST,
+        self::BAD_QUERY,
         self::UNAUTHENTICATED,
         self::FORBIDDEN,
         self::INVALID_SIGNATURE,

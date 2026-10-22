@@ -3,18 +3,33 @@
   namespace MundoProgra\JsonApi\Query;
 
   use Illuminate\Http\Request;
+  use InvalidArgumentException;
+  use MundoProgra\JsonApi\Errors\Error;
+  use MundoProgra\JsonApi\Errors\ErrorCodes;
+  use MundoProgra\JsonApi\Errors\ErrorMessages;
+  use MundoProgra\JsonApi\Exceptions\JsonApiException;
   use MundoProgra\JsonApi\Support\MemberName;
   use MundoProgra\JsonApi\Support\Settings;
 
   /**
-   * Los parámetros de consulta de JSON:API de una petición: `include`, `fields`, `sort` y `filter`. Es inmutable y no toca Eloquent.
+   * Los parámetros de consulta de JSON:API de una petición: `include`, `fields`, `sort`, `filter` y `page`. Es inmutable y no toca Eloquent.
    * Los nombres de campo, de relación y de ordenamiento, y las claves del primer nivel de `filter`, pasan del estilo de `member_case` a
    * snake_case; el tipo de `fields[tipo]`, los valores de `filter` y lo anidado no se tocan. Solo lee la query string, no el cuerpo.
-   * The JSON:API query parameters of a request: `include`, `fields`, `sort` and `filter`. It is immutable and does not touch Eloquent.
+   * Un parámetro mal formado es un `400` con `source.parameter` exacto: todos los problemas de la petición salen juntos, en el orden
+   * `include`, `fields`, `sort`, `filter`, `page`, y los textos nunca repiten lo que mandó el cliente.
+   * The JSON:API query parameters of a request: `include`, `fields`, `sort`, `filter` and `page`. It is immutable and does not touch Eloquent.
    * Field, relationship and sort names, and the first-level keys of `filter`, go from the `member_case` style to snake_case; the type
    * in `fields[type]`, the `filter` values and anything nested are not touched. It only reads the query string, not the body.
+   * A malformed parameter is a `400` with an exact `source.parameter`: all the problems of the request come out together, in the order
+   * `include`, `fields`, `sort`, `filter`, `page`, and the texts never repeat what the client sent.
    */
   final class QueryParameters {
+    // Una letra o un dígito al inicio y al final, y entre ellos también guiones y guiones bajos. Es más estricto que la spec (que tolera espacios)
+    // porque estos nombres terminan en consultas de Eloquent y en URL.
+    // A letter or digit at the start and the end, and hyphens and underscores between them too. It is stricter than the spec (which tolerates
+    // spaces) because these names end up in Eloquent queries and URLs.
+    private const NAME = '/^[\p{L}\p{N}](?:[\p{L}\p{N}_-]*[\p{L}\p{N}])?$/u';
+
     /**
      * @param  list<list<string>>  $includes
      * @param  array<string, list<string>>  $fields
@@ -31,17 +46,27 @@
     ) {
     }
 
+    /**
+     * @throws JsonApiException con un error `400` por cada parámetro mal formado / with a `400` error for each malformed parameter
+     */
     public static function from(Request $request, Settings $settings): self {
       $query = $request->query->all();
       $names = MemberName::for($settings->memberCase());
+      $violations = [];
 
-      return new self(
-        self::parseIncludes($query['include'] ?? null, $names),
-        self::parseFields($query['fields'] ?? null, $names),
-        self::parseSort($query['sort'] ?? null, $names),
-        self::parseFilter($query['filter'] ?? null, $names),
-        self::parsePage($query['page'] ?? null),
+      $parameters = new self(
+        self::parseIncludes($query['include'] ?? null, $names, $violations),
+        self::parseFields($query['fields'] ?? null, $names, $violations),
+        self::parseSort($query['sort'] ?? null, $names, $violations),
+        self::parseFilter($query['filter'] ?? null, $names, $violations),
+        self::parsePage($query['page'] ?? null, $violations),
       );
+
+      if ($violations !== []) {
+        throw self::exceptionFor($violations);
+      }
+
+      return $parameters;
     }
 
     /**
@@ -109,60 +134,149 @@
     }
 
     /**
+     * @param  list<array{parameter: string, reason: string}>  $violations
      * @return list<list<string>>
      */
-    private static function parseIncludes(mixed $value, MemberName $names): array {
+    private static function parseIncludes(mixed $value, MemberName $names, array &$violations): array {
+      $items = self::items($value, 'include', $violations);
       $paths = [];
 
-      foreach (self::split($value) as $path) {
-        $paths[] = array_map(fn(string $name) => $names->toSnake($name), explode('.', $path));
+      foreach ($items as $path) {
+        $segments = explode('.', $path);
+
+        if (self::firstInvalidName($segments) !== null) {
+          $violations[] = ['parameter' => 'include', 'reason' => 'invalid_name'];
+
+          return [];
+        }
+
+        $paths[] = array_map(fn(string $name) => $names->toSnake($name), $segments);
       }
 
       return $paths;
     }
 
     /**
+     * @param  list<array{parameter: string, reason: string}>  $violations
      * @return array<string, list<string>>
      */
-    private static function parseFields(mixed $value, MemberName $names): array {
+    private static function parseFields(mixed $value, MemberName $names, array &$violations): array {
+      if ($value === null) {
+        return [];
+      }
+
+      if (!is_array($value)) {
+        $violations[] = ['parameter' => 'fields', 'reason' => 'malformed'];
+
+        return [];
+      }
+
       $fields = [];
 
-      foreach (is_array($value) ? $value : [] as $type => $list) {
-        $fields[(string) $type] = array_map(fn(string $name) => $names->toSnake($name), self::split($list));
+      foreach ($value as $type => $list) {
+        $parameter = "fields[$type]";
+
+        if (!self::isName((string) $type)) {
+          $violations[] = ['parameter' => $parameter, 'reason' => 'invalid_name'];
+
+          continue;
+        }
+
+        $before = count($violations);
+        $items = self::items($list, $parameter, $violations);
+
+        if (count($violations) === $before && self::firstInvalidName($items) !== null) {
+          $violations[] = ['parameter' => $parameter, 'reason' => 'invalid_name'];
+        }
+
+        if (count($violations) === $before) {
+          $fields[(string) $type] = array_map(fn(string $name) => $names->toSnake($name), $items);
+        }
       }
 
       return $fields;
     }
 
     /**
+     * @param  list<array{parameter: string, reason: string}>  $violations
      * @return list<array{field: string, descending: bool}>
      */
-    private static function parseSort(mixed $value, MemberName $names): array {
+    private static function parseSort(mixed $value, MemberName $names, array &$violations): array {
       $sort = [];
 
-      foreach (self::split($value) as $field) {
+      foreach (self::items($value, 'sort', $violations) as $field) {
         $descending = str_starts_with($field, '-');
+        $name = $descending ? substr($field, 1) : $field;
 
-        $sort[] = ['field' => $names->toSnake($descending ? substr($field, 1) : $field), 'descending' => $descending];
+        if (!self::isName($name)) {
+          $violations[] = ['parameter' => 'sort', 'reason' => 'invalid_name'];
+
+          return [];
+        }
+
+        $sort[] = ['field' => $names->toSnake($name), 'descending' => $descending];
       }
 
       return $sort;
     }
 
     /**
+     * @param  list<array{parameter: string, reason: string}>  $violations
      * @return array<string, mixed>
      */
-    private static function parseFilter(mixed $value, MemberName $names): array {
-      return is_array($value) ? $names->keysToSnake($value) : [];
+    private static function parseFilter(mixed $value, MemberName $names, array &$violations): array {
+      if ($value === null) {
+        return [];
+      }
+
+      if (!is_array($value)) {
+        $violations[] = ['parameter' => 'filter', 'reason' => 'malformed'];
+
+        return [];
+      }
+
+      $valid = true;
+
+      foreach (array_keys($value) as $key) {
+        if (!self::isName((string) $key)) {
+          $violations[] = ['parameter' => "filter[$key]", 'reason' => 'invalid_name'];
+          $valid = false;
+        }
+      }
+
+      if (!$valid) {
+        return [];
+      }
+
+      try {
+        return $names->keysToSnake($value);
+      } catch (InvalidArgumentException) {
+        // Dos claves terminarían con el mismo nombre una vez convertidas.
+        // Two keys would end up with the same name once converted.
+        $violations[] = ['parameter' => 'filter', 'reason' => 'malformed'];
+
+        return [];
+      }
     }
 
     /**
+     * @param  list<array{parameter: string, reason: string}>  $violations
      * @return array<string, mixed>
      */
-    private static function parsePage(mixed $value): array {
+    private static function parsePage(mixed $value, array &$violations): array {
+      if ($value === null) {
+        return [];
+      }
+
+      if (!is_array($value)) {
+        $violations[] = ['parameter' => 'page', 'reason' => 'malformed'];
+
+        return [];
+      }
+
       $page = [];
 
-      foreach (is_array($value) ? $value : [] as $key => $item) {
+      foreach ($value as $key => $item) {
         if ($key !== 'number' && $key !== 'size') {
           $page[(string) $key] = $item;
 
@@ -171,9 +285,13 @@
 
         $integer = self::positiveInteger($item);
 
-        if ($integer !== null) {
-          $page[$key] = $integer;
+        if ($integer === null) {
+          $violations[] = ['parameter' => "page[$key]", 'reason' => 'invalid_page'];
+
+          continue;
         }
+
+        $page[$key] = $integer;
       }
 
       return $page;
@@ -194,12 +312,64 @@
     }
 
     /**
-     * Separa una lista por comas; un valor que no es texto o está vacío no tiene elementos.
-     * Splits a comma-separated list; a value that is not text or is empty has no items.
+     * Separa una lista por comas. Un valor vacío no tiene elementos; uno que no es texto está mal formado, y un elemento vacío (`a,,b`) también.
+     * Splits a comma-separated list. An empty value has no items; one that is not text is malformed, and so is an empty item (`a,,b`).
      *
+     * @param  list<array{parameter: string, reason: string}>  $violations
      * @return list<string>
      */
-    private static function split(mixed $value): array {
-      return is_string($value) && $value !== '' ? array_values(array_filter(explode(',', $value), fn(string $item) => $item !== '')) : [];
+    private static function items(mixed $value, string $parameter, array &$violations): array {
+      if ($value === null || $value === '') {
+        return [];
+      }
+
+      if (!is_string($value)) {
+        $violations[] = ['parameter' => $parameter, 'reason' => 'malformed'];
+
+        return [];
+      }
+
+      $items = explode(',', $value);
+
+      if (in_array('', $items, true)) {
+        $violations[] = ['parameter' => $parameter, 'reason' => 'empty_item'];
+
+        return [];
+      }
+
+      return $items;
+    }
+
+    /**
+     * @param  list<string>  $names
+     */
+    private static function firstInvalidName(array $names): ?string {
+      foreach ($names as $name) {
+        if (!self::isName($name)) {
+          return $name;
+        }
+      }
+
+      return null;
+    }
+
+    private static function isName(string $name): bool {
+      return preg_match(self::NAME, $name) === 1;
+    }
+
+    /**
+     * @param  list<array{parameter: string, reason: string}>  $violations
+     */
+    private static function exceptionFor(array $violations): JsonApiException {
+      $messages = app(ErrorMessages::class);
+      $codes = app(ErrorCodes::class);
+
+      return new JsonApiException(array_map(fn(array $violation) => Error::make(
+        status: 400,
+        title: $messages->title(ErrorCodes::BAD_QUERY),
+        detail: $messages->detail(ErrorCodes::BAD_QUERY, [], $violation['reason']),
+        code: $codes->resolve(ErrorCodes::BAD_QUERY),
+        parameter: $violation['parameter'],
+      ), $violations));
     }
   }

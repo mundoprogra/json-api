@@ -11,6 +11,16 @@
         'title' => 'Petición incorrecta',
         'detail' => 'La petición no se pudo entender o está mal formada.',
       ],
+      'bad_query' => [
+        'title' => 'Parámetro de consulta inválido',
+        'detail' => 'Un parámetro de consulta de la petición no es válido.',
+        'reasons' => [
+          'malformed' => 'Este parámetro de consulta no tiene la forma que la especificación JSON:API define para él.',
+          'invalid_name' => 'Este parámetro de consulta tiene un nombre que no es válido: los nombres solo pueden tener letras, dígitos, guiones y guiones bajos, y deben empezar y terminar con una letra o un dígito.',
+          'empty_item' => 'Este parámetro de consulta tiene un elemento vacío en su lista separada por comas.',
+          'invalid_page' => 'El número y el tamaño de página deben ser enteros positivos.',
+        ],
+      ],
       'method_not_allowed' => [
         'title' => 'Método no permitido',
         'detail' => 'El método :method no está soportado en esta ruta. Métodos soportados: :allowed.',
