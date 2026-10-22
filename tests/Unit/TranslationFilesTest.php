@@ -58,7 +58,7 @@
         $cases["not_acceptable: $reason"] = [ErrorCodes::NOT_ACCEPTABLE, $reason];
       }
 
-      foreach (['malformed', 'invalid_name', 'empty_item', 'invalid_page', 'include_too_deep', 'unknown_parameter'] as $reason) {
+      foreach (['malformed', 'invalid_name', 'empty_item', 'invalid_page', 'page_size_too_large', 'include_too_deep', 'unknown_parameter'] as $reason) {
         $cases["bad_query: $reason"] = [ErrorCodes::BAD_QUERY, $reason];
       }
 
@@ -70,6 +70,13 @@
     public function every_negotiation_reason_has_its_own_detail_in_both_languages(string $base, string $reason): void {
       foreach (['en', 'es'] as $locale) {
         $this->assertNotEmpty($this->text($locale, "$base.reasons.$reason"), "$locale: $base / $reason");
+      }
+    }
+
+    #[Test]
+    public function the_page_size_reason_carries_the_maximum_in_both_languages(): void {
+      foreach (['en', 'es'] as $locale) {
+        $this->assertStringContainsString(':max', (string) $this->text($locale, 'request.bad_query.reasons.page_size_too_large'), $locale);
       }
     }
 

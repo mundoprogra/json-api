@@ -414,9 +414,14 @@
     }
 
     /**
+     * El `400` de la familia `request.bad_query` con un error por cada problema. Lo usan también las clases que descubren un problema de la
+     * consulta después de analizarla (por ejemplo `PageRequest`, con un tamaño de página mayor al máximo), para que todos salgan igual.
+     * The `400` of the `request.bad_query` family with an error for each problem. Classes that find a problem in the query after it has been
+     * parsed also use it (for example `PageRequest`, with a page size above the maximum), so they all come out the same.
+     *
      * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
      */
-    private static function exceptionFor(array $violations): JsonApiException {
+    public static function exceptionFor(array $violations): JsonApiException {
       $messages = app(ErrorMessages::class);
       $codes = app(ErrorCodes::class);
 

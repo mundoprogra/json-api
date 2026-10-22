@@ -19,6 +19,7 @@
           'invalid_name' => 'Este parámetro de consulta tiene un nombre que no es válido: los nombres solo pueden tener letras, dígitos, guiones y guiones bajos, y deben empezar y terminar con una letra o un dígito.',
           'empty_item' => 'Este parámetro de consulta tiene un elemento vacío en su lista separada por comas.',
           'invalid_page' => 'El número y el tamaño de página deben ser enteros positivos.',
+          'page_size_too_large' => 'El tamaño de página no puede ser mayor que :max.',
           'include_too_deep' => 'Una ruta de relaciones en include está anidada más profundo que los :max niveles que permite este servidor.',
           'unknown_parameter' => 'Este servidor no soporta este parámetro de consulta.',
         ],

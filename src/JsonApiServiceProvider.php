@@ -14,6 +14,7 @@
   use MundoProgra\JsonApi\Errors\ValidationSource;
   use MundoProgra\JsonApi\Http\Middleware\ApplyJsonApi;
   use MundoProgra\JsonApi\Http\Middleware\NegotiateContent;
+  use MundoProgra\JsonApi\Http\Middleware\Options;
   use MundoProgra\JsonApi\Http\Middleware\ValidateQuery;
   use MundoProgra\JsonApi\Http\RequestScope;
   use MundoProgra\JsonApi\Query\QueryParameters;
@@ -83,6 +84,10 @@
       // Para validar la consulta (include, fields, sort, filter, page) en una ruta fuera del alcance: `->middleware('json-api.query')`.
       // To validate the query (include, fields, sort, filter, page) on a route outside the scope: `->middleware('json-api.query')`.
       $this->app->make('router')->aliasMiddleware('json-api.query', ValidateQuery::class);
+
+      // Para cambiar la paginación de una ruta o un grupo: `->middleware('json-api.options:per_page=25,max_per_page=50')`.
+      // To change the pagination of a route or a group: `->middleware('json-api.options:per_page=25,max_per_page=50')`.
+      $this->app->make('router')->aliasMiddleware('json-api.options', Options::class);
 
       // `$request->jsonApiQuery()`: la consulta ya analizada, una sola vez por petición.
       // `$request->jsonApiQuery()`: the already parsed query, once per request.
