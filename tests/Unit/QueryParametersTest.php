@@ -187,13 +187,88 @@
     }
 
     // ---------------------------------------------------------------------------------------------
+    // page
+    // ---------------------------------------------------------------------------------------------
+
+    #[Test]
+    public function page_gives_the_number_and_the_size_as_integers(): void {
+      $query = $this->query('page[number]=2&page[size]=25');
+
+      $this->assertSame(['number' => 2, 'size' => 25], $query->page());
+      $this->assertSame(2, $query->pageNumber());
+      $this->assertSame(25, $query->pageSize());
+    }
+
+    #[Test]
+    public function only_the_page_keys_that_were_given_are_present(): void {
+      $query = $this->query('page[size]=10');
+
+      $this->assertSame(['size' => 10], $query->page());
+      $this->assertNull($query->pageNumber());
+      $this->assertSame(10, $query->pageSize());
+    }
+
+    /**
+     * @return array<string, array{string, int}>
+     */
+    public static function positiveIntegers(): array {
+      return [
+        'one' => ['1', 1],
+        'a plain number' => ['25', 25],
+        'with leading zeros' => ['007', 7],
+        'a big one' => ['100000', 100000],
+      ];
+    }
+
+    #[Test]
+    #[DataProvider('positiveIntegers')]
+    public function the_number_and_the_size_accept_any_positive_integer(string $text, int $expected): void {
+      $query = $this->query("page[number]=$text&page[size]=$text");
+
+      $this->assertSame($expected, $query->pageNumber());
+      $this->assertSame($expected, $query->pageSize());
+    }
+
+    #[Test]
+    public function the_keys_are_kept_in_the_order_the_client_gave(): void {
+      $this->assertSame(['size' => 25, 'number' => 2], $this->query('page[size]=25&page[number]=2')->page());
+    }
+
+    #[Test]
+    public function any_other_page_key_is_kept_as_the_client_wrote_it(): void {
+      // La familia `page` es de estrategia libre: lo que no es número ni tamaño lo interpreta la aplicación, sin convertir ni los nombres ni los valores.
+      // The `page` family has a free strategy: what is not a number or a size is for the application to interpret, converting neither names nor values.
+      $query = $this->query('page[cursor]=abc&page[pageOffset]=5&page[number]=3&page[after][id]=9');
+
+      $this->assertSame(['cursor' => 'abc', 'pageOffset' => '5', 'number' => 3, 'after' => ['id' => '9']], $query->page());
+      $this->assertSame(3, $query->pageNumber());
+    }
+
+    #[Test]
+    public function without_page_there_is_no_pagination_request(): void {
+      $query = $this->query('');
+
+      $this->assertSame([], $query->page());
+      $this->assertNull($query->pageNumber());
+      $this->assertNull($query->pageSize());
+    }
+
+    #[Test]
+    public function page_does_not_depend_on_the_member_case(): void {
+      foreach (['camel', 'kebab', 'snake'] as $style) {
+        $this->assertSame(['number' => 2, 'size' => 5], $this->query('page[number]=2&page[size]=5', $style)->page(), $style);
+      }
+    }
+
+    // ---------------------------------------------------------------------------------------------
     // Todo junto, y lo que no se lee / Everything together, and what is not read
     // ---------------------------------------------------------------------------------------------
 
     #[Test]
     public function every_parameter_can_come_together(): void {
-      $query = $this->query('include=author&fields[articles]=title&sort=-createdAt&filter[status]=published');
+      $query = $this->query('include=author&fields[articles]=title&sort=-createdAt&filter[status]=published&page[number]=2&page[size]=5');
 
+      $this->assertSame(['number' => 2, 'size' => 5], $query->page());
       $this->assertSame([['author']], $query->includes());
       $this->assertSame(['articles' => ['title']], $query->fields());
       $this->assertSame([['field' => 'created_at', 'descending' => true]], $query->sort());
@@ -220,5 +295,6 @@
 
       $this->assertSame([], $query->includes());
       $this->assertSame([], $query->sort());
+      $this->assertSame([], $query->page());
     }
   }

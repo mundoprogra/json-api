@@ -20,12 +20,14 @@
      * @param  array<string, list<string>>  $fields
      * @param  list<array{field: string, descending: bool}>  $sort
      * @param  array<string, mixed>  $filter
+     * @param  array<string, mixed>  $page
      */
     private function __construct(
       private readonly array $includes,
       private readonly array $fields,
       private readonly array $sort,
       private readonly array $filter,
+      private readonly array $page,
     ) {
     }
 
@@ -38,6 +40,7 @@
         self::parseFields($query['fields'] ?? null, $names),
         self::parseSort($query['sort'] ?? null, $names),
         self::parseFilter($query['filter'] ?? null, $names),
+        self::parsePage($query['page'] ?? null),
       );
     }
 
@@ -79,6 +82,30 @@
      */
     public function filter(): array {
       return $this->filter;
+    }
+
+    /**
+     * La paginación pedida, con las claves en el orden dado: `number` y `size` como enteros positivos, y cualquier otra clave de la familia
+     * `page` tal como la escribió el cliente (la estrategia es libre y la interpreta la aplicación).
+     * The requested pagination, with the keys in the order given: `number` and `size` as positive integers, and any other key of the `page`
+     * family as the client wrote it (the strategy is free and the application interprets it).
+     *
+     * @return array<string, mixed>
+     */
+    public function page(): array {
+      return $this->page;
+    }
+
+    public function pageNumber(): ?int {
+      $number = $this->page['number'] ?? null;
+
+      return is_int($number) ? $number : null;
+    }
+
+    public function pageSize(): ?int {
+      $size = $this->page['size'] ?? null;
+
+      return is_int($size) ? $size : null;
     }
 
     /**
@@ -127,6 +154,43 @@
      */
     private static function parseFilter(mixed $value, MemberName $names): array {
       return is_array($value) ? $names->keysToSnake($value) : [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function parsePage(mixed $value): array {
+      $page = [];
+
+      foreach (is_array($value) ? $value : [] as $key => $item) {
+        if ($key !== 'number' && $key !== 'size') {
+          $page[(string) $key] = $item;
+
+          continue;
+        }
+
+        $integer = self::positiveInteger($item);
+
+        if ($integer !== null) {
+          $page[$key] = $integer;
+        }
+      }
+
+      return $page;
+    }
+
+    /**
+     * Un entero positivo escrito solo con dígitos; todo lo demás (letras, signo, espacios, cero o un número demasiado grande) es null.
+     * A positive integer written with digits only; anything else (letters, a sign, spaces, zero or a number too big) is null.
+     */
+    private static function positiveInteger(mixed $value): ?int {
+      if (!is_string($value) || preg_match('/^\d+$/D', $value) !== 1) {
+        return null;
+      }
+
+      $integer = (int) $value;
+
+      return $integer >= 1 && (string) $integer === ltrim($value, '0') ? $integer : null;
     }
 
     /**
