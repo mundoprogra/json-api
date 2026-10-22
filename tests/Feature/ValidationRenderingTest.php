@@ -63,7 +63,7 @@
 
       // Un dato que venía en la URL.
       // A value that came in the URL.
-      $router->get('query', fn(Request $request) => $request->validate(['page.size' => 'integer|min:1'], self::MESSAGES));
+      $router->get('query', fn(Request $request) => $request->validate(['filter.age' => 'integer|min:1'], self::MESSAGES));
 
       $router->post('with-messages', fn() => throw ValidationException::withMessages(['title' => 'The title is not allowed']));
       $router->post('with-status', fn() => throw ValidationException::withMessages(['title' => 'Bad'])->status(400));
@@ -128,10 +128,10 @@
 
     #[Test]
     public function a_value_that_came_in_the_url_points_to_the_query_parameter(): void {
-      $response = $this->getJson('query?page[size]=abc');
+      $response = $this->getJson('query?filter[age]=abc');
 
       $response->assertStatus(422);
-      $this->assertSame(['parameter' => 'page[size]'], $response->json('errors.0.source'));
+      $this->assertSame(['parameter' => 'filter[age]'], $response->json('errors.0.source'));
       $this->assertSame('mundoprogra.json-api.validation.integer', $response->json('errors.0.code'));
       $this->assertJsonApiDocument((string) $response->getContent());
     }

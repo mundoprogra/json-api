@@ -14,7 +14,9 @@
   use MundoProgra\JsonApi\Errors\ValidationSource;
   use MundoProgra\JsonApi\Http\Middleware\ApplyJsonApi;
   use MundoProgra\JsonApi\Http\Middleware\NegotiateContent;
+  use MundoProgra\JsonApi\Http\Middleware\ValidateQuery;
   use MundoProgra\JsonApi\Http\RequestScope;
+  use MundoProgra\JsonApi\Query\QueryParameters;
   use MundoProgra\JsonApi\Support\ConfigValidator;
   use MundoProgra\JsonApi\Support\Settings;
   use Throwable;
@@ -58,6 +60,7 @@
       // original Accept) and right after it NegotiateContent, which reads it.
       $this->callAfterResolving(HttpKernel::class, function ($kernel) {
         if (method_exists($kernel, 'prependMiddleware')) {
+          $kernel->prependMiddleware(ValidateQuery::class . ':scope');
           $kernel->prependMiddleware(NegotiateContent::class . ':scope');
           $kernel->prependMiddleware(ApplyJsonApi::class . ':scope');
         }
@@ -76,6 +79,17 @@
       // Para negociar el contenido (Content-Type y Accept) en una ruta: `->middleware('json-api.negotiate')`.
       // To negotiate the content (Content-Type and Accept) on a route: `->middleware('json-api.negotiate')`.
       $this->app->make('router')->aliasMiddleware('json-api.negotiate', NegotiateContent::class);
+
+      // Para validar la consulta (include, fields, sort, filter, page) en una ruta fuera del alcance: `->middleware('json-api.query')`.
+      // To validate the query (include, fields, sort, filter, page) on a route outside the scope: `->middleware('json-api.query')`.
+      $this->app->make('router')->aliasMiddleware('json-api.query', ValidateQuery::class);
+
+      // `$request->jsonApiQuery()`: la consulta ya analizada, una sola vez por petición.
+      // `$request->jsonApiQuery()`: the already parsed query, once per request.
+      Request::macro('jsonApiQuery', function (): QueryParameters {
+        /** @var Request $this */
+        return QueryParameters::of($this);
+      });
 
       $this->publishes([
         __DIR__ . '/../config/json-api.php' => config_path('json-api.php'),

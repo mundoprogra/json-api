@@ -32,7 +32,9 @@
 
     // Los cinco parámetros que define la spec; cualquier otro nombre de solo `a-z` es desconocido.
     // The five parameters the spec defines; any other name of only `a-z` is unknown.
-    private const STANDARD = ['include', 'fields', 'sort', 'filter', 'page'];
+    private const ATTRIBUTE = 'json-api.query';
+
+    private const STANDARD =['include', 'fields', 'sort', 'filter', 'page'];
 
     /**
      * @param  list<list<string>>  $includes
@@ -75,6 +77,25 @@
       }
 
       return $parameters;
+    }
+
+    /**
+     * La consulta de la petición, analizada una sola vez: la primera llamada la valida y la guarda en la petición, y las demás la reutilizan.
+     * Es lo que usa la macro `$request->jsonApiQuery()`. Si la consulta está mal formada lanza el `400` cada vez que se pide.
+     * The request query, parsed once: the first call validates it and keeps it on the request, and the others reuse it.
+     * It is what the `$request->jsonApiQuery()` macro uses. If the query is malformed it throws the `400` every time it is asked for.
+     *
+     * @throws JsonApiException
+     */
+    public static function of(Request $request): self {
+      $parsed = $request->attributes->get(self::ATTRIBUTE);
+
+      if (!$parsed instanceof self) {
+        $parsed = self::from($request, app(Settings::class));
+        $request->attributes->set(self::ATTRIBUTE, $parsed);
+      }
+
+      return $parsed;
     }
 
     /**

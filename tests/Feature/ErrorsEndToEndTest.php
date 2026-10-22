@@ -46,7 +46,7 @@
         return response()->json(['data' => ['type' => 'articles', 'id' => '1']], 201, ['Location' => 'https://example.com/articles/1']);
       });
 
-      $router->get('articles-paged', fn(Request $request) => $request->validate(['page.size' => 'integer|min:1'], ['min' => 'Must be at least 1']));
+      $router->get('articles-paged', fn(Request $request) => $request->validate(['filter.age' => 'integer|min:1'], ['min' => 'Must be at least 1']));
       $router->get('me', fn() => 'private')->middleware('auth');
       $router->get('crash', fn() => throw new RuntimeException('database exploded'));
     }
@@ -89,10 +89,10 @@
 
     #[Test]
     public function an_invalid_query_parameter_points_to_the_parameter(): void {
-      $response = $this->getJson('articles-paged?page[size]=0');
+      $response = $this->getJson('articles-paged?filter[age]=0');
 
       $response->assertStatus(422);
-      $this->assertSame('page[size]', $response->json('errors.0.source.parameter'));
+      $this->assertSame('filter[age]', $response->json('errors.0.source.parameter'));
     }
 
     #[Test]
@@ -131,7 +131,7 @@
         'a missing resource' => ['GET', 'articles/999', 404],
         'a route that does not exist' => ['GET', 'does-not-exist', 404],
         'an invalid creation' => ['POST', 'articles', 422],
-        'an invalid parameter' => ['GET', 'articles-paged?page[size]=0', 422],
+        'an invalid parameter' => ['GET', 'articles-paged?filter[age]=0', 422],
         'an unsupported method' => ['DELETE', 'articles/1', 405],
         'a crash' => ['GET', 'crash', 500],
       ];
