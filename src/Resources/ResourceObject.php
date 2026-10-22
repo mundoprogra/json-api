@@ -8,6 +8,8 @@
   use Illuminate\Http\Resources\Json\JsonResource;
   use InvalidArgumentException;
   use LogicException;
+  use MundoProgra\JsonApi\Http\RequestScope;
+  use MundoProgra\JsonApi\Query\QueryParameters;
   use MundoProgra\JsonApi\Support\MediaType;
   use MundoProgra\JsonApi\Support\MemberName;
   use MundoProgra\JsonApi\Support\Settings;
@@ -97,7 +99,23 @@
         throw new LogicException(sprintf('%s has an attribute and a relationship both named "%s": the JSON:API spec makes them share one namespace.', static::class, $shared));
       }
 
-      $data = ['type' => $this->type(), 'id' => $id];
+      $type = $this->type();
+
+      // Los sparse fieldsets se aplican al final: las revisiones de arriba son sobre el recurso completo, así un error del programador
+      // salta siempre y no solo cuando el cliente pide justo esos campos.
+      // Sparse fieldsets are applied last: the checks above are on the whole resource, so a developer error always shows up and not only
+      // when the client happens to ask for those fields.
+      $requested = $this->requestedFields($request, $type);
+
+      if ($requested !== null) {
+        $names = MemberName::for(app(Settings::class)->memberCase());
+        $kept = array_flip(array_map(fn(string $field) => $names->fromSnake($field), $requested));
+
+        $attributes = array_intersect_key($attributes, $kept);
+        $relationships = array_intersect_key($relationships, $kept);
+      }
+
+      $data = ['type' => $type, 'id' => $id];
 
       if ($attributes !== []) {
         $data['attributes'] = $attributes;
@@ -121,6 +139,26 @@
       }
 
       return $data;
+    }
+
+    /**
+     * Los campos que el cliente pidió para este tipo con `fields[tipo]=a,b`, en snake_case; null si no hay restricción. Una lista vacía
+     * (`fields[tipo]=`) significa "ninguno". Solo cuenta dentro del alcance del paquete (modo, prefijo, `except` o una ruta marcada con el
+     * alias `json-api`): fuera de él el recurso sale completo y `fields` se ignora, aunque esté mal formado.
+     * The fields the client asked for this type with `fields[type]=a,b`, in snake_case; null if there is no restriction. An empty list
+     * (`fields[type]=`) means "none". It only counts inside the package scope (mode, prefix, `except` or a route marked with the
+     * `json-api` alias): outside it the resource comes out whole and `fields` is ignored, even if it is malformed.
+     *
+     * @return list<string>|null
+     *
+     * @throws \MundoProgra\JsonApi\Exceptions\JsonApiException si la consulta está mal formada / if the query is malformed
+     */
+    private function requestedFields(Request $request, string $type): ?array {
+      if (!app(RequestScope::class)->appliesTo($request)) {
+        return null;
+      }
+
+      return QueryParameters::of($request)->fields()[$type] ?? null;
     }
 
     /**
