@@ -300,4 +300,162 @@
       config()->set('json-api.errors.include_code', false);
       $this->assertArrayNotHasKey('code', $this->fetch('page[size]=0')->json('errors.0'));
     }
+
+    // ---------------------------------------------------------------------------------------------
+    // Profundidad de include / Depth of include
+    // ---------------------------------------------------------------------------------------------
+
+    private function tooDeepDetail(int $max): string {
+      return str_replace(':max', (string) $max, $this->english('request.bad_query.reasons.include_too_deep'));
+    }
+
+    #[Test]
+    public function an_include_path_up_to_the_maximum_depth_goes_through(): void {
+      // Por defecto el máximo es 3 niveles.
+      // By default the maximum is 3 levels.
+      $this->fetch('include=a.b.c')->assertOk();
+      $this->fetch('include=a,b.c,d.e.f')->assertOk();
+    }
+
+    #[Test]
+    public function a_deeper_include_path_is_a_400_naming_include(): void {
+      $response = $this->fetch('include=a.b.c.d');
+
+      $response->assertStatus(400);
+      $this->assertSame(['include'], array_column(array_column($response->json('errors'), 'source'), 'parameter'));
+      $this->assertSame($this->tooDeepDetail(3), $response->json('errors.0.detail'));
+      $this->assertSame('mundoprogra.json-api.request.bad_query', $response->json('errors.0.code'));
+      $this->assertJsonApiDocument((string) $response->getContent());
+    }
+
+    #[Test]
+    public function the_maximum_depth_comes_from_the_settings_on_every_call(): void {
+      config()->set('json-api.query.max_include_depth', 1);
+      $this->fetch('include=a')->assertOk();
+      $this->fetch('include=a.b')->assertStatus(400);
+
+      config()->set('json-api.query.max_include_depth', 5);
+      $this->fetch('include=a.b.c.d.e')->assertOk();
+      $this->fetch('include=a.b.c.d.e.f')->assertStatus(400);
+    }
+
+    #[Test]
+    public function the_detail_says_the_maximum_that_applies(): void {
+      config()->set('json-api.query.max_include_depth', 2);
+
+      $this->assertSame($this->tooDeepDetail(2), $this->fetch('include=a.b.c')->json('errors.0.detail'));
+    }
+
+    #[Test]
+    public function a_single_error_is_given_however_many_paths_are_too_deep(): void {
+      $response = $this->fetch('include=a.b.c.d,x.y.z.w,ok');
+
+      $this->assertCount(1, $response->json('errors'));
+      $this->assertSame('include', $response->json('errors.0.source.parameter'));
+    }
+
+    #[Test]
+    public function a_bad_name_is_reported_before_the_depth(): void {
+      $this->assertBadQuery($this->fetch('include=a.b.c.d,bad%20name'), ['include'], 'invalid_name');
+    }
+
+    #[Test]
+    public function the_depth_error_comes_together_with_the_others_in_the_usual_order(): void {
+      $this->assertBadQuery($this->fetch('page[size]=0&include=a.b.c.d'), ['include', 'page[size]']);
+    }
+
+    #[Test]
+    public function only_include_has_a_depth_limit(): void {
+      $this->fetch('fields[articles]=a,b,c,d,e&sort=a,b,c,d,e,f')->assertOk();
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Parámetros desconocidos / Unknown parameters
+    // ---------------------------------------------------------------------------------------------
+
+    #[Test]
+    public function by_default_an_unknown_parameter_is_ignored(): void {
+      $this->fetch('foo=1&bar[baz]=2&signature=abc')->assertOk();
+    }
+
+    #[Test]
+    public function when_rejecting_an_unknown_parameter_written_only_with_lowercase_letters_is_a_400(): void {
+      config()->set('json-api.reject_unknown_query_params', true);
+
+      $response = $this->fetch('foo=1');
+
+      $this->assertBadQuery($response, ['foo'], 'unknown_parameter');
+      $this->assertSame($this->english('request.bad_query.title'), $response->json('errors.0.title'));
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function parametersWithAnotherCharacter(): array {
+      // Tienen al menos un carácter fuera de `a-z`: la spec los deja como parámetros propios de la implementación.
+      // They have at least one character outside `a-z`: the spec leaves them as implementation-specific parameters.
+      return [
+        'with an underscore' => ['utm_source=mail'],
+        'with a capital letter' => ['sortBy=name'],
+        'with a hyphen' => ['foo-bar=1'],
+        'with a digit' => ['x1=1'],
+        'starting with a capital' => ['Foo=1'],
+      ];
+    }
+
+    #[Test]
+    #[DataProvider('parametersWithAnotherCharacter')]
+    public function even_when_rejecting_a_parameter_with_another_character_is_always_ignored(string $queryString): void {
+      config()->set('json-api.reject_unknown_query_params', true);
+
+      $this->fetch($queryString)->assertOk();
+    }
+
+    #[Test]
+    public function the_standard_parameters_are_never_unknown(): void {
+      config()->set('json-api.reject_unknown_query_params', true);
+
+      $this->fetch('include=author&fields[articles]=title&sort=-title&filter[status]=published&page[size]=5&page[number]=1')->assertOk();
+    }
+
+    #[Test]
+    public function an_unknown_family_is_reported_by_its_base_name(): void {
+      config()->set('json-api.reject_unknown_query_params', true);
+
+      $this->assertBadQuery($this->fetch('foo[bar]=1'), ['foo'], 'unknown_parameter');
+    }
+
+    #[Test]
+    public function an_unknown_parameter_with_an_empty_value_is_still_unknown(): void {
+      config()->set('json-api.reject_unknown_query_params', true);
+
+      $this->assertBadQuery($this->fetch('foo='), ['foo'], 'unknown_parameter');
+    }
+
+    #[Test]
+    public function every_unknown_parameter_is_reported_after_the_standard_ones_in_the_order_given(): void {
+      config()->set('json-api.reject_unknown_query_params', true);
+
+      $this->assertBadQuery($this->fetch('zeta=1&page[size]=0&alpha=2&include=a,,b'), ['include', 'page[size]', 'zeta', 'alpha']);
+    }
+
+    #[Test]
+    public function the_laravel_signed_url_parameters_are_unknown_to_the_package_when_rejecting(): void {
+      // `signature` y `expires` llevan solo `a-z`: con la opción encendida dan 400. Para rutas con URL firmadas se usa `except`.
+      // `signature` and `expires` use only `a-z`: with the option on they give 400. For routes with signed URLs `except` is used.
+      config()->set('json-api.reject_unknown_query_params', true);
+
+      $this->assertBadQuery($this->fetch('expires=1&signature=abc'), ['expires', 'signature'], 'unknown_parameter');
+    }
+
+    #[Test]
+    public function the_setting_is_read_on_every_call(): void {
+      $this->fetch('foo=1')->assertOk();
+
+      config()->set('json-api.reject_unknown_query_params', true);
+      $this->fetch('foo=1')->assertStatus(400);
+
+      config()->set('json-api.reject_unknown_query_params', false);
+      $this->fetch('foo=1')->assertOk();
+    }
   }

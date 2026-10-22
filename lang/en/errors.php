@@ -19,6 +19,8 @@
           'invalid_name' => 'This query parameter has a name that is not valid: names may only contain letters, digits, hyphens and underscores, and must start and end with a letter or a digit.',
           'empty_item' => 'This query parameter has an empty item in its comma-separated list.',
           'invalid_page' => 'The page number and the page size must be positive integers.',
+          'include_too_deep' => 'A relationship path in include is nested deeper than the :max levels this server allows.',
+          'unknown_parameter' => 'This query parameter is not supported by this server.',
         ],
       ],
       'method_not_allowed' => [

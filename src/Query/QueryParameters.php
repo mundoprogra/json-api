@@ -30,6 +30,10 @@
     // spaces) because these names end up in Eloquent queries and URLs.
     private const NAME = '/^[\p{L}\p{N}](?:[\p{L}\p{N}_-]*[\p{L}\p{N}])?$/u';
 
+    // Los cinco parámetros que define la spec; cualquier otro nombre de solo `a-z` es desconocido.
+    // The five parameters the spec defines; any other name of only `a-z` is unknown.
+    private const STANDARD = ['include', 'fields', 'sort', 'filter', 'page'];
+
     /**
      * @param  list<list<string>>  $includes
      * @param  array<string, list<string>>  $fields
@@ -55,12 +59,16 @@
       $violations = [];
 
       $parameters = new self(
-        self::parseIncludes($query['include'] ?? null, $names, $violations),
+        self::parseIncludes($query['include'] ?? null, $names, $settings->maxIncludeDepth(), $violations),
         self::parseFields($query['fields'] ?? null, $names, $violations),
         self::parseSort($query['sort'] ?? null, $names, $violations),
         self::parseFilter($query['filter'] ?? null, $names, $violations),
         self::parsePage($query['page'] ?? null, $violations),
       );
+
+      if ($settings->rejectUnknownQueryParams()) {
+        self::rejectUnknown(array_keys($query), $violations);
+      }
 
       if ($violations !== []) {
         throw self::exceptionFor($violations);
@@ -134,10 +142,10 @@
     }
 
     /**
-     * @param  list<array{parameter: string, reason: string}>  $violations
+     * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
      * @return list<list<string>>
      */
-    private static function parseIncludes(mixed $value, MemberName $names, array &$violations): array {
+    private static function parseIncludes(mixed $value, MemberName $names, int $maxDepth, array &$violations): array {
       $items = self::items($value, 'include', $violations);
       $paths = [];
 
@@ -153,11 +161,21 @@
         $paths[] = array_map(fn(string $name) => $names->toSnake($name), $segments);
       }
 
+      // La profundidad se revisa después de la sintaxis, y da un solo error aunque varias rutas se pasen.
+      // The depth is checked after the syntax, and gives a single error even if several paths go over.
+      foreach ($paths as $path) {
+        if (count($path) > $maxDepth) {
+          $violations[] = ['parameter' => 'include', 'reason' => 'include_too_deep', 'replace' => ['max' => (string) $maxDepth]];
+
+          return [];
+        }
+      }
+
       return $paths;
     }
 
     /**
-     * @param  list<array{parameter: string, reason: string}>  $violations
+     * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
      * @return array<string, list<string>>
      */
     private static function parseFields(mixed $value, MemberName $names, array &$violations): array {
@@ -198,7 +216,7 @@
     }
 
     /**
-     * @param  list<array{parameter: string, reason: string}>  $violations
+     * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
      * @return list<array{field: string, descending: bool}>
      */
     private static function parseSort(mixed $value, MemberName $names, array &$violations): array {
@@ -221,7 +239,7 @@
     }
 
     /**
-     * @param  list<array{parameter: string, reason: string}>  $violations
+     * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
      * @return array<string, mixed>
      */
     private static function parseFilter(mixed $value, MemberName $names, array &$violations): array {
@@ -260,7 +278,7 @@
     }
 
     /**
-     * @param  list<array{parameter: string, reason: string}>  $violations
+     * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
      * @return array<string, mixed>
      */
     private static function parsePage(mixed $value, array &$violations): array {
@@ -298,6 +316,23 @@
     }
 
     /**
+     * Los parámetros que no son de la spec y cuyo nombre es solo `a-z` minúsculas están reservados a la spec: dan `400`. Los que llevan otro
+     * carácter (`utm_source`, `sortBy`) son propios de la implementación y se ignoran siempre. Una familia (`foo[bar]`) se informa por su nombre base.
+     * Parameters that are not in the spec and whose name is only lowercase `a-z` are reserved to the spec: they give `400`. Those with another
+     * character (`utm_source`, `sortBy`) are implementation-specific and are always ignored. A family (`foo[bar]`) is reported by its base name.
+     *
+     * @param  list<int|string>  $names
+     * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
+     */
+    private static function rejectUnknown(array $names, array &$violations): void {
+      foreach ($names as $name) {
+        if (is_string($name) && !in_array($name, self::STANDARD, true) && preg_match('/^[a-z]+$/D', $name) === 1) {
+          $violations[] = ['parameter' => $name, 'reason' => 'unknown_parameter'];
+        }
+      }
+    }
+
+    /**
      * Un entero positivo escrito solo con dígitos; todo lo demás (letras, signo, espacios, cero o un número demasiado grande) es null.
      * A positive integer written with digits only; anything else (letters, a sign, spaces, zero or a number too big) is null.
      */
@@ -315,7 +350,7 @@
      * Separa una lista por comas. Un valor vacío no tiene elementos; uno que no es texto está mal formado, y un elemento vacío (`a,,b`) también.
      * Splits a comma-separated list. An empty value has no items; one that is not text is malformed, and so is an empty item (`a,,b`).
      *
-     * @param  list<array{parameter: string, reason: string}>  $violations
+     * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
      * @return list<string>
      */
     private static function items(mixed $value, string $parameter, array &$violations): array {
@@ -358,7 +393,7 @@
     }
 
     /**
-     * @param  list<array{parameter: string, reason: string}>  $violations
+     * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
      */
     private static function exceptionFor(array $violations): JsonApiException {
       $messages = app(ErrorMessages::class);
@@ -367,7 +402,7 @@
       return new JsonApiException(array_map(fn(array $violation) => Error::make(
         status: 400,
         title: $messages->title(ErrorCodes::BAD_QUERY),
-        detail: $messages->detail(ErrorCodes::BAD_QUERY, [], $violation['reason']),
+        detail: $messages->detail(ErrorCodes::BAD_QUERY, $violation['replace'] ?? [], $violation['reason']),
         code: $codes->resolve(ErrorCodes::BAD_QUERY),
         parameter: $violation['parameter'],
       ), $violations));
