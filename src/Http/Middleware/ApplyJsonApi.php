@@ -24,9 +24,9 @@
     }
 
     /**
-     * Sin parámetro (el alias `json-api` en una ruta) marca la petición como de JSON:API sin importar el modo ni `except`.
+     * Sin parámetro (el alias `json-api.apply` en una ruta, o el grupo `json-api`) marca la petición como de JSON:API sin importar el modo ni `except`.
      * Con `scope` (el que registra el paquete para toda la app) solo actúa si la petición está dentro del alcance.
-     * Without a parameter (the `json-api` alias on a route) it marks the request as JSON:API regardless of the mode and `except`.
+     * Without a parameter (the `json-api.apply` alias on a route, or the `json-api` group) it marks the request as JSON:API regardless of the mode and `except`.
      * With `scope` (the one the package registers for the whole app) it only acts if the request is inside the scope.
      *
      * @param  Closure(Request): Response  $next

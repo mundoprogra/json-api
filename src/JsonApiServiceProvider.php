@@ -80,9 +80,9 @@
       // It is validated in boot() rather than register(): by then other providers may have modified the config.
       (new ConfigValidator())->validate((array) $this->app->make('config')->get('json-api', []));
 
-      // Para marcar a mano una ruta fuera del alcance: `->middleware('json-api')`.
-      // To mark a route outside the scope by hand: `->middleware('json-api')`.
-      $this->app->make('router')->aliasMiddleware('json-api', ApplyJsonApi::class);
+      // Para marcar a mano una ruta fuera del alcance como de JSON:API y arreglar su Accept: `->middleware('json-api.apply')`.
+      // To mark a route outside the scope by hand as JSON:API and fix its Accept: `->middleware('json-api.apply')`.
+      $this->app->make('router')->aliasMiddleware('json-api.apply', ApplyJsonApi::class);
 
       // Para negociar el contenido (Content-Type y Accept) en una ruta: `->middleware('json-api.negotiate')`.
       // To negotiate the content (Content-Type and Accept) on a route: `->middleware('json-api.negotiate')`.
@@ -95,6 +95,12 @@
       // Para cambiar la paginación de una ruta o un grupo: `->middleware('json-api.options:per_page=25,max_per_page=50')`.
       // To change the pagination of a route or a group: `->middleware('json-api.options:per_page=25,max_per_page=50')`.
       $this->app->make('router')->aliasMiddleware('json-api.options', Options::class);
+
+      // El grupo `json-api` junta los tres anteriores, en este orden, para una ruta suelta fuera del alcance: `->middleware('json-api')`.
+      // `json-api.options` no entra porque exige valores; se agrega aparte cuando hace falta.
+      // The `json-api` group puts together the first three, in this order, for a single route outside the scope: `->middleware('json-api')`.
+      // `json-api.options` is not in because it needs values; it is added separately when needed.
+      $this->app->make('router')->middlewareGroup('json-api', ['json-api.apply', 'json-api.negotiate', 'json-api.query']);
 
       // `$request->jsonApiQuery()`: la consulta ya analizada, una sola vez por petición.
       // `$request->jsonApiQuery()`: the already parsed query, once per request.

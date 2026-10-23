@@ -15,10 +15,10 @@
   /**
    * El middleware del paquete: se aplica solo dentro del alcance (modo, prefijo y `except`) y, ahí, hace que la petición pida JSON:API
    * para que `expectsJson()` sea verdadero y el middleware `auth` no calcule la ruta `login`. Guarda el `Accept` original en la petición.
-   * También se puede poner a mano en una ruta con el alias `json-api`. Se usa el modo `prefix` con el prefijo por defecto (`api`).
+   * También se puede poner a mano en una ruta con el alias `json-api.apply`. Se usa el modo `prefix` con el prefijo por defecto (`api`).
    * The package middleware: it applies only inside the scope (mode, prefix and `except`) and, there, makes the request ask for JSON:API
    * so `expectsJson()` is true and the `auth` middleware does not work out the `login` route. It keeps the original `Accept` on the request.
-   * It can also be put by hand on a route with the `json-api` alias. The `prefix` mode with the default prefix (`api`) is used.
+   * It can also be put by hand on a route with the `json-api.apply` alias. The `prefix` mode with the default prefix (`api`) is used.
    */
   class ScopeMiddlewareTest extends TestCase {
     use AssertsJsonApi;
@@ -44,14 +44,14 @@
         $router->get($path, $echo);
       }
 
-      $router->get('web/marked', $echo)->middleware('json-api');
-      $router->get('up/marked', $echo)->middleware('json-api');
-      $router->get('api/double', $echo)->middleware('json-api');
-      $router->get('web/marked-boom', fn() => throw new RuntimeException('boom'))->middleware('json-api');
+      $router->get('web/marked', $echo)->middleware('json-api.apply');
+      $router->get('up/marked', $echo)->middleware('json-api.apply');
+      $router->get('api/double', $echo)->middleware('json-api.apply');
+      $router->get('web/marked-boom', fn() => throw new RuntimeException('boom'))->middleware('json-api.apply');
 
       $router->get('api/auth', fn() => 'secret')->middleware(AuthenticateLikeTheSkeleton::class);
       $router->get('web/auth', fn() => 'secret')->middleware(AuthenticateLikeTheSkeleton::class);
-      $router->get('web/marked-auth', fn() => 'secret')->middleware(['json-api', AuthenticateLikeTheSkeleton::class]);
+      $router->get('web/marked-auth', fn() => 'secret')->middleware(['json-api.apply', AuthenticateLikeTheSkeleton::class]);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -158,12 +158,12 @@
     }
 
     // ---------------------------------------------------------------------------------------------
-    // A mano, con el alias `json-api` / By hand, with the `json-api` alias
+    // A mano, con el alias `json-api.apply` / By hand, with the `json-api.apply` alias
     // ---------------------------------------------------------------------------------------------
 
     #[Test]
-    public function the_middleware_has_the_json_api_alias(): void {
-      $this->assertSame(ApplyJsonApi::class, $this->app->make('router')->getMiddleware()['json-api'] ?? null);
+    public function the_middleware_has_the_apply_alias(): void {
+      $this->assertSame(ApplyJsonApi::class, $this->app->make('router')->getMiddleware()['json-api.apply'] ?? null);
     }
 
     #[Test]

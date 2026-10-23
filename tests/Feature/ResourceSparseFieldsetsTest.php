@@ -22,14 +22,14 @@
    * relaciones. Los demás tipos no se tocan. Los nombres siguen el `member_case`, el orden es el del recurso y lo que ya se omitía
    * (un `when()` que no aplica, una relación sin cargar) se sigue omitiendo aunque se pida. Los errores del programador no dependen de lo
    * que pida el cliente. Se lee de la petición que recibe el recurso, o de la del contenedor si `document()` no recibe ninguna.
-   * Solo actúan dentro del alcance del paquete (modo, prefijo y `except`, o una ruta marcada con el alias `json-api`): fuera de él el recurso
+   * Solo actúan dentro del alcance del paquete (modo, prefijo y `except`, o una ruta marcada con el alias `json-api.apply`): fuera de él el recurso
    * sale completo, `fields` se ignora y nunca hay un `400`, igual que el resto del manejo de la consulta.
    * Sparse fieldsets: `fields[type]=a,b` makes a `ResourceObject` of that type let through only those attributes and relationships; `type`,
    * `id`, `links` and `meta` stay. A field that does not exist is ignored (it is not a 400) and an empty `fields[type]=` leaves the resource
    * with no attributes or relationships. Other types are not touched. Names follow `member_case`, the order is the resource's and what was
    * already omitted (a `when()` that does not apply, a relation not loaded) stays omitted even if asked for. Developer errors do not depend
    * on what the client asks for. It is read from the request the resource receives, or from the container one if `document()` is given none.
-   * They only act inside the package scope (mode, prefix and `except`, or a route marked with the `json-api` alias): outside it the resource
+   * They only act inside the package scope (mode, prefix and `except`, or a route marked with the `json-api.apply` alias): outside it the resource
    * comes out whole, `fields` is ignored and there is never a `400`, like the rest of the query handling.
    */
   class ResourceSparseFieldsetsTest extends TestCase {
@@ -55,7 +55,7 @@
       $router->get('api/articles/1', $show);
       $router->get('api/skip/1', $show);
       $router->get('web/articles/1', $show);
-      $router->get('web/marked/1', $show)->middleware('json-api');
+      $router->get('web/marked/1', $show)->middleware('json-api.apply');
     }
 
     /**

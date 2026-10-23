@@ -144,10 +144,10 @@
     /**
      * Los campos que el cliente pidió para este tipo con `fields[tipo]=a,b`, en snake_case; null si no hay restricción. Una lista vacía
      * (`fields[tipo]=`) significa "ninguno". Solo cuenta dentro del alcance del paquete (modo, prefijo, `except` o una ruta marcada con el
-     * alias `json-api`): fuera de él el recurso sale completo y `fields` se ignora, aunque esté mal formado.
+     * alias `json-api.apply` o el grupo `json-api`): fuera de él el recurso sale completo y `fields` se ignora, aunque esté mal formado.
      * The fields the client asked for this type with `fields[type]=a,b`, in snake_case; null if there is no restriction. An empty list
      * (`fields[type]=`) means "none". It only counts inside the package scope (mode, prefix, `except` or a route marked with the
-     * `json-api` alias): outside it the resource comes out whole and `fields` is ignored, even if it is malformed.
+     * `json-api.apply` alias or the `json-api` group): outside it the resource comes out whole and `fields` is ignored, even if it is malformed.
      *
      * @return list<string>|null
      *

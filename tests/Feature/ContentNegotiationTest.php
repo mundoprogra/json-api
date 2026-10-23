@@ -41,7 +41,7 @@
       // Under the prefix (inside the scope), outside it, and outside but marked by hand.
       $router->match($methods, 'api/negotiated', $ok)->middleware('json-api.negotiate');
       $router->match($methods, 'web/negotiated', $ok)->middleware('json-api.negotiate');
-      $router->match($methods, 'web/marked-negotiated', $ok)->middleware(['json-api', 'json-api.negotiate']);
+      $router->match($methods, 'web/marked-negotiated', $ok)->middleware(['json-api.apply', 'json-api.negotiate']);
     }
 
     /**

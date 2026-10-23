@@ -15,10 +15,10 @@
   /**
    * La negociación de contenido se aplica sola a toda petición dentro del alcance del paquete (modo, prefijo y `except`),
    * sin poner nada en las rutas. Corre justo después de `ApplyJsonApi`, antes de buscar la ruta y de cualquier middleware de la app.
-   * Fuera del alcance no se toca; para una ruta suelta se ponen a mano `json-api` y `json-api.negotiate`.
+   * Fuera del alcance no se toca; para una ruta suelta se ponen a mano `json-api.apply` y `json-api.negotiate` (o el grupo `json-api`).
    * Content negotiation is applied on its own to every request inside the package scope (mode, prefix and `except`),
    * without putting anything on the routes. It runs right after `ApplyJsonApi`, before the route is looked up and before any app middleware.
-   * Outside the scope it is left alone; for a single route `json-api` and `json-api.negotiate` are put by hand.
+   * Outside the scope it is left alone; for a single route `json-api.apply` and `json-api.negotiate` (or the `json-api` group) are put by hand.
    */
   class AutomaticNegotiationTest extends TestCase {
     use AssertsJsonApi;
@@ -48,8 +48,8 @@
       }
 
       $router->match($methods, 'api/twice', $ok)->middleware('json-api.negotiate');
-      $router->match($methods, 'web/marked', $ok)->middleware('json-api');
-      $router->match($methods, 'web/marked-negotiated', $ok)->middleware(['json-api', 'json-api.negotiate']);
+      $router->match($methods, 'web/marked', $ok)->middleware('json-api.apply');
+      $router->match($methods, 'web/marked-negotiated', $ok)->middleware(['json-api.apply', 'json-api.negotiate']);
       $router->match($methods, 'api/auth', fn() => 'secret')->middleware(AuthenticateLikeTheSkeleton::class);
     }
 
@@ -158,8 +158,8 @@
 
     #[Test]
     public function a_route_marked_by_hand_is_negotiated_only_if_it_also_has_the_negotiate_alias(): void {
-      // `json-api` solo marca la petición: la negociación automática ya pasó antes de que se leyera la marca.
-      // `json-api` only marks the request: the automatic negotiation was over before the mark was read.
+      // `json-api.apply` solo marca la petición: la negociación automática ya pasó antes de que se leyera la marca.
+      // `json-api.apply` only marks the request: the automatic negotiation was over before the mark was read.
       $this->send('POST', 'web/marked', contentType: 'application/json', accept: 'application/json')->assertOk();
       $this->assertRejected($this->send('POST', 'web/marked-negotiated', contentType: 'application/json'), 415, 'Content-Type');
     }
