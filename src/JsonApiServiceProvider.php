@@ -22,6 +22,13 @@
   use MundoProgra\JsonApi\Support\Settings;
   use Throwable;
 
+  /**
+   * Conecta el paquete con la aplicación: combina y valida la configuración, registra los servicios, se engancha al manejo de excepciones
+   * y agrega a la pila global los middleware que se aplican solos dentro del alcance. No hace falta tocar `Kernel`, `Handler` ni `bootstrap/app.php`.
+   *
+   * Connects the package to the application: it merges and validates the configuration, registers the services, hooks into the exception
+   * handling and adds to the global stack the middleware that apply on their own inside the scope. There is no need to touch `Kernel`, `Handler` or `bootstrap/app.php`.
+   */
   class JsonApiServiceProvider extends ServiceProvider {
     public function register(): void {
       $this->mergeDefaultConfig(__DIR__ . '/../config/json-api.php', 'json-api');
@@ -111,9 +118,10 @@
     /**
      * Se engancha al manejo de excepciones de Laravel con una función de renderizado, que funciona igual de Laravel 10 a 13.
      * Si el manejador no tiene `renderable` (uno hecho a mano), no se hace nada. Si la función devuelve null, Laravel sigue como siempre.
+     * También anota el id del error justo antes de que Laravel lo escriba en el log (`reportable`); esa función no devuelve nada, así que el log sigue igual.
+     *
      * It hooks into Laravel's exception handling with a render callback, which works the same from Laravel 10 to 13.
      * If the handler has no `renderable` (a hand-made one), nothing is done. If the callback returns null, Laravel carries on as usual.
-     * También anota el id del error justo antes de que Laravel lo escriba en el log (`reportable`); esa función no devuelve nada, así que el log sigue igual.
      * It also notes the error id right before Laravel writes it to the log (`reportable`); that callback returns nothing, so logging carries on as usual.
      */
     private function hookIntoTheExceptionHandler(): void {

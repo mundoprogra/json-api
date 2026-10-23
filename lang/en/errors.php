@@ -1,9 +1,9 @@
 <?php
 
   // Textos de los errores (inglés). La estructura sigue el código base: `resource.not_found` -> ['resource']['not_found'].
-  // Error texts (English). The structure follows the base code: `resource.not_found` -> ['resource']['not_found'].
-  //
   // Cada código tiene `title` (resumen corto) y `detail` (explicación). Los marcadores como :method se reemplazan al usarlos.
+  //
+  // Error texts (English). The structure follows the base code: `resource.not_found` -> ['resource']['not_found'].
   // Every code has `title` (short summary) and `detail` (explanation). Placeholders such as :method are replaced when used.
   return [
     'request' => [

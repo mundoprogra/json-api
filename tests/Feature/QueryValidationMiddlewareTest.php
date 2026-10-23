@@ -10,6 +10,7 @@
   use MundoProgra\JsonApi\Query\QueryParameters;
   use MundoProgra\JsonApi\Tests\Fixtures\Middleware\AuthenticateLikeTheSkeleton;
   use MundoProgra\JsonApi\Tests\Support\AssertsJsonApi;
+  use MundoProgra\JsonApi\Tests\Support\ReadsTheGlobalMiddleware;
   use MundoProgra\JsonApi\Tests\TestCase;
   use PHPUnit\Framework\Attributes\Test;
 
@@ -23,6 +24,7 @@
    */
   class QueryValidationMiddlewareTest extends TestCase {
     use AssertsJsonApi;
+    use ReadsTheGlobalMiddleware;
 
     private const MEDIA_TYPE = 'application/vnd.api+json';
 
@@ -218,17 +220,5 @@
       $validating = array_filter($this->globalMiddleware(), fn($middleware) => str_starts_with((string) $middleware, ValidateQuery::class));
 
       $this->assertCount(1, $validating);
-    }
-
-    /**
-     * La fila global del kernel. Se lee la propiedad porque `getGlobalMiddleware()` no existe en Laravel 10.
-     * The kernel global stack. The property is read because `getGlobalMiddleware()` does not exist in Laravel 10.
-     *
-     * @return list<mixed>
-     */
-    private function globalMiddleware(): array {
-      $kernel = $this->app->make(HttpKernel::class);
-
-      return array_values((fn() => $this->middleware)->call($kernel));
     }
   }

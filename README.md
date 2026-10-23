@@ -13,7 +13,7 @@
 
 Paquete para Laravel que convierte una API en un servicio [JSON:API 1.1](https://jsonapi.org/format/) de punta a punta: acepta y valida las peticiones en el estándar y responde en el estándar, tanto en éxito como en error.
 
-> **Estado: en desarrollo (aún sin versión publicada).** Hoy el repositorio contiene el esqueleto, el entorno de pruebas y la infraestructura de calidad. La API pública se irá agregando por fases y se documentará aquí al publicarse la versión `0.1.0`.
+> **Estado: en desarrollo (aún sin versión publicada).** Ya funcionan los errores en JSON:API, el alcance por prefijo o global, la negociación de contenido, la validación de los parámetros de consulta y los recursos con relaciones, `links` y `meta`; la paginación está en curso. La API pública se documenta aquí por completo al publicarse la versión `0.1.0`; mientras tanto, el detalle de cada cambio está en el [CHANGELOG](CHANGELOG.md).
 
 ### Qué busca resolver
 
@@ -84,7 +84,7 @@ Licencia MIT. Consulta el archivo [LICENSE](LICENSE.md) para más información.
 
 A Laravel package that turns an API into an end-to-end [JSON:API 1.1](https://jsonapi.org/format/) service: it accepts and validates requests in the standard and responds in the standard, for both success and error responses.
 
-> **Status: under development (no release published yet).** Today the repository contains the skeleton, the test environment and the quality tooling. The public API will be added in phases and documented here when version `0.1.0` is released.
+> **Status: under development (no release published yet).** JSON:API errors, the prefix or global scope, content negotiation, query parameter validation and resources with relationships, `links` and `meta` already work; pagination is in progress. The public API is documented here in full when version `0.1.0` is released; in the meantime, the detail of each change is in the [CHANGELOG](CHANGELOG.md).
 
 ### What it aims to solve
 

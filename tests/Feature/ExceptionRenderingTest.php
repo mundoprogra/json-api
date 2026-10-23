@@ -10,13 +10,13 @@
   use Illuminate\Http\Exceptions\ThrottleRequestsException;
   use Illuminate\Routing\Exceptions\InvalidSignatureException;
   use Illuminate\Session\TokenMismatchException;
-  use Illuminate\Support\Arr;
   use MundoProgra\JsonApi\Errors\Error;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
   use MundoProgra\JsonApi\JsonApiServiceProvider;
   use MundoProgra\JsonApi\Tests\Fixtures\Exceptions\MinimalHandler;
   use MundoProgra\JsonApi\Tests\Fixtures\Exceptions\PaymentDeclined;
   use MundoProgra\JsonApi\Tests\Support\AssertsJsonApi;
+  use MundoProgra\JsonApi\Tests\Support\ReadsPackageTexts;
   use MundoProgra\JsonApi\Tests\TestCase;
   use PHPUnit\Framework\Attributes\DataProvider;
   use PHPUnit\Framework\Attributes\Test;
@@ -24,6 +24,7 @@
 
   class ExceptionRenderingTest extends TestCase {
     use AssertsJsonApi;
+    use ReadsPackageTexts;
 
     protected function setUp(): void {
       parent::setUp();
@@ -350,9 +351,5 @@
       $this->app->register(JsonApiServiceProvider::class, true);
 
       $this->assertInstanceOf(MinimalHandler::class, $this->app->make(ExceptionHandler::class));
-    }
-
-    private function english(string $key): string {
-      return Arr::get(require __DIR__ . '/../../lang/en/errors.php', $key);
     }
   }

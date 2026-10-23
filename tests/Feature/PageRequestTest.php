@@ -4,10 +4,10 @@
 
   use Closure;
   use Illuminate\Http\Request;
-  use Illuminate\Support\Arr;
   use InvalidArgumentException;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
   use MundoProgra\JsonApi\Query\PageRequest;
+  use MundoProgra\JsonApi\Tests\Support\ReadsPackageTexts;
   use MundoProgra\JsonApi\Tests\TestCase;
   use PHPUnit\Framework\Attributes\DataProvider;
   use PHPUnit\Framework\Attributes\Test;
@@ -27,6 +27,8 @@
    * The config is read on every call. The client's invalid values (zero, negatives, text) are already a `400` in `QueryParameters`.
    */
   class PageRequestTest extends TestCase {
+    use ReadsPackageTexts;
+
     protected function setUp(): void {
       parent::setUp();
 
@@ -54,14 +56,6 @@
       }
 
       $this->fail('Expected a JsonApiException.');
-    }
-
-    private function english(string $key): string {
-      return Arr::get(require __DIR__ . '/../../lang/en/errors.php', $key);
-    }
-
-    private function spanish(string $key): string {
-      return Arr::get(require __DIR__ . '/../../lang/es/errors.php', $key);
     }
 
     // ---------------------------------------------------------------------------------------------

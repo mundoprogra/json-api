@@ -8,10 +8,10 @@
   /**
    * Decide el valor del miembro `code` de un error: el catálogo de códigos base del paquete, con el prefijo,
    * los reemplazos y el interruptor de la configuración.
+   * Los códigos base son un contrato con los clientes de la API: no deben cambiar de nombre.
+   *
    * Decides the value of the `code` member of an error: the package catalog of base codes, with the prefix,
    * the replacements and the switch from the configuration.
-   *
-   * Los códigos base son un contrato con los clientes de la API: no deben cambiar de nombre.
    * Base codes are a contract with API clients: they must not be renamed.
    */
   final class ErrorCodes {

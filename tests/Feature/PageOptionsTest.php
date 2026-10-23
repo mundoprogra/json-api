@@ -3,11 +3,11 @@
   namespace MundoProgra\JsonApi\Tests\Feature;
 
   use Illuminate\Http\Request;
-  use Illuminate\Support\Arr;
   use InvalidArgumentException;
   use MundoProgra\JsonApi\Http\Middleware\Options;
   use MundoProgra\JsonApi\Query\PageRequest;
   use MundoProgra\JsonApi\Tests\Support\AssertsJsonApi;
+  use MundoProgra\JsonApi\Tests\Support\ReadsPackageTexts;
   use MundoProgra\JsonApi\Tests\TestCase;
   use PHPUnit\Framework\Attributes\DataProvider;
   use PHPUnit\Framework\Attributes\Test;
@@ -26,6 +26,7 @@
    */
   class PageOptionsTest extends TestCase {
     use AssertsJsonApi;
+    use ReadsPackageTexts;
 
     private const MEDIA_TYPE = 'application/vnd.api+json';
 
@@ -63,10 +64,6 @@
         $router->get('api/grouped-size', $size)->middleware('json-api.options:per_page=20');
         $router->get('api/grouped-max', $size)->middleware('json-api.options:max_per_page=15');
       });
-    }
-
-    private function english(string $key): string {
-      return Arr::get(require __DIR__ . '/../../lang/en/errors.php', $key);
     }
 
     // ---------------------------------------------------------------------------------------------

@@ -9,6 +9,7 @@
   use MundoProgra\JsonApi\Query\QueryParameters;
   use MundoProgra\JsonApi\Support\Settings;
   use MundoProgra\JsonApi\Tests\Support\AssertsJsonApi;
+  use MundoProgra\JsonApi\Tests\Support\ReadsPackageTexts;
   use MundoProgra\JsonApi\Tests\TestCase;
   use PHPUnit\Framework\Attributes\DataProvider;
   use PHPUnit\Framework\Attributes\Test;
@@ -21,6 +22,7 @@
    */
   class QueryParametersErrorsTest extends TestCase {
     use AssertsJsonApi;
+    use ReadsPackageTexts;
 
     private const MEDIA_TYPE = 'application/vnd.api+json';
 
@@ -41,10 +43,6 @@
 
     private function fetch(string $queryString): TestResponse {
       return $this->get('api/articles?' . $queryString, ['Accept' => self::MEDIA_TYPE]);
-    }
-
-    private function english(string $key): string {
-      return Arr::get(require __DIR__ . '/../../lang/en/errors.php', $key);
     }
 
     /**

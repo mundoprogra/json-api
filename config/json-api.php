@@ -8,9 +8,9 @@
   $int = static fn(mixed $value): mixed => filter_var($value, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE) ?? $value;
 
   // Configuración de MundoProgra/JsonApi. Cada valor puede definirse en el .env con la variable indicada en `env:`.
-  // MundoProgra/JsonApi configuration. Each value can be set in .env with the variable shown in `env:`.
-  //
   // Los valores booleanos aceptan true/false, 1/0, yes/no y on/off. Las listas (path_prefix como arreglo, except) solo se definen aquí.
+  //
+  // MundoProgra/JsonApi configuration. Each value can be set in .env with the variable shown in `env:`.
   // Boolean values accept true/false, 1/0, yes/no and on/off. Lists (path_prefix as an array, except) can only be set here.
   return [
     /*

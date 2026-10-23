@@ -13,10 +13,10 @@
   /**
    * Una excepción que representa uno o varios errores de JSON:API. Se lanza desde el código de la app y el paquete la convierte
    * en la respuesta. Se puede extender para definir un error propio en un solo lugar.
+   * Solo describe los errores: no escribe logs ni guarda nada.
+   *
    * An exception that represents one or more JSON:API errors. It is thrown from the app code and the package turns it into
    * the response. It can be extended to define an own error in a single place.
-   *
-   * Solo describe los errores: no escribe logs ni guarda nada.
    * It only describes the errors: it does not write logs or store anything.
    */
   class JsonApiException extends Exception implements HttpExceptionInterface {

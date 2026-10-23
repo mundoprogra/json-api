@@ -8,6 +8,7 @@
   use MundoProgra\JsonApi\Http\Middleware\NegotiateContent;
   use MundoProgra\JsonApi\Tests\Fixtures\Middleware\AuthenticateLikeTheSkeleton;
   use MundoProgra\JsonApi\Tests\Support\AssertsJsonApi;
+  use MundoProgra\JsonApi\Tests\Support\ReadsTheGlobalMiddleware;
   use MundoProgra\JsonApi\Tests\TestCase;
   use PHPUnit\Framework\Attributes\Test;
 
@@ -21,6 +22,7 @@
    */
   class AutomaticNegotiationTest extends TestCase {
     use AssertsJsonApi;
+    use ReadsTheGlobalMiddleware;
 
     protected bool $negotiates = true;
 
@@ -204,17 +206,5 @@
       $negotiating = array_filter($this->globalMiddleware(), fn($middleware) => str_starts_with((string) $middleware, NegotiateContent::class));
 
       $this->assertCount(1, $negotiating);
-    }
-
-    /**
-     * La fila global del kernel. Se lee la propiedad porque `getGlobalMiddleware()` no existe en Laravel 10.
-     * The kernel global stack. The property is read because `getGlobalMiddleware()` does not exist in Laravel 10.
-     *
-     * @return list<mixed>
-     */
-    private function globalMiddleware(): array {
-      $kernel = $this->app->make(HttpKernel::class);
-
-      return array_values((fn() => $this->middleware)->call($kernel));
     }
   }

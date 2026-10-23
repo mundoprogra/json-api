@@ -2,10 +2,10 @@
 
   namespace MundoProgra\JsonApi\Tests\Feature;
 
-  use Illuminate\Support\Arr;
   use Illuminate\Testing\TestResponse;
   use MundoProgra\JsonApi\Http\Middleware\NegotiateContent;
   use MundoProgra\JsonApi\Tests\Support\AssertsJsonApi;
+  use MundoProgra\JsonApi\Tests\Support\ReadsPackageTexts;
   use MundoProgra\JsonApi\Tests\TestCase;
   use PHPUnit\Framework\Attributes\DataProvider;
   use PHPUnit\Framework\Attributes\Test;
@@ -20,6 +20,7 @@
    */
   class ContentNegotiationTest extends TestCase {
     use AssertsJsonApi;
+    use ReadsPackageTexts;
 
     protected bool $negotiates = true;
 
@@ -55,10 +56,6 @@
       }
 
       return $this->call($method, $uri, [], [], [], $server, $body);
-    }
-
-    private function english(string $key): string {
-      return Arr::get(require __DIR__ . '/../../lang/en/errors.php', $key);
     }
 
     private function assertRejected(TestResponse $response, int $status, string $header, string $reason): void {
