@@ -31,4 +31,20 @@
         pointer: $violation['pointer'],
       ), $violations));
     }
+
+    /**
+     * El `403` de un `POST` que trae un `id` elegido por el cliente cuando `allow_client_ids` está apagado (lo que pide la spec).
+     * The `403` of a `POST` that carries an `id` chosen by the client when `allow_client_ids` is off (what the spec asks for).
+     */
+    public static function clientIdNotAllowed(): JsonApiException {
+      $messages = app(ErrorMessages::class);
+
+      return new JsonApiException([Error::make(
+        status: 403,
+        title: $messages->title(ErrorCodes::CLIENT_ID_NOT_ALLOWED),
+        detail: $messages->detail(ErrorCodes::CLIENT_ID_NOT_ALLOWED),
+        code: app(ErrorCodes::class)->resolve(ErrorCodes::CLIENT_ID_NOT_ALLOWED),
+        pointer: Pointer::from('data', 'id'),
+      )]);
+    }
   }

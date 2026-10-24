@@ -25,15 +25,25 @@
    * `RequestDocumentErrorsTest`.
    */
   class RequestDocumentTest extends TestCase {
-    private function document(string $json, string $memberCase = 'camel'): RequestDocument {
-      $request = Request::create('/api/articles', 'POST', [], [], [], ['CONTENT_TYPE' => 'application/vnd.api+json'], $json);
+    /**
+     * @param  array<string, mixed>  $config  valores de `json-api` que cambian los de fábrica / `json-api` values that change the defaults
+     */
+    private function document(string $json, string $memberCase = 'camel', string $method = 'POST', array $config = []): RequestDocument {
+      $request = Request::create('/api/articles', $method, [], [], [], ['CONTENT_TYPE' => 'application/vnd.api+json'], $json);
 
-      return RequestDocument::from($request, $this->settings($memberCase));
+      return RequestDocument::from($request, $this->settings($memberCase, $config));
     }
 
-    private function settings(string $memberCase = 'camel'): Settings {
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    private function settings(string $memberCase = 'camel', array $overrides = []): Settings {
       $config = ['json-api' => require __DIR__ . '/../../config/json-api.php', 'app' => ['debug' => false]];
       Arr::set($config, 'json-api.member_case', $memberCase);
+
+      foreach ($overrides as $key => $value) {
+        Arr::set($config, "json-api.$key", $value);
+      }
 
       return new Settings(new Repository($config));
     }
@@ -54,15 +64,50 @@
 
     #[Test]
     public function it_gives_the_id_as_text(): void {
-      $this->assertSame('42', $this->document('{"data":{"type":"articles","id":"42"}}')->id());
+      $this->assertSame('42', $this->document('{"data":{"type":"articles","id":"42"}}', method: 'PATCH')->id());
     }
 
     #[Test]
     public function the_type_and_the_id_are_kept_exactly_as_sent(): void {
-      $document = $this->document('{"data":{"type":"blogPosts","id":"A-1_b"}}');
+      $document = $this->document('{"data":{"type":"blogPosts","id":"A-1_b"}}', method: 'PATCH');
 
       $this->assertSame('blogPosts', $document->type());
       $this->assertSame('A-1_b', $document->id());
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // El id según el método / The id by method
+    // ---------------------------------------------------------------------------------------------
+
+    #[Test]
+    public function a_post_with_a_client_id_is_accepted_when_the_configuration_allows_it(): void {
+      $document = $this->document('{"data":{"type":"articles","id":"abc-1"}}', config: ['allow_client_ids' => true]);
+
+      $this->assertSame('abc-1', $document->id());
+    }
+
+    #[Test]
+    public function a_put_gives_the_id_like_a_patch(): void {
+      $this->assertSame('42', $this->document('{"data":{"type":"articles","id":"42"}}', method: 'PUT')->id());
+    }
+
+    #[Test]
+    public function the_id_does_not_depend_on_allow_client_ids_when_updating(): void {
+      foreach (['PATCH', 'PUT'] as $method) {
+        foreach ([true, false] as $allowed) {
+          $document = $this->document('{"data":{"type":"articles","id":"42"}}', method: $method, config: ['allow_client_ids' => $allowed]);
+
+          $this->assertSame('42', $document->id(), "$method / allow_client_ids = " . var_export($allowed, true));
+        }
+      }
+    }
+
+    #[Test]
+    public function a_method_that_neither_creates_nor_updates_has_no_rule_about_the_id(): void {
+      // Sin `id` y con `id`, con `allow_client_ids` apagado: ninguna de las dos es un problema fuera de POST, PATCH y PUT.
+      // Without an `id` and with an `id`, with `allow_client_ids` off: neither is a problem outside POST, PATCH and PUT.
+      $this->assertNull($this->document('{"data":{"type":"articles"}}', method: 'DELETE')->id());
+      $this->assertSame('1', $this->document('{"data":{"type":"articles","id":"1"}}', method: 'DELETE')->id());
     }
 
     // ---------------------------------------------------------------------------------------------

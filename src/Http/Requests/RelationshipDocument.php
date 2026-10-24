@@ -27,7 +27,7 @@
      * @throws JsonApiException con un error `400` por cada miembro mal formado / with a `400` error for each malformed member
      */
     public static function from(Request $request): self {
-      $object = json_decode((string) $request->getContent());
+      [$object] = JsonBody::read($request);
 
       if (!$object instanceof stdClass) {
         throw BadDocument::exceptionFor([['pointer' => Pointer::root(), 'reason' => 'not_an_object']]);

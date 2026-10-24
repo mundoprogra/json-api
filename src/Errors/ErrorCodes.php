@@ -21,6 +21,8 @@
 
     public const BAD_DOCUMENT = 'request.bad_document';
 
+    public const CLIENT_ID_NOT_ALLOWED = 'request.client_id_not_allowed';
+
     public const UNAUTHENTICATED = 'auth.unauthenticated';
 
     public const FORBIDDEN = 'auth.forbidden';
@@ -65,6 +67,7 @@
         self::BAD_REQUEST,
         self::BAD_QUERY,
         self::BAD_DOCUMENT,
+        self::CLIENT_ID_NOT_ALLOWED,
         self::UNAUTHENTICATED,
         self::FORBIDDEN,
         self::INVALID_SIGNATURE,

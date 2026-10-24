@@ -41,6 +41,7 @@
         'SERVICE_UNAVAILABLE' => ['SERVICE_UNAVAILABLE', 'server.unavailable'],
         'BAD_QUERY' => ['BAD_QUERY', 'request.bad_query'],
         'BAD_DOCUMENT' => ['BAD_DOCUMENT', 'request.bad_document'],
+        'CLIENT_ID_NOT_ALLOWED' => ['CLIENT_ID_NOT_ALLOWED', 'request.client_id_not_allowed'],
       ];
     }
 

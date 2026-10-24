@@ -37,7 +37,12 @@
           'reserved_member_name' => 'The name of this member is reserved by JSON:API and cannot be used as an attribute or a relationship.',
           'duplicate_member_name' => 'The name of this member is already used by another attribute or relationship of the resource.',
           'invalid_linkage' => 'The linkage at this location must be null, a resource identifier object or a list of resource identifier objects.',
+          'malformed_json' => 'The request body is not valid JSON.',
         ],
+      ],
+      'client_id_not_allowed' => [
+        'title' => 'Client-generated ids not supported',
+        'detail' => 'This server does not accept an id chosen by the client when creating a resource.',
       ],
       'method_not_allowed' => [
         'title' => 'Method not allowed',

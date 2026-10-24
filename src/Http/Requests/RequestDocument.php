@@ -42,13 +42,18 @@
     }
 
     /**
-     * @throws JsonApiException con un error `400` por cada miembro mal formado / with a `400` error for each malformed member
+     * El `id` depende del método: al actualizar (`PATCH` o `PUT`) es obligatorio, y al crear (`POST`) el cliente solo puede mandarlo si
+     * `allow_client_ids` está encendido.
+     * The `id` depends on the method: when updating (`PATCH` or `PUT`) it is required, and when creating (`POST`) the client can only send it if
+     * `allow_client_ids` is on.
+     *
+     * @throws JsonApiException un `400` si el cuerpo no es JSON o un error `400` por cada miembro mal formado, y un `403` si un `POST` trae un `id` que no se acepta
+     *                          a `400` if the body is not JSON or a `400` error for each malformed member, and a `403` if a `POST` carries an `id` that is not accepted
      */
     public static function from(Request $request, Settings $settings): self {
-      $content = (string) $request->getContent();
-      $object = json_decode($content);
-      $values = json_decode($content, true);
+      [$object, $values] = JsonBody::read($request);
       $names = MemberName::for($settings->memberCase());
+      $method = $request->method();
 
       if (!$object instanceof stdClass) {
         throw BadDocument::exceptionFor([['pointer' => Pointer::root(), 'reason' => 'not_an_object']]);
@@ -69,12 +74,16 @@
       $taken = [];
 
       $type = self::text($data, 'type', true, $violations);
-      $id = self::text($data, 'id', false, $violations);
+      $id = self::text($data, 'id', in_array($method, ['PATCH', 'PUT'], true), $violations);
       $attributes = self::fields($data, 'attributes', false, $values, $names, $taken, $violations);
       $relationships = self::fields($data, 'relationships', true, $values, $names, $taken, $violations);
 
       if ($violations !== []) {
         throw BadDocument::exceptionFor($violations);
+      }
+
+      if ($method === 'POST' && $id !== null && !$settings->allowClientIds()) {
+        throw BadDocument::clientIdNotAllowed();
       }
 
       return new self((string) $type, $id, $attributes, $relationships);

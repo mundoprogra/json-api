@@ -80,6 +80,10 @@
 
     #[Test]
     public function a_complete_valid_document_goes_through(): void {
+      // Un POST con `id` solo se acepta si la configuración permite ids del cliente (ver `DocumentIdRulesTest`).
+      // A POST with an `id` is only accepted if the configuration allows client ids (see `DocumentIdRulesTest`).
+      config()->set('json-api.allow_client_ids', true);
+
       $response = $this->send('{"data":{"type":"articles","id":"7","attributes":{"title":"T","createdAt":"2026-01-01"},"relationships":{"author":{"data":{"type":"people","id":"9"}}}}}');
 
       $response->assertOk();
