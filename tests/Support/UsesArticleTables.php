@@ -2,6 +2,7 @@
 
   namespace MundoProgra\JsonApi\Tests\Support;
 
+  use Illuminate\Support\Facades\DB;
   use MundoProgra\JsonApi\Tests\Fixtures\Models\Article;
 
   /**
@@ -25,5 +26,33 @@
       }
 
       Article::query()->insert($rows);
+    }
+
+    /**
+     * Llena las relaciones de los primeros `$articles` artículos: 3 autores (el artículo `n` es del autor `((n - 1) % 3) + 1`), 5 etiquetas (dos
+     * por artículo) y 2 comentarios por artículo, escritos por los autores 1 y 2. Los artículos deben existir (ver `seedArticles()`).
+     * Fills the relations of the first `$articles` articles: 3 authors (article `n` belongs to author `((n - 1) % 3) + 1`), 5 tags (two per
+     * article) and 2 comments per article, written by authors 1 and 2. The articles must exist (see `seedArticles()`).
+     */
+    protected function seedRelations(int $articles = 20): void {
+      DB::table('authors')->insert(array_map(fn(int $id) => ['id' => $id, 'name' => "Author $id", 'created_at' => now(), 'updated_at' => now()], [1, 2, 3]));
+      DB::table('labels')->insert(array_map(fn(int $id) => ['id' => $id, 'slug' => "tag-$id", 'name' => "Tag $id", 'created_at' => now(), 'updated_at' => now()], range(1, 5)));
+
+      $pivot = [];
+      $comments = [];
+
+      for ($id = 1; $id <= $articles; $id++) {
+        DB::table('articles')->where('id', $id)->update(['author_id' => (($id - 1) % 3) + 1]);
+
+        $pivot[] = ['article_id' => $id, 'tag_id' => ($id % 5) + 1];
+        $pivot[] = ['article_id' => $id, 'tag_id' => (($id + 1) % 5) + 1];
+
+        foreach ([1, 2] as $author) {
+          $comments[] = ['article_id' => $id, 'author_id' => $author, 'body' => "Comment of $author on $id", 'created_at' => now(), 'updated_at' => now()];
+        }
+      }
+
+      DB::table('article_tag')->insert($pivot);
+      DB::table('comments')->insert($comments);
     }
   }

@@ -58,7 +58,7 @@
         $cases["not_acceptable: $reason"] = [ErrorCodes::NOT_ACCEPTABLE, $reason];
       }
 
-      foreach (['malformed', 'invalid_name', 'empty_item', 'invalid_page', 'page_size_too_large', 'include_too_deep', 'unknown_parameter', 'sort_not_allowed', 'filter_not_allowed'] as $reason) {
+      foreach (['malformed', 'invalid_name', 'empty_item', 'invalid_page', 'page_size_too_large', 'include_too_deep', 'unknown_parameter', 'sort_not_allowed', 'filter_not_allowed', 'include_not_allowed'] as $reason) {
         $cases["bad_query: $reason"] = [ErrorCodes::BAD_QUERY, $reason];
       }
 

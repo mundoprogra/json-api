@@ -24,6 +24,7 @@
           'unknown_parameter' => 'Este servidor no soporta este parámetro de consulta.',
           'sort_not_allowed' => 'Este servidor no permite ordenar por uno de los campos de sort.',
           'filter_not_allowed' => 'Este servidor no permite filtrar por este campo.',
+          'include_not_allowed' => 'Este servidor no permite incluir una de las relaciones de include.',
         ],
       ],
       'method_not_allowed' => [

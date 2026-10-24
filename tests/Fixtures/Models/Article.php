@@ -4,6 +4,9 @@
 
   use Illuminate\Database\Eloquent\Builder;
   use Illuminate\Database\Eloquent\Model;
+  use Illuminate\Database\Eloquent\Relations\BelongsTo;
+  use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+  use Illuminate\Database\Eloquent\Relations\HasMany;
 
   /**
    * Un artículo de prueba. En la mayoría de las pruebas no toca la base de datos (sus relaciones se asignan a mano con `setRelation()` para
@@ -13,6 +16,27 @@
    */
   class Article extends Model {
     protected $guarded = [];
+
+    /**
+     * @return BelongsTo<Author, $this>
+     */
+    public function author(): BelongsTo {
+      return $this->belongsTo(Author::class);
+    }
+
+    /**
+     * @return BelongsToMany<Tag, $this>
+     */
+    public function tags(): BelongsToMany {
+      return $this->belongsToMany(Tag::class, 'article_tag', 'article_id', 'tag_id');
+    }
+
+    /**
+     * @return HasMany<Comment, $this>
+     */
+    public function comments(): HasMany {
+      return $this->hasMany(Comment::class);
+    }
 
     /**
      * Un scope de ejemplo para `jsonApiFilter(scopes: [...])`: con `1` trae los publicados y con `0` los que están en borrador.

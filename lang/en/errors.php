@@ -24,6 +24,7 @@
           'unknown_parameter' => 'This query parameter is not supported by this server.',
           'sort_not_allowed' => 'This server does not allow sorting by one of the fields in sort.',
           'filter_not_allowed' => 'This server does not allow filtering by this field.',
+          'include_not_allowed' => 'This server does not allow including one of the relationships in include.',
         ],
       ],
       'method_not_allowed' => [

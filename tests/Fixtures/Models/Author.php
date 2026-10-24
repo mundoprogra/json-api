@@ -3,6 +3,7 @@
   namespace MundoProgra\JsonApi\Tests\Fixtures\Models;
 
   use Illuminate\Database\Eloquent\Model;
+  use Illuminate\Database\Eloquent\Relations\HasMany;
 
   /**
    * Un modelo de prueba que no toca la base de datos: la tabla sale del nombre de la clase (`authors`) y la clave de ruta es el `id`.
@@ -10,4 +11,11 @@
    */
   class Author extends Model {
     protected $guarded = [];
+
+    /**
+     * @return HasMany<Article, $this>
+     */
+    public function articles(): HasMany {
+      return $this->hasMany(Article::class);
+    }
   }

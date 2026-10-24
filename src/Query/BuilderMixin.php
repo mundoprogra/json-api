@@ -68,4 +68,20 @@
         return Filtering::apply($this, $exact, $partial, $scopes);
       };
     }
+
+    /**
+     * Carga por anticipado las relaciones que el cliente pide en `include`, con una lista blanca de rutas (ver `Including`). Devuelve el mismo constructor.
+     *
+     * Eager loads the relations the client asks for in `include`, with a whitelist of paths (see `Including`). It returns the same builder.
+     *
+     * @return Closure(list<string>): Builder<Model>
+     */
+    public function jsonApiInclude(): Closure {
+      return function (array $allowed): Builder {
+        // Dentro de la macro `$this` es el constructor de Eloquent y no esta clase; PHPStan solo ve la clase, por eso se ignora este aviso.
+        // Inside the macro `$this` is the Eloquent builder and not this class; PHPStan only sees the class, which is why this warning is ignored.
+        /** @var Builder<Model> $this */ // @phpstan-ignore varTag.nativeType
+        return Including::apply($this, $allowed);
+      };
+    }
   }
