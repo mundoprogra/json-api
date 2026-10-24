@@ -75,8 +75,26 @@ services:
       - .:/package
       - composer-cache:/composer-cache
 
+  # Lo mismo que l13, pero con vendor/ en un volumen de Docker: las pruebas corren unas 8 veces más rápido que con el vendor de Windows.
+  # Se usa para verificar (pruebas, --prefer-lowest, Pint y PHPStan); la caché de PHPStan también va en un volumen.
+  # Same as l13, but with vendor/ in a Docker volume: tests run about 8 times faster than with the Windows vendor.
+  # It is used to verify (tests, --prefer-lowest, Pint and PHPStan); the PHPStan cache lives in a volume too.
+  l13fast:
+    <<: *common
+    image: alvar0rm/laravel:${L13_TAG:-13-php8.3}
+    environment:
+      <<: *environment
+      TESTBENCH: "11.*"
+    volumes:
+      - .:/package
+      - vendor-l13:/package/vendor
+      - phpstan-cache:/package/build/phpstan
+      - composer-cache:/composer-cache
+
 volumes:
   vendor-l10:
   vendor-l11:
   vendor-l12:
+  vendor-l13:
+  phpstan-cache:
   composer-cache:
