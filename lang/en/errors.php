@@ -23,6 +23,7 @@
           'include_too_deep' => 'A relationship path in include is nested deeper than the :max levels this server allows.',
           'unknown_parameter' => 'This query parameter is not supported by this server.',
           'sort_not_allowed' => 'This server does not allow sorting by one of the fields in sort.',
+          'filter_not_allowed' => 'This server does not allow filtering by this field.',
         ],
       ],
       'method_not_allowed' => [

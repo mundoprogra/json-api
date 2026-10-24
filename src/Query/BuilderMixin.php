@@ -52,4 +52,20 @@
         return Sorting::apply($this, $allowed, $default);
       };
     }
+
+    /**
+     * Aplica el `filter` del cliente con listas blancas (ver `Filtering`): `exact`, `partial` y `scopes`. Devuelve el mismo constructor.
+     *
+     * Applies the client `filter` with whitelists (see `Filtering`): `exact`, `partial` and `scopes`. It returns the same builder.
+     *
+     * @return Closure(array<int|string, string>, array<int|string, string>, array<int|string, string>): Builder<Model>
+     */
+    public function jsonApiFilter(): Closure {
+      return function (array $exact = [], array $partial = [], array $scopes = []): Builder {
+        // Dentro de la macro `$this` es el constructor de Eloquent y no esta clase; PHPStan solo ve la clase, por eso se ignora este aviso.
+        // Inside the macro `$this` is the Eloquent builder and not this class; PHPStan only sees the class, which is why this warning is ignored.
+        /** @var Builder<Model> $this */ // @phpstan-ignore varTag.nativeType
+        return Filtering::apply($this, $exact, $partial, $scopes);
+      };
+    }
   }

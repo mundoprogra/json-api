@@ -31,7 +31,7 @@
      * @throws JsonApiException si el cliente pide ordenar por algo que no está en la lista / if the client asks to sort by something that is not in the list
      */
     public static function apply(Builder $query, array $allowed, ?string $default = null): Builder {
-      $columns = self::columns($allowed);
+      $columns = Columns::map($allowed);
       $sort = self::fromDefault($default, $columns);
 
       $asked = QueryParameters::of(app('request'))->sort();
@@ -52,7 +52,7 @@
       $applied = [];
 
       foreach ($sort as $item) {
-        $column = self::qualify($query, $columns[$item['field']]);
+        $column = Columns::qualify($query, $columns[$item['field']]);
 
         if (in_array($column, $applied, true)) {
           continue;
@@ -69,23 +69,6 @@
       }
 
       return $query;
-    }
-
-    /**
-     * El nombre del cliente → la columna. Una entrada sin nombre (`'title'`) es su propia columna.
-     * The client name → the column. An entry without a name (`'title'`) is its own column.
-     *
-     * @param  array<int|string, string>  $allowed
-     * @return array<string, string>
-     */
-    private static function columns(array $allowed): array {
-      $columns = [];
-
-      foreach ($allowed as $name => $column) {
-        $columns[is_int($name) ? $column : $name] = $column;
-      }
-
-      return $columns;
     }
 
     /**
@@ -114,15 +97,5 @@
       }
 
       return $sort;
-    }
-
-    /**
-     * La columna con el nombre de la tabla, salvo que ya lo traiga (`authors.name`).
-     * The column with the table name, unless it already has one (`authors.name`).
-     *
-     * @param  Builder<covariant Model>  $query
-     */
-    private static function qualify(Builder $query, string $column): string {
-      return str_contains($column, '.') ? $column : $query->getModel()->qualifyColumn($column);
     }
   }

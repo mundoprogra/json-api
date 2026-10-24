@@ -23,6 +23,7 @@
           'include_too_deep' => 'Una ruta de relaciones en include está anidada más profundo que los :max niveles que permite este servidor.',
           'unknown_parameter' => 'Este servidor no soporta este parámetro de consulta.',
           'sort_not_allowed' => 'Este servidor no permite ordenar por uno de los campos de sort.',
+          'filter_not_allowed' => 'Este servidor no permite filtrar por este campo.',
         ],
       ],
       'method_not_allowed' => [
