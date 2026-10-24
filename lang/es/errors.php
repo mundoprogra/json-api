@@ -27,6 +27,17 @@
           'include_not_allowed' => 'Este servidor no permite incluir una de las relaciones de include.',
         ],
       ],
+      'bad_document' => [
+        'title' => 'Documento de la petición inválido',
+        'detail' => 'El documento enviado en el cuerpo de la petición no es un documento JSON:API válido.',
+        'reasons' => [
+          'member_required' => 'El miembro de esta ubicación es obligatorio.',
+          'not_an_object' => 'El miembro de esta ubicación debe ser un objeto JSON.',
+          'not_a_string' => 'El miembro de esta ubicación debe ser un texto no vacío.',
+          'reserved_member_name' => 'El nombre de este miembro está reservado por JSON:API y no se puede usar como atributo ni como relación.',
+          'duplicate_member_name' => 'El nombre de este miembro ya lo usa otro atributo o relación del recurso.',
+        ],
+      ],
       'method_not_allowed' => [
         'title' => 'Método no permitido',
         'detail' => 'El método :method no está soportado en esta ruta. Métodos soportados: :allowed.',

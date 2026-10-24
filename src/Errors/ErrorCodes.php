@@ -19,6 +19,8 @@
 
     public const BAD_QUERY = 'request.bad_query';
 
+    public const BAD_DOCUMENT = 'request.bad_document';
+
     public const UNAUTHENTICATED = 'auth.unauthenticated';
 
     public const FORBIDDEN = 'auth.forbidden';
@@ -62,6 +64,7 @@
       return [
         self::BAD_REQUEST,
         self::BAD_QUERY,
+        self::BAD_DOCUMENT,
         self::UNAUTHENTICATED,
         self::FORBIDDEN,
         self::INVALID_SIGNATURE,

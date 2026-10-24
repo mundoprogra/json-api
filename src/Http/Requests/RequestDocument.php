@@ -1,0 +1,224 @@
+<?php
+
+  namespace MundoProgra\JsonApi\Http\Requests;
+
+  use Illuminate\Http\Request;
+  use MundoProgra\JsonApi\Errors\Error;
+  use MundoProgra\JsonApi\Errors\ErrorCodes;
+  use MundoProgra\JsonApi\Errors\ErrorMessages;
+  use MundoProgra\JsonApi\Exceptions\JsonApiException;
+  use MundoProgra\JsonApi\Support\MemberName;
+  use MundoProgra\JsonApi\Support\Pointer;
+  use MundoProgra\JsonApi\Support\Settings;
+  use stdClass;
+
+  /**
+   * El documento que llega en el cuerpo de una petición JSON:API que crea o actualiza un recurso, leído como una estructura tipada e inmutable:
+   * `type`, `id`, `attributes` y `relationships`. Los nombres del primer nivel de `attributes` y de `relationships` pasan del estilo de
+   * `member_case` a snake_case; los valores y lo anidado no se tocan.
+   * Un documento mal formado es un `400` de la familia `request.bad_document` con el `source.pointer` exacto del miembro que falla: todos los
+   * problemas salen juntos, en el orden `type`, `id`, `attributes`, `relationships`, y los textos nunca repiten lo que mandó el cliente.
+   * Revisa solo la forma del recurso; no conoce los tipos de la app.
+   *
+   * The document that arrives in the body of a JSON:API request that creates or updates a resource, read as a typed, immutable structure:
+   * `type`, `id`, `attributes` and `relationships`. The first-level names of `attributes` and `relationships` go from the `member_case` style to
+   * snake_case; the values and anything nested are not touched.
+   * A malformed document is a `400` of the `request.bad_document` family with the exact `source.pointer` of the member that fails: all the problems
+   * come out together, in the order `type`, `id`, `attributes`, `relationships`, and the texts never repeat what the client sent.
+   * It only checks the shape of the resource; it does not know the types of the app.
+   */
+  final class RequestDocument {
+    // Los campos de un recurso comparten un solo espacio de nombres: estos cuatro no pueden ser atributo ni relación.
+    // The fields of a resource share a single namespace: these four cannot be an attribute or a relationship.
+    private const RESERVED = ['type', 'id', 'relationships', 'links'];
+
+    /**
+     * @param  array<int|string, mixed>  $attributes
+     * @param  array<int|string, mixed>  $relationships
+     */
+    private function __construct(
+      private readonly string $type,
+      private readonly ?string $id,
+      private readonly array $attributes,
+      private readonly array $relationships,
+    ) {
+    }
+
+    /**
+     * @throws JsonApiException con un error `400` por cada miembro mal formado / with a `400` error for each malformed member
+     */
+    public static function from(Request $request, Settings $settings): self {
+      $content = (string) $request->getContent();
+      $object = json_decode($content);
+      $values = json_decode($content, true);
+      $names = MemberName::for($settings->memberCase());
+
+      if (!$object instanceof stdClass) {
+        throw self::exceptionFor([['pointer' => Pointer::root(), 'reason' => 'not_an_object']]);
+      }
+
+      $document = get_object_vars($object);
+
+      if (!array_key_exists('data', $document)) {
+        throw self::exceptionFor([['pointer' => Pointer::root(), 'reason' => 'member_required']]);
+      }
+
+      if (!$document['data'] instanceof stdClass) {
+        throw self::exceptionFor([['pointer' => Pointer::from('data'), 'reason' => 'not_an_object']]);
+      }
+
+      $data = get_object_vars($document['data']);
+      $violations = [];
+      $taken = [];
+
+      $type = self::text($data, 'type', true, $violations);
+      $id = self::text($data, 'id', false, $violations);
+      $attributes = self::fields($data, 'attributes', false, $values, $names, $taken, $violations);
+      $relationships = self::fields($data, 'relationships', true, $values, $names, $taken, $violations);
+
+      if ($violations !== []) {
+        throw self::exceptionFor($violations);
+      }
+
+      return new self((string) $type, $id, $attributes, $relationships);
+    }
+
+    /**
+     * El `type` del recurso, tal como lo mandó el cliente.
+     * The `type` of the resource, as the client sent it.
+     */
+    public function type(): string {
+      return $this->type;
+    }
+
+    /**
+     * El `id` que mandó el cliente, o null si no mandó ninguno.
+     * The `id` the client sent, or null if it sent none.
+     */
+    public function id(): ?string {
+      return $this->id;
+    }
+
+    /**
+     * Los atributos, con los nombres del primer nivel en snake_case y en el orden del cliente.
+     * The attributes, with the first-level names in snake_case and in the order of the client.
+     *
+     * @return array<int|string, mixed>
+     */
+    public function attributes(): array {
+      return $this->attributes;
+    }
+
+    /**
+     * Las relaciones, con los nombres en snake_case y el objeto de cada una tal como lo mandó el cliente.
+     * The relationships, with the names in snake_case and the object of each one as the client sent it.
+     *
+     * @return array<int|string, mixed>
+     */
+    public function relationships(): array {
+      return $this->relationships;
+    }
+
+    /**
+     * Lee `type` o `id`: un texto no vacío. Falta o no es texto, y es un problema si es obligatorio o si se mandó.
+     * Reads `type` or `id`: a non-empty string. If it is missing or not a string it is a problem when it is required or when it was sent.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  list<array{pointer: Pointer, reason: string}>  $violations
+     */
+    private static function text(array $data, string $member, bool $required, array &$violations): ?string {
+      if (!array_key_exists($member, $data)) {
+        if ($required) {
+          $violations[] = ['pointer' => Pointer::from('data', $member), 'reason' => 'member_required'];
+        }
+
+        return null;
+      }
+
+      if (!is_string($data[$member]) || $data[$member] === '') {
+        $violations[] = ['pointer' => Pointer::from('data', $member), 'reason' => 'not_a_string'];
+
+        return null;
+      }
+
+      return $data[$member];
+    }
+
+    /**
+     * Lee `attributes` o `relationships`: un objeto cuyos nombres pasan a snake_case. Con `$objects` cada valor también debe ser un objeto.
+     * Los nombres reservados y los repetidos (aunque se escriban distinto, ya en snake_case) son un problema; `$taken` comparte los nombres entre
+     * atributos y relaciones, porque los campos de un recurso tienen un solo espacio de nombres.
+     * Reads `attributes` or `relationships`: an object whose names go to snake_case. With `$objects` each value must be an object too.
+     * Reserved and repeated names (even if written differently, once in snake_case) are a problem; `$taken` shares the names between attributes and
+     * relationships, because the fields of a resource have a single namespace.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<int|string, mixed>|null  $values  el documento completo leído como arreglo / the whole document read as an array
+     * @param  array<string, true>  $taken
+     * @param  list<array{pointer: Pointer, reason: string}>  $violations
+     * @return array<int|string, mixed>
+     */
+    private static function fields(array $data, string $member, bool $objects, ?array $values, MemberName $names, array &$taken, array &$violations): array {
+      if (!array_key_exists($member, $data)) {
+        return [];
+      }
+
+      if (!$data[$member] instanceof stdClass) {
+        $violations[] = ['pointer' => Pointer::from('data', $member), 'reason' => 'not_an_object'];
+
+        return [];
+      }
+
+      $fields = [];
+
+      foreach (get_object_vars($data[$member]) as $key => $node) {
+        $name = (string) $key;
+        $pointer = Pointer::from('data', $member, $name);
+
+        if (in_array($name, self::RESERVED, true)) {
+          $violations[] = ['pointer' => $pointer, 'reason' => 'reserved_member_name'];
+
+          continue;
+        }
+
+        $snake = $names->toSnake($name);
+
+        if (isset($taken[$snake])) {
+          $violations[] = ['pointer' => $pointer, 'reason' => 'duplicate_member_name'];
+
+          continue;
+        }
+
+        $taken[$snake] = true;
+
+        if ($objects && !$node instanceof stdClass) {
+          $violations[] = ['pointer' => $pointer, 'reason' => 'not_an_object'];
+
+          continue;
+        }
+
+        $fields[$snake] = $values['data'][$member][$name] ?? null;
+      }
+
+      return $fields;
+    }
+
+    /**
+     * El `400` de la familia `request.bad_document` con un error por cada problema.
+     * The `400` of the `request.bad_document` family with an error for each problem.
+     *
+     * @param  list<array{pointer: Pointer, reason: string}>  $violations
+     */
+    private static function exceptionFor(array $violations): JsonApiException {
+      $messages = app(ErrorMessages::class);
+      $codes = app(ErrorCodes::class);
+
+      return new JsonApiException(array_map(fn(array $violation) => Error::make(
+        status: 400,
+        title: $messages->title(ErrorCodes::BAD_DOCUMENT),
+        detail: $messages->detail(ErrorCodes::BAD_DOCUMENT, [], $violation['reason']),
+        code: $codes->resolve(ErrorCodes::BAD_DOCUMENT),
+        pointer: $violation['pointer'],
+      ), $violations));
+    }
+  }

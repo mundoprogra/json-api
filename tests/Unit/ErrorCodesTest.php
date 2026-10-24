@@ -40,6 +40,7 @@
         'SERVER_ERROR' => ['SERVER_ERROR', 'server.error'],
         'SERVICE_UNAVAILABLE' => ['SERVICE_UNAVAILABLE', 'server.unavailable'],
         'BAD_QUERY' => ['BAD_QUERY', 'request.bad_query'],
+        'BAD_DOCUMENT' => ['BAD_DOCUMENT', 'request.bad_document'],
       ];
     }
 
