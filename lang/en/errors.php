@@ -22,6 +22,7 @@
           'page_size_too_large' => 'The page size cannot be greater than :max.',
           'include_too_deep' => 'A relationship path in include is nested deeper than the :max levels this server allows.',
           'unknown_parameter' => 'This query parameter is not supported by this server.',
+          'sort_not_allowed' => 'This server does not allow sorting by one of the fields in sort.',
         ],
       ],
       'method_not_allowed' => [

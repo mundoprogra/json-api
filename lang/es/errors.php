@@ -22,6 +22,7 @@
           'page_size_too_large' => 'El tamaño de página no puede ser mayor que :max.',
           'include_too_deep' => 'Una ruta de relaciones en include está anidada más profundo que los :max niveles que permite este servidor.',
           'unknown_parameter' => 'Este servidor no soporta este parámetro de consulta.',
+          'sort_not_allowed' => 'Este servidor no permite ordenar por uno de los campos de sort.',
         ],
       ],
       'method_not_allowed' => [

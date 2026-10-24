@@ -36,4 +36,20 @@
         return $this->paginate($page->size(), ['*'], 'page', $page->number());
       };
     }
+
+    /**
+     * Aplica el `sort` del cliente con una lista blanca de nombres (ver `Sorting`). Devuelve el mismo constructor, para seguir encadenando.
+     *
+     * Applies the client `sort` with a whitelist of names (see `Sorting`). It returns the same builder, to keep chaining.
+     *
+     * @return Closure(array<int|string, string>, string|null): Builder<Model>
+     */
+    public function jsonApiSort(): Closure {
+      return function (array $allowed, ?string $default = null): Builder {
+        // Dentro de la macro `$this` es el constructor de Eloquent y no esta clase; PHPStan solo ve la clase, por eso se ignora este aviso.
+        // Inside the macro `$this` is the Eloquent builder and not this class; PHPStan only sees the class, which is why this warning is ignored.
+        /** @var Builder<Model> $this */ // @phpstan-ignore varTag.nativeType
+        return Sorting::apply($this, $allowed, $default);
+      };
+    }
   }
