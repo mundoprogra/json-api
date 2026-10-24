@@ -5,6 +5,7 @@
   use Illuminate\Contracts\Debug\ExceptionHandler;
   use Illuminate\Contracts\Foundation\CachesConfiguration;
   use Illuminate\Contracts\Http\Kernel as HttpKernel;
+  use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
   use Illuminate\Http\Request;
   use Illuminate\Support\ServiceProvider;
   use MundoProgra\JsonApi\Errors\ErrorCodes;
@@ -17,6 +18,7 @@
   use MundoProgra\JsonApi\Http\Middleware\Options;
   use MundoProgra\JsonApi\Http\Middleware\ValidateQuery;
   use MundoProgra\JsonApi\Http\RequestScope;
+  use MundoProgra\JsonApi\Query\BuilderMixin;
   use MundoProgra\JsonApi\Query\QueryParameters;
   use MundoProgra\JsonApi\Support\ConfigValidator;
   use MundoProgra\JsonApi\Support\Settings;
@@ -101,6 +103,10 @@
       // The `json-api` group puts together the first three, in this order, for a single route outside the scope: `->middleware('json-api')`.
       // `json-api.options` is not in because it needs values; it is added separately when needed.
       $this->app->make('router')->middlewareGroup('json-api', ['json-api.apply', 'json-api.negotiate', 'json-api.query']);
+
+      // Las macros del constructor de Eloquent (`jsonApiPaginate()`, y las que siguen): aplican la consulta de JSON:API a una consulta de la base de datos.
+      // The Eloquent builder macros (`jsonApiPaginate()`, and the ones that follow): they apply the JSON:API query to a database query.
+      EloquentBuilder::mixin(new BuilderMixin());
 
       // `$request->jsonApiQuery()`: la consulta ya analizada, una sola vez por petición.
       // `$request->jsonApiQuery()`: the already parsed query, once per request.
