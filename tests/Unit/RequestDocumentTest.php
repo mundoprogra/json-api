@@ -166,6 +166,54 @@
     }
 
     // ---------------------------------------------------------------------------------------------
+    // Linkage de las relaciones / Relationship linkage
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * @return array<string, array{string, array<string, mixed>}>
+     */
+    public static function validRelationships(): array {
+      // [objeto de la relación tal como llega, cómo lo entrega relationships()] / [relationship object as it arrives, how relationships() gives it]
+      return [
+        'data null (clear a to-one)' => ['{"data":null}', ['data' => null]],
+        'data an identifier (a to-one)' => ['{"data":{"type":"people","id":"9"}}', ['data' => ['type' => 'people', 'id' => '9']]],
+        'data a list of identifiers (a to-many)' => [
+          '{"data":[{"type":"tags","id":"1"},{"type":"tags","id":"2"}]}',
+          ['data' => [['type' => 'tags', 'id' => '1'], ['type' => 'tags', 'id' => '2']]],
+        ],
+        'data an empty list (clear a to-many)' => ['{"data":[]}', ['data' => []]],
+        'identifiers keep their meta' => [
+          '{"data":{"type":"people","id":"9","meta":{"role":"editor"}}}',
+          ['data' => ['type' => 'people', 'id' => '9', 'meta' => ['role' => 'editor']]],
+        ],
+        'only links' => ['{"links":{"related":"/people/9"}}', ['links' => ['related' => '/people/9']]],
+        'only meta' => ['{"meta":{"a":1}}', ['meta' => ['a' => 1]]],
+        'links, data and meta' => [
+          '{"links":{"self":"/x"},"data":null,"meta":{"a":1}}',
+          ['links' => ['self' => '/x'], 'data' => null, 'meta' => ['a' => 1]],
+        ],
+      ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $expected
+     */
+    #[Test]
+    #[DataProvider('validRelationships')]
+    public function a_relationship_with_a_valid_linkage_is_given_as_the_client_sent_it(string $relationship, array $expected): void {
+      $document = $this->document('{"data":{"type":"articles","relationships":{"author":' . $relationship . '}}}');
+
+      $this->assertSame(['author' => $expected], $document->relationships());
+    }
+
+    #[Test]
+    public function the_order_of_the_identifiers_of_a_to_many_relationship_is_kept(): void {
+      $document = $this->document('{"data":{"type":"a","relationships":{"tags":{"data":[{"type":"tags","id":"3"},{"type":"tags","id":"1"},{"type":"tags","id":"2"}]}}}}');
+
+      $this->assertSame(['3', '1', '2'], array_column($document->relationships()['tags']['data'], 'id'));
+    }
+
+    // ---------------------------------------------------------------------------------------------
     // Lo que se ignora / What is ignored
     // ---------------------------------------------------------------------------------------------
 

@@ -36,6 +36,7 @@
           'not_a_string' => 'The member at this location must be a non-empty string.',
           'reserved_member_name' => 'The name of this member is reserved by JSON:API and cannot be used as an attribute or a relationship.',
           'duplicate_member_name' => 'The name of this member is already used by another attribute or relationship of the resource.',
+          'invalid_linkage' => 'The linkage at this location must be null, a resource identifier object or a list of resource identifier objects.',
         ],
       ],
       'method_not_allowed' => [

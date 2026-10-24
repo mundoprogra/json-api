@@ -3,9 +3,6 @@
   namespace MundoProgra\JsonApi\Http\Requests;
 
   use Illuminate\Http\Request;
-  use MundoProgra\JsonApi\Errors\Error;
-  use MundoProgra\JsonApi\Errors\ErrorCodes;
-  use MundoProgra\JsonApi\Errors\ErrorMessages;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
   use MundoProgra\JsonApi\Support\MemberName;
   use MundoProgra\JsonApi\Support\Pointer;
@@ -54,17 +51,17 @@
       $names = MemberName::for($settings->memberCase());
 
       if (!$object instanceof stdClass) {
-        throw self::exceptionFor([['pointer' => Pointer::root(), 'reason' => 'not_an_object']]);
+        throw BadDocument::exceptionFor([['pointer' => Pointer::root(), 'reason' => 'not_an_object']]);
       }
 
       $document = get_object_vars($object);
 
       if (!array_key_exists('data', $document)) {
-        throw self::exceptionFor([['pointer' => Pointer::root(), 'reason' => 'member_required']]);
+        throw BadDocument::exceptionFor([['pointer' => Pointer::root(), 'reason' => 'member_required']]);
       }
 
       if (!$document['data'] instanceof stdClass) {
-        throw self::exceptionFor([['pointer' => Pointer::from('data'), 'reason' => 'not_an_object']]);
+        throw BadDocument::exceptionFor([['pointer' => Pointer::from('data'), 'reason' => 'not_an_object']]);
       }
 
       $data = get_object_vars($document['data']);
@@ -77,7 +74,7 @@
       $relationships = self::fields($data, 'relationships', true, $values, $names, $taken, $violations);
 
       if ($violations !== []) {
-        throw self::exceptionFor($violations);
+        throw BadDocument::exceptionFor($violations);
       }
 
       return new self((string) $type, $id, $attributes, $relationships);
@@ -197,6 +194,10 @@
           continue;
         }
 
+        if ($objects) {
+          self::checkRelationship($node, $pointer, $violations);
+        }
+
         $fields[$snake] = $values['data'][$member][$name] ?? null;
       }
 
@@ -204,21 +205,22 @@
     }
 
     /**
-     * El `400` de la familia `request.bad_document` con un error por cada problema.
-     * The `400` of the `request.bad_document` family with an error for each problem.
+     * Una relación necesita al menos uno de `links`, `data` o `meta`; su `data`, si viene, es un linkage válido.
+     * A relationship needs at least one of `links`, `data` or `meta`; its `data`, if present, is a valid linkage.
      *
      * @param  list<array{pointer: Pointer, reason: string}>  $violations
      */
-    private static function exceptionFor(array $violations): JsonApiException {
-      $messages = app(ErrorMessages::class);
-      $codes = app(ErrorCodes::class);
+    private static function checkRelationship(stdClass $relationship, Pointer $pointer, array &$violations): void {
+      $members = get_object_vars($relationship);
 
-      return new JsonApiException(array_map(fn(array $violation) => Error::make(
-        status: 400,
-        title: $messages->title(ErrorCodes::BAD_DOCUMENT),
-        detail: $messages->detail(ErrorCodes::BAD_DOCUMENT, [], $violation['reason']),
-        code: $codes->resolve(ErrorCodes::BAD_DOCUMENT),
-        pointer: $violation['pointer'],
-      ), $violations));
+      if (array_intersect(['links', 'data', 'meta'], array_keys($members)) === []) {
+        $violations[] = ['pointer' => $pointer, 'reason' => 'member_required'];
+
+        return;
+      }
+
+      if (array_key_exists('data', $members)) {
+        Linkage::check($members['data'], $pointer->append('data'), $violations);
+      }
     }
   }
