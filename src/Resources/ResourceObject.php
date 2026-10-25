@@ -227,6 +227,25 @@
     }
 
     /**
+     * Las relaciones de este recurso que el `included` puede recorrer: las que el recurso muestra (cargadas, y que un `fields[tipo]` no oculta),
+     * por su nombre en snake_case. Una relación a uno vacía no tiene a quién recorrer, así que no está. Es de uso interno del paquete.
+     * The relationships of this resource that `included` can walk: those the resource shows (loaded, and not hidden by a `fields[type]`), by their
+     * snake_case name. An empty to-one relationship has nobody to walk, so it is not there. It is for the package's internal use.
+     *
+     * @return array<string, Relationship>
+     */
+    public function loadedRelationships(Request $request): array {
+      $relationships = $this->filter($this->jsonApiRelationships($request));
+      $requested = $this->requestedFields($request, $this->type());
+
+      if ($requested !== null) {
+        $relationships = array_intersect_key($relationships, array_flip($requested));
+      }
+
+      return array_filter($relationships, fn($relationship) => $relationship instanceof Relationship);
+    }
+
+    /**
      * Pasa cada relación a su objeto de JSON:API. Un `null` es una relación a uno vacía.
      * Turns each relationship into its JSON:API object. A `null` is an empty to-one relationship.
      *
@@ -318,6 +337,14 @@
       // Un recurso vacío (`AuthorResource::make(null)`) es el recurso relacionado de una relación a uno vacía: la spec pide `data: null`.
       // An empty resource (`AuthorResource::make(null)`) is the related resource of an empty to-one relationship: the spec asks for `data: null`.
       $document['data'] = $this->resource === null ? null : $this->resolve($request);
+
+      // Los recursos relacionados que el cliente pidió con `include`; si no hay ninguno, no sale el miembro.
+      // The related resources the client asked for with `include`; if there are none, the member does not come out.
+      $included = $this->resource === null ? [] : Included::of([$this], $request);
+
+      if ($included !== []) {
+        $document['included'] = $included;
+      }
 
       $extra = array_merge_recursive($this->with($request), $this->additional);
       unset($extra['jsonapi'], $extra['data']);

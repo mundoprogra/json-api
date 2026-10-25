@@ -105,6 +105,20 @@
     }
 
     /**
+     * Los recursos relacionados, como lista: ninguno si la relación está vacía o sin cargar, uno si es a uno. Es lo que recorre el `included`.
+     * The related resources, as a list: none if the relationship is empty or unloaded, one if it is to-one. It is what `included` walks.
+     *
+     * @return list<ResourceObject>
+     */
+    public function resources(): array {
+      if ($this->target === null) {
+        return [];
+      }
+
+      return is_array($this->target) ? $this->target : [$this->target];
+    }
+
+    /**
      * El documento de un endpoint de relación (`GET /articles/1/relationships/author`): `jsonapi` (si está activo) y el objeto de la relación, con
      * `links`, `data` y `meta`. No necesita una petición HTTP.
      * The document of a relationship endpoint (`GET /articles/1/relationships/author`): `jsonapi` (if on) and the relationship object, with `links`,
