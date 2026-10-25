@@ -1,0 +1,110 @@
+<?php
+
+  namespace MundoProgra\JsonApi\Resources;
+
+  use Illuminate\Contracts\Pagination\CursorPaginator as CursorPaginatorContract;
+  use Illuminate\Contracts\Pagination\LengthAwarePaginator as LengthAwarePaginatorContract;
+  use Illuminate\Contracts\Pagination\Paginator as PaginatorContract;
+  use Illuminate\Http\JsonResponse;
+  use Illuminate\Http\Request;
+  use Illuminate\Http\Resources\Json\JsonResource;
+  use InvalidArgumentException;
+  use LogicException;
+  use MundoProgra\JsonApi\Support\MediaType;
+  use MundoProgra\JsonApi\Support\Settings;
+  use Traversable;
+
+  /**
+   * Una colección de recursos de JSON:API: `{"jsonapi": ..., "data": [...]}` con un objeto de recurso completo por elemento, en el orden recibido y
+   * siempre como lista (`data: []` si está vacía). Se crea con `MiResource::collection($modelos)`. Acepta un arreglo o una colección; un paginador
+   * simple o de cursor se rechaza, porque no sabe cuántas páginas hay y el documento saldría a medias. La respuesta lleva el `Content-Type` exacto de
+   * JSON:API y `200`. `with()` y `additional()` siguen funcionando, pero nunca pisan `jsonapi` ni `data`.
+   *
+   * A collection of JSON:API resources: `{"jsonapi": ..., "data": [...]}` with a full resource object per element, in the order received and always
+   * as a list (`data: []` if empty). It is created with `MyResource::collection($models)`. It accepts an array or a collection; a simple or cursor
+   * paginator is rejected, because it does not know how many pages there are and the document would come out half done. The response carries the
+   * exact JSON:API `Content-Type` and `200`. `with()` and `additional()` keep working, but never override `jsonapi` or `data`.
+   */
+  final class ResourceCollection extends JsonResource {
+    /** @var iterable<mixed> */
+    private readonly iterable $items;
+
+    /**
+     * @param  class-string<ResourceObject>  $resourceClass  la clase que representa cada elemento / the class that represents each element
+     *
+     * @throws InvalidArgumentException si no es un arreglo ni algo que se pueda recorrer / if it is neither an array nor something traversable
+     * @throws LogicException si es un paginador simple o de cursor / if it is a simple or cursor paginator
+     */
+    public function __construct(mixed $resources, private readonly string $resourceClass) {
+      if ($resources instanceof CursorPaginatorContract || ($resources instanceof PaginatorContract && !$resources instanceof LengthAwarePaginatorContract)) {
+        throw new LogicException(sprintf('%s cannot take a simple or cursor paginator: it does not know how many pages there are. Use a length-aware paginator (paginate() or jsonApiPaginate()).', self::class));
+      }
+
+      if (!is_array($resources) && !$resources instanceof Traversable) {
+        throw new InvalidArgumentException(sprintf('A collection of %s needs an array or a collection of models, %s given.', $resourceClass, get_debug_type($resources)));
+      }
+
+      parent::__construct($resources);
+
+      $this->items = $resources;
+    }
+
+    /**
+     * Los objetos de recurso de cada elemento, como lista y en su orden.
+     * The resource objects of each element, as a list and in their order.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function toArray(Request $request): array {
+      $data = [];
+
+      foreach ($this->items as $item) {
+        $data[] = $this->resourceClass::make($item)->resolve($request);
+      }
+
+      return $data;
+    }
+
+    /**
+     * El cuerpo completo del documento de JSON:API como arreglo: `jsonapi` (si está activo), `data` y los miembros que agreguen `with()` y
+     * `additional()`, que nunca pueden pisar `jsonapi` ni `data`. No necesita una petición HTTP: sin ella usa la que haya en el contenedor y,
+     * si no hay ninguna, una vacía.
+     * The full JSON:API document body as an array: `jsonapi` (if on), `data` and the members `with()` and `additional()` add, which can never
+     * override `jsonapi` or `data`. It needs no HTTP request: without one it uses the one in the container and, if there is none, an empty one.
+     *
+     * @return array<string, mixed>
+     */
+    public function document(?Request $request = null): array {
+      // Se lee del contenedor directamente: `resolveRequestFromContainer()` de JsonResource solo existe desde Laravel 12.
+      // It is read from the container directly: JsonResource's `resolveRequestFromContainer()` only exists since Laravel 12.
+      $request ??= app()->bound('request') ? app('request') : Request::create('/');
+
+      $document = [];
+
+      if (app(Settings::class)->jsonApiObject()) {
+        $document['jsonapi'] = ['version' => MediaType::JSON_API_VERSION];
+      }
+
+      $document['data'] = $this->resolve($request);
+
+      $extra = array_merge_recursive($this->with($request), $this->additional);
+      unset($extra['jsonapi'], $extra['data']);
+
+      return $document + $extra;
+    }
+
+    /**
+     * La respuesta HTTP: el documento con el `Content-Type` exacto de JSON:API y `200`.
+     * The HTTP response: the document with the exact JSON:API `Content-Type` and `200`.
+     *
+     * @param  Request  $request
+     */
+    final public function toResponse($request): JsonResponse {
+      $response = new JsonResponse($this->document($request), 200, [], $this->jsonOptions());
+      $response->headers->set('Content-Type', MediaType::JSON_API);
+
+      $this->withResponse($request, $response);
+
+      return $response;
+    }
+  }

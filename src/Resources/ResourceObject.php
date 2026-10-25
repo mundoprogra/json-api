@@ -32,17 +32,18 @@
     abstract protected function jsonApiAttributes(Request $request): array;
 
     /**
-     * Las colecciones llegan en la Fase 10. Mientras tanto se rechaza: `JsonResource::collection()` no daría un documento JSON:API completo
-     * y el error aparecería lejos de su causa.
-     * Collections arrive in Phase 10. Until then it is refused: `JsonResource::collection()` would not give a full JSON:API document
-     * and the mistake would show up far from its cause.
+     * Una colección de recursos de esta clase como documento de JSON:API (ver `ResourceCollection`). Reemplaza a la de `JsonResource`, que no daría
+     * un documento JSON:API completo.
+     * A collection of resources of this class as a JSON:API document (see `ResourceCollection`). It replaces the one in `JsonResource`, which would
+     * not give a full JSON:API document.
      *
-     * @param  mixed  $resource
+     * @param  mixed  $resource  un arreglo o una colección de modelos / an array or a collection of models
      *
-     * @throws LogicException
+     * @throws InvalidArgumentException si no es un arreglo ni algo que se pueda recorrer / if it is neither an array nor something traversable
+     * @throws LogicException si es un paginador simple o de cursor / if it is a simple or cursor paginator
      */
-    public static function collection($resource): never {
-      throw new LogicException(sprintf('%s::collection() is not available yet: collections of JSON:API resources arrive in a later phase of the package.', static::class));
+    public static function collection($resource): ResourceCollection {
+      return new ResourceCollection($resource, static::class);
     }
 
     /**

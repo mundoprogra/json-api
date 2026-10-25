@@ -4,6 +4,7 @@
 
   use Illuminate\Http\Request;
   use LogicException;
+  use MundoProgra\JsonApi\Resources\ResourceCollection;
   use MundoProgra\JsonApi\Resources\ResourceObject;
   use MundoProgra\JsonApi\Tests\Fixtures\Models\Author;
   use MundoProgra\JsonApi\Tests\Fixtures\Models\Tag;
@@ -305,23 +306,14 @@
     }
 
     // ---------------------------------------------------------------------------------------------
-    // Colecciones: llegan en la Fase 10 / Collections: they arrive in Phase 10
+    // Colecciones / Collections
     // ---------------------------------------------------------------------------------------------
 
     #[Test]
-    public function collection_is_not_available_yet_and_says_so_instead_of_giving_a_wrong_document(): void {
-      // Mientras no esté la Fase 10, `collection()` heredaría el comportamiento de JsonResource y no daría un documento JSON:API completo.
-      // Until Phase 10 is there, `collection()` would inherit JsonResource's behavior and would not give a full JSON:API document.
-      $this->expectException(LogicException::class);
-      $this->expectExceptionMessageMatches('/collection/i');
-
-      AuthorResource::collection([$this->author(['id' => 7, 'name' => 'Ada'])]);
-    }
-
-    #[Test]
-    public function collection_refuses_even_an_empty_list(): void {
-      $this->expectException(LogicException::class);
-
-      AuthorResource::collection([]);
+    public function collection_gives_a_json_api_collection_of_the_package(): void {
+      // Las colecciones tienen su propia prueba: `ResourceCollectionTest`. Aquí solo se fija que `collection()` ya no lanza error.
+      // Collections have their own test: `ResourceCollectionTest`. Here it is only pinned that `collection()` no longer throws.
+      $this->assertInstanceOf(ResourceCollection::class, AuthorResource::collection([$this->author(['id' => 7, 'name' => 'Ada'])]));
+      $this->assertInstanceOf(ResourceCollection::class, AuthorResource::collection([]));
     }
   }
