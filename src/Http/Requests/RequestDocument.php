@@ -29,6 +29,10 @@
     // The fields of a resource share a single namespace: these four cannot be an attribute or a relationship.
     private const RESERVED = ['type', 'id', 'relationships', 'links'];
 
+    // Dónde se guarda el documento ya leído dentro de la petición.
+    // Where the already read document is kept inside the request.
+    private const ATTRIBUTE = 'json-api.document.resource';
+
     /**
      * @param  array<int|string, mixed>  $attributes
      * @param  array<int|string, mixed>  $relationships
@@ -39,6 +43,25 @@
       private readonly array $attributes,
       private readonly array $relationships,
     ) {
+    }
+
+    /**
+     * El documento de la petición, leído una sola vez: la primera llamada lo valida y lo guarda en la petición, y las demás lo reutilizan.
+     * Si el documento está mal formado lanza el error cada vez que se pide.
+     * The document of the request, read once: the first call validates it and keeps it on the request, and the others reuse it.
+     * If the document is malformed it throws the error every time it is asked for.
+     *
+     * @throws JsonApiException
+     */
+    public static function of(Request $request): self {
+      $parsed = $request->attributes->get(self::ATTRIBUTE);
+
+      if (!$parsed instanceof self) {
+        $parsed = self::from($request, app(Settings::class));
+        $request->attributes->set(self::ATTRIBUTE, $parsed);
+      }
+
+      return $parsed;
     }
 
     /**

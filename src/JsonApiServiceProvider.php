@@ -16,6 +16,7 @@
   use MundoProgra\JsonApi\Http\Middleware\ApplyJsonApi;
   use MundoProgra\JsonApi\Http\Middleware\NegotiateContent;
   use MundoProgra\JsonApi\Http\Middleware\Options;
+  use MundoProgra\JsonApi\Http\Middleware\ValidateDocument;
   use MundoProgra\JsonApi\Http\Middleware\ValidateQuery;
   use MundoProgra\JsonApi\Http\RequestScope;
   use MundoProgra\JsonApi\Query\BuilderMixin;
@@ -63,13 +64,14 @@
       // Los middleware se agregan al inicio de la fila global cuando se crea el kernel HTTP: corren antes de que se busque la ruta
       // (así cubren las rutas que no existen) y antes que `auth`. En consola el kernel HTTP no se crea, así que no hay nada que tocar.
       // Cada `prependMiddleware` queda por delante del anterior, así que se agregan en orden inverso: primero ApplyJsonApi (guarda el Accept
-      // original) y justo después NegotiateContent, que lo lee.
+      // original), justo después NegotiateContent (que lo lee), luego ValidateQuery y al final ValidateDocument.
       // The middleware are added at the start of the global stack when the HTTP kernel is created: they run before the route is looked up
       // (so they cover routes that do not exist) and before `auth`. In the console the HTTP kernel is not created, so there is nothing to touch.
       // Each `prependMiddleware` ends up in front of the previous one, so they are added in reverse order: ApplyJsonApi first (it keeps the
-      // original Accept) and right after it NegotiateContent, which reads it.
+      // original Accept), right after it NegotiateContent (which reads it), then ValidateQuery and last ValidateDocument.
       $this->callAfterResolving(HttpKernel::class, function ($kernel) {
         if (method_exists($kernel, 'prependMiddleware')) {
+          $kernel->prependMiddleware(ValidateDocument::class . ':scope');
           $kernel->prependMiddleware(ValidateQuery::class . ':scope');
           $kernel->prependMiddleware(NegotiateContent::class . ':scope');
           $kernel->prependMiddleware(ApplyJsonApi::class . ':scope');
@@ -94,15 +96,21 @@
       // To validate the query (include, fields, sort, filter, page) on a route outside the scope: `->middleware('json-api.query')`.
       $this->app->make('router')->aliasMiddleware('json-api.query', ValidateQuery::class);
 
+      // Para validar el documento de entrada (POST, PATCH y los endpoints de relación) en una ruta fuera del alcance: `->middleware('json-api.document')`.
+      // Con `:relationship` o `:resource` se fuerza el tipo de documento sin importar la URL.
+      // To validate the input document (POST, PATCH and relationship endpoints) on a route outside the scope: `->middleware('json-api.document')`.
+      // With `:relationship` or `:resource` the kind of document is forced whatever the URL says.
+      $this->app->make('router')->aliasMiddleware('json-api.document', ValidateDocument::class);
+
       // Para cambiar la paginación de una ruta o un grupo: `->middleware('json-api.options:per_page=25,max_per_page=50')`.
       // To change the pagination of a route or a group: `->middleware('json-api.options:per_page=25,max_per_page=50')`.
       $this->app->make('router')->aliasMiddleware('json-api.options', Options::class);
 
-      // El grupo `json-api` junta los tres anteriores, en este orden, para una ruta suelta fuera del alcance: `->middleware('json-api')`.
-      // `json-api.options` no entra porque exige valores; se agrega aparte cuando hace falta.
-      // The `json-api` group puts together the first three, in this order, for a single route outside the scope: `->middleware('json-api')`.
-      // `json-api.options` is not in because it needs values; it is added separately when needed.
-      $this->app->make('router')->middlewareGroup('json-api', ['json-api.apply', 'json-api.negotiate', 'json-api.query']);
+      // El grupo `json-api` junta los cuatro anteriores (sin `json-api.options`), en este orden, para una ruta suelta fuera del alcance:
+      // `->middleware('json-api')`. `json-api.options` no entra porque exige valores; se agrega aparte cuando hace falta.
+      // The `json-api` group puts together the four before it (without `json-api.options`), in this order, for a single route outside the scope:
+      // `->middleware('json-api')`. `json-api.options` is not in because it needs values; it is added separately when needed.
+      $this->app->make('router')->middlewareGroup('json-api', ['json-api.apply', 'json-api.negotiate', 'json-api.query', 'json-api.document']);
 
       // Las macros del constructor de Eloquent (`jsonApiPaginate()`, y las que siguen): aplican la consulta de JSON:API a una consulta de la base de datos.
       // The Eloquent builder macros (`jsonApiPaginate()`, and the ones that follow): they apply the JSON:API query to a database query.

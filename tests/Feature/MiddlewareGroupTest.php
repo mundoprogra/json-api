@@ -6,6 +6,7 @@
   use MundoProgra\JsonApi\Http\Middleware\ApplyJsonApi;
   use MundoProgra\JsonApi\Http\Middleware\NegotiateContent;
   use MundoProgra\JsonApi\Http\Middleware\Options;
+  use MundoProgra\JsonApi\Http\Middleware\ValidateDocument;
   use MundoProgra\JsonApi\Http\Middleware\ValidateQuery;
   use MundoProgra\JsonApi\Query\PageRequest;
   use MundoProgra\JsonApi\Tests\Fixtures\Middleware\AuthenticateLikeTheSkeleton;
@@ -15,13 +16,13 @@
   use RuntimeException;
 
   /**
-   * El grupo `json-api` junta los tres middleware que se aplican solos dentro del alcance, para dárselos de una vez a una ruta suelta fuera de él:
-   * `json-api.apply` (marca la petición como de JSON:API y arregla el `Accept`), `json-api.negotiate` (415 y 406) y `json-api.query` (400 de la consulta),
-   * en ese orden. Cada uno sigue existiendo por separado con su alias. `json-api.options` no está en el grupo porque exige valores
+   * El grupo `json-api` junta los cuatro middleware que se aplican solos dentro del alcance, para dárselos de una vez a una ruta suelta fuera de él:
+   * `json-api.apply` (marca la petición como de JSON:API y arregla el `Accept`), `json-api.negotiate` (415 y 406), `json-api.query` (400 de la consulta)
+   * y `json-api.document` (400 y 403 del documento de entrada), en ese orden. Cada uno sigue existiendo por separado con su alias. `json-api.options` no está en el grupo porque exige valores
    * (`json-api.options:per_page=25`); se agrega a la ruta o al grupo de rutas cuando hace falta.
-   * The `json-api` group puts together the three middleware that apply on their own inside the scope, to give them all at once to a single route
-   * outside it: `json-api.apply` (marks the request as JSON:API and fixes the `Accept`), `json-api.negotiate` (415 and 406) and `json-api.query`
-   * (400 for the query), in that order. Each one still exists on its own with its alias. `json-api.options` is not in the group because it needs
+   * The `json-api` group puts together the four middleware that apply on their own inside the scope, to give them all at once to a single route
+   * outside it: `json-api.apply` (marks the request as JSON:API and fixes the `Accept`), `json-api.negotiate` (415 and 406), `json-api.query`
+   * (400 for the query) and `json-api.document` (400 and 403 for the input document), in that order. Each one still exists on its own with its alias. `json-api.options` is not in the group because it needs
    * values (`json-api.options:per_page=25`); it is added to the route or to the group of routes when needed.
    */
   class MiddlewareGroupTest extends TestCase {
@@ -56,10 +57,10 @@
     // ---------------------------------------------------------------------------------------------
 
     #[Test]
-    public function the_json_api_group_has_the_three_middleware_in_this_order(): void {
+    public function the_json_api_group_has_the_four_middleware_in_this_order(): void {
       $groups = $this->app->make('router')->getMiddlewareGroups();
 
-      $this->assertSame(['json-api.apply', 'json-api.negotiate', 'json-api.query'], $groups['json-api'] ?? null);
+      $this->assertSame(['json-api.apply', 'json-api.negotiate', 'json-api.query', 'json-api.document'], $groups['json-api'] ?? null);
     }
 
     #[Test]
@@ -69,6 +70,7 @@
       $this->assertSame(ApplyJsonApi::class, $aliases['json-api.apply'] ?? null);
       $this->assertSame(NegotiateContent::class, $aliases['json-api.negotiate'] ?? null);
       $this->assertSame(ValidateQuery::class, $aliases['json-api.query'] ?? null);
+      $this->assertSame(ValidateDocument::class, $aliases['json-api.document'] ?? null);
       $this->assertSame(Options::class, $aliases['json-api.options'] ?? null);
     }
 
