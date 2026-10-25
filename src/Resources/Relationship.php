@@ -24,8 +24,19 @@
 
     /**
      * @param  list<ResourceObject>|ResourceObject|null  $target  uno, ninguno (`null`) o una lista (vacía o no) / one, none (`null`) or a list (empty or not)
+     * @param  bool  $loaded  false si la relación no se calculó: entonces no tiene `data` / false if the relationship was not worked out: then it has no `data`
      */
-    private function __construct(private readonly array|ResourceObject|null $target) {
+    private function __construct(private readonly array|ResourceObject|null $target, private readonly bool $loaded = true) {
+    }
+
+    /**
+     * Relación que no se calculó (no está cargada): no tiene `data`, solo `links` y/o `meta`. Sirve para anunciar una relación sin consultar la base
+     * de datos. Sin `links` ni `meta` no es un objeto de relación válido y `toArray()` lo avisa como error del programador.
+     * A relationship that was not worked out (it is not loaded): it has no `data`, only `links` and/or `meta`. It serves to announce a relationship
+     * without querying the database. Without `links` or `meta` it is not a valid relationship object and `toArray()` reports it as a developer error.
+     */
+    public static function unloaded(): self {
+      return new self(null, false);
     }
 
     /**
@@ -94,10 +105,14 @@
      *
      * @return array<string, mixed>
      *
-     * @throws LogicException si un recurso relacionado no tiene id / if a related resource has no id
+     * @throws LogicException si un recurso relacionado no tiene id, o si una relación sin cargar no tiene ni links ni meta / if a related resource has no id, or if an unloaded relationship has neither links nor meta
      */
     public function toArray(): array {
       $links = array_filter(['self' => $this->selfLink, 'related' => $this->relatedLink], fn($link) => $link !== null);
+
+      if (!$this->loaded && $links === [] && $this->meta === []) {
+        throw new LogicException('An unloaded relationship needs links or meta: the JSON:API spec requires a relationship object to have at least one of links, data or meta.');
+      }
 
       $object = [];
 
@@ -105,9 +120,11 @@
         $object['links'] = $links;
       }
 
-      $object['data'] = is_array($this->target)
-        ? array_map(fn(ResourceObject $resource) => $this->identifier($resource), $this->target)
-        : ($this->target === null ? null : $this->identifier($this->target));
+      if ($this->loaded) {
+        $object['data'] = is_array($this->target)
+          ? array_map(fn(ResourceObject $resource) => $this->identifier($resource), $this->target)
+          : ($this->target === null ? null : $this->identifier($this->target));
+      }
 
       if ($this->meta !== []) {
         $object['meta'] = $this->meta;

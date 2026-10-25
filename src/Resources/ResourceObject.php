@@ -250,6 +250,30 @@
     }
 
     /**
+     * Los links de una relación de este recurso, a partir de su `links.self`: `{self}/relationships/{nombre}` y `{self}/{nombre}`, con el nombre en el
+     * estilo de `member_case`. Se le pasan a `Relationship::links()`. El `self` es el que armó el paquete con la ruta o el que se escribió a mano en
+     * `jsonApiLinks()` (si es un objeto de link, su `href`). Si el recurso no tiene `self`, da `[]`: el programador no está obligado a usarlo.
+     * The links of a relationship of this resource, from its `links.self`: `{self}/relationships/{name}` and `{self}/{name}`, with the name in the
+     * `member_case` style. They are handed to `Relationship::links()`. The `self` is the one the package built from the route or the one written by
+     * hand in `jsonApiLinks()` (if it is a link object, its `href`). If the resource has no `self`, it gives `[]`: the developer is not obliged to use it.
+     *
+     * @param  string  $name  el nombre de la relación en snake_case / the relationship name in snake_case
+     * @return array<string, string>
+     */
+    protected function relationshipLinks(Request $request, string $name): array {
+      $self = array_merge($this->selfLink(), $this->resourceLinks($request))['self'] ?? null;
+      $base = is_array($self) ? ($self['href'] ?? null) : $self;
+
+      if (!is_string($base)) {
+        return [];
+      }
+
+      $member = MemberName::for(app(Settings::class)->memberCase())->fromSnake($name);
+
+      return ['self' => "$base/relationships/$member", 'related' => "$base/$member"];
+    }
+
+    /**
      * El link `self` armado con la ruta declarada. Si no se declaró, o si no existe una ruta con ese nombre (ya con el prefijo), no hay link.
      * El `id` del recurso es el parámetro de la ruta.
      * The `self` link built from the declared route. If none was declared, or no route with that name exists (prefix included), there is no link.
@@ -291,7 +315,9 @@
         $document['jsonapi'] = ['version' => MediaType::JSON_API_VERSION];
       }
 
-      $document['data'] = $this->resolve($request);
+      // Un recurso vacío (`AuthorResource::make(null)`) es el recurso relacionado de una relación a uno vacía: la spec pide `data: null`.
+      // An empty resource (`AuthorResource::make(null)`) is the related resource of an empty to-one relationship: the spec asks for `data: null`.
+      $document['data'] = $this->resource === null ? null : $this->resolve($request);
 
       $extra = array_merge_recursive($this->with($request), $this->additional);
       unset($extra['jsonapi'], $extra['data']);
