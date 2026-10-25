@@ -28,10 +28,14 @@
    * paginator (`jsonApiPaginate()` or `paginate()`) it adds the pagination `links` and `meta.page` (see `Pagination`). A simple or cursor paginator
    * is rejected, because it does not know how many pages there are and the document would come out half done. The response carries the exact
    * JSON:API `Content-Type` and `200`. `with()` and `additional()` keep working, but never override `jsonapi`, `data` or the pagination `links` and `meta`.
+   * With `include` it adds the `included` of all its elements right after `data` (see `Included`).
    */
   final class ResourceCollection extends JsonResource {
     /** @var iterable<mixed> */
     private readonly iterable $items;
+
+    /** @var list<ResourceObject>|null */
+    private ?array $built = null;
 
     /**
      * @param  class-string<ResourceObject>  $resourceClass  la clase que representa cada elemento / the class that represents each element
@@ -60,13 +64,25 @@
      * @return list<array<string, mixed>>
      */
     public function toArray(Request $request): array {
-      $data = [];
+      return array_map(fn(ResourceObject $resource) => $resource->resolve($request), $this->resourceObjects());
+    }
 
-      foreach ($this->items as $item) {
-        $data[] = $this->resourceClass::make($item)->resolve($request);
+    /**
+     * Un recurso por elemento, creados una sola vez: los usan `data` y el `included`.
+     * One resource per element, created once: `data` and `included` both use them.
+     *
+     * @return list<ResourceObject>
+     */
+    private function resourceObjects(): array {
+      if ($this->built === null) {
+        $this->built = [];
+
+        foreach ($this->items as $item) {
+          $this->built[] = $this->resourceClass::make($item);
+        }
       }
 
-      return $data;
+      return $this->built;
     }
 
     /**
@@ -90,6 +106,14 @@
       }
 
       $document['data'] = $this->resolve($request);
+
+      // Los recursos relacionados que el cliente pidió con `include`, de todos los elementos; si no hay ninguno, no sale el miembro.
+      // The related resources the client asked for with `include`, from all the elements; if there are none, the member does not come out.
+      $included = Included::of($this->resourceObjects(), $request);
+
+      if ($included !== []) {
+        $document['included'] = $included;
+      }
 
       $extra = array_merge_recursive($this->with($request), $this->additional);
       unset($extra['jsonapi'], $extra['data']);

@@ -6,12 +6,12 @@
   use Illuminate\Http\Request;
   use Illuminate\Testing\TestResponse;
   use MundoProgra\JsonApi\Tests\Fixtures\Models\Article;
-  use MundoProgra\JsonApi\Tests\Fixtures\Models\Author;
-  use MundoProgra\JsonApi\Tests\Fixtures\Models\Comment;
   use MundoProgra\JsonApi\Tests\Fixtures\Models\Tag;
   use MundoProgra\JsonApi\Tests\Fixtures\Resources\BlogArticleResource;
   use MundoProgra\JsonApi\Tests\Fixtures\Resources\TagResource;
+  use MundoProgra\JsonApi\Tests\Support\AssertsCompoundDocuments;
   use MundoProgra\JsonApi\Tests\Support\AssertsJsonApi;
+  use MundoProgra\JsonApi\Tests\Support\BuildsBlogArticles;
   use MundoProgra\JsonApi\Tests\TestCase;
   use PHPUnit\Framework\Attributes\Test;
 
@@ -31,36 +31,11 @@
    * included either. Without `include`, with nothing to include or outside the package scope, there is no `included`.
    */
   class IncludedResourcesTest extends TestCase {
+    use AssertsCompoundDocuments;
     use AssertsJsonApi;
+    use BuildsBlogArticles;
 
     private const MEDIA_TYPE = 'application/vnd.api+json';
-
-    private function author(int $id, string $name): Author {
-      return (new Author())->forceFill(['id' => $id, 'name' => $name, 'email' => strtolower($name) . '@example.com']);
-    }
-
-    private function comment(int $id, string $body, Author $author): Comment {
-      return (new Comment())->forceFill(['id' => $id, 'body' => $body])->setRelation('author', $author);
-    }
-
-    /**
-     * El artículo 10, con todo cargado: el autor Ada, las etiquetas php y laravel, y dos comentarios (de Ada y de Bob).
-     * Article 10, with everything loaded: the author Ada, the tags php and laravel, and two comments (by Ada and by Bob).
-     */
-    private function article(): Article {
-      $ada = $this->author(1, 'Ada');
-      $bob = $this->author(2, 'Bob');
-      $first = $this->comment(100, 'First', $ada);
-
-      return (new Article())->forceFill(['id' => 10, 'title' => 'Hello'])
-        ->setRelation('author', $ada)
-        ->setRelation('tags', new EloquentCollection([
-          (new Tag())->forceFill(['slug' => 'php', 'name' => 'PHP']),
-          (new Tag())->forceFill(['slug' => 'laravel', 'name' => 'Laravel']),
-        ]))
-        ->setRelation('comments', new EloquentCollection([$first, $this->comment(101, 'Second', $bob)]))
-        ->setRelation('featured_comment', $first);
-    }
 
     protected function defineRoutes($router): void {
       $router->get('api/article', fn() => BlogArticleResource::make($this->article()));
@@ -84,46 +59,6 @@
 
     private function fetch(string $query = '', string $uri = 'api/article'): TestResponse {
       return $this->get($uri . ($query === '' ? '' : '?' . $query), ['Accept' => self::MEDIA_TYPE]);
-    }
-
-    /**
-     * Los recursos incluidos como `tipo:id`, en el orden del documento.
-     * The included resources as `type:id`, in the document order.
-     *
-     * @param  array<string, mixed>  $document
-     * @return list<string>
-     */
-    private function included(array $document): array {
-      return array_map(fn(array $resource) => $resource['type'] . ':' . $resource['id'], $document['included'] ?? []);
-    }
-
-    /**
-     * Comprueba el *full linkage* y que no hay duplicados ni se repite el recurso principal.
-     * Checks *full linkage* and that there are no duplicates and the primary resource is not repeated.
-     *
-     * @param  array<string, mixed>  $document
-     */
-    private function assertCompound(array $document): void {
-      $linked = [];
-
-      foreach (array_merge([$document['data']], $document['included'] ?? []) as $resource) {
-        foreach ($resource['relationships'] ?? [] as $relationship) {
-          $data = $relationship['data'] ?? null;
-
-          foreach ($data === null ? [] : (array_is_list($data) ? $data : [$data]) as $identifier) {
-            $linked[$identifier['type'] . ':' . $identifier['id']] = true;
-          }
-        }
-      }
-
-      $included = $this->included($document);
-
-      $this->assertSame($included, array_values(array_unique($included)), 'An included resource must appear once.');
-      $this->assertNotContains($document['data']['type'] . ':' . $document['data']['id'], $included, 'The primary resource must not be included.');
-
-      foreach ($included as $key) {
-        $this->assertArrayHasKey($key, $linked, "$key is included but no resource links to it.");
-      }
     }
 
     // ---------------------------------------------------------------------------------------------
