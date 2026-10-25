@@ -8,22 +8,26 @@
   use Illuminate\Http\JsonResponse;
   use Illuminate\Http\Request;
   use Illuminate\Http\Resources\Json\JsonResource;
+  use Illuminate\Pagination\LengthAwarePaginator;
   use InvalidArgumentException;
   use LogicException;
+  use MundoProgra\JsonApi\Query\Pagination;
   use MundoProgra\JsonApi\Support\MediaType;
   use MundoProgra\JsonApi\Support\Settings;
   use Traversable;
 
   /**
    * Una colección de recursos de JSON:API: `{"jsonapi": ..., "data": [...]}` con un objeto de recurso completo por elemento, en el orden recibido y
-   * siempre como lista (`data: []` si está vacía). Se crea con `MiResource::collection($modelos)`. Acepta un arreglo o una colección; un paginador
-   * simple o de cursor se rechaza, porque no sabe cuántas páginas hay y el documento saldría a medias. La respuesta lleva el `Content-Type` exacto de
-   * JSON:API y `200`. `with()` y `additional()` siguen funcionando, pero nunca pisan `jsonapi` ni `data`.
+   * siempre como lista (`data: []` si está vacía). Se crea con `MiResource::collection($modelos)`. Acepta un arreglo o una colección; con un paginador
+   * de Laravel (`jsonApiPaginate()` o `paginate()`) suma los `links` de paginación y el `meta.page` (ver `Pagination`). Un paginador simple o de
+   * cursor se rechaza, porque no sabe cuántas páginas hay y el documento saldría a medias. La respuesta lleva el `Content-Type` exacto de JSON:API y
+   * `200`. `with()` y `additional()` siguen funcionando, pero nunca pisan `jsonapi`, `data` ni los `links` y `meta` de la paginación.
    *
    * A collection of JSON:API resources: `{"jsonapi": ..., "data": [...]}` with a full resource object per element, in the order received and always
-   * as a list (`data: []` if empty). It is created with `MyResource::collection($models)`. It accepts an array or a collection; a simple or cursor
-   * paginator is rejected, because it does not know how many pages there are and the document would come out half done. The response carries the
-   * exact JSON:API `Content-Type` and `200`. `with()` and `additional()` keep working, but never override `jsonapi` or `data`.
+   * as a list (`data: []` if empty). It is created with `MyResource::collection($models)`. It accepts an array or a collection; with a Laravel
+   * paginator (`jsonApiPaginate()` or `paginate()`) it adds the pagination `links` and `meta.page` (see `Pagination`). A simple or cursor paginator
+   * is rejected, because it does not know how many pages there are and the document would come out half done. The response carries the exact
+   * JSON:API `Content-Type` and `200`. `with()` and `additional()` keep working, but never override `jsonapi`, `data` or the pagination `links` and `meta`.
    */
   final class ResourceCollection extends JsonResource {
     /** @var iterable<mixed> */
@@ -89,6 +93,16 @@
 
       $extra = array_merge_recursive($this->with($request), $this->additional);
       unset($extra['jsonapi'], $extra['data']);
+
+      // Con un paginador de Laravel se suman los links y el `meta.page`. Los que agregue `additional()` van después y no pueden pisarlos.
+      // With a Laravel paginator the links and `meta.page` are added. Those `additional()` adds come after and cannot override them.
+      if ($this->resource instanceof LengthAwarePaginator) {
+        $pagination = Pagination::of($this->resource, $request);
+
+        $document['links'] = $pagination->links() + (array) ($extra['links'] ?? []);
+        $document['meta'] = $pagination->meta() + (array) ($extra['meta'] ?? []);
+        unset($extra['links'], $extra['meta']);
+      }
 
       return $document + $extra;
     }
