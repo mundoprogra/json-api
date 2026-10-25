@@ -2,9 +2,14 @@
 
   namespace MundoProgra\JsonApi\Resources;
 
+  use Illuminate\Contracts\Support\Responsable;
   use Illuminate\Database\Eloquent\Model;
+  use Illuminate\Http\JsonResponse;
+  use Illuminate\Http\Request;
   use InvalidArgumentException;
   use LogicException;
+  use MundoProgra\JsonApi\Support\MediaType;
+  use MundoProgra\JsonApi\Support\Settings;
 
   /**
    * Una relación de un recurso: su *resource linkage* (solo `type` e `id` del recurso relacionado) y, si se piden, `links` y `meta`.
@@ -14,7 +19,7 @@
    * It is created with the model (or `null`) and the resource class that represents it; the `type` and `id` come from that class, with whatever it overrides.
    * It keeps the related resources so the Phase 10 `included` can be built from them without changing this API.
    */
-  final class Relationship {
+  final class Relationship implements Responsable {
     private ?string $selfLink = null;
 
     private ?string $relatedLink = null;
@@ -97,6 +102,47 @@
       $clone->meta = $meta;
 
       return $clone;
+    }
+
+    /**
+     * El documento de un endpoint de relación (`GET /articles/1/relationships/author`): `jsonapi` (si está activo) y el objeto de la relación, con
+     * `links`, `data` y `meta`. No necesita una petición HTTP.
+     * The document of a relationship endpoint (`GET /articles/1/relationships/author`): `jsonapi` (if on) and the relationship object, with `links`,
+     * `data` and `meta`. It needs no HTTP request.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws LogicException si un recurso relacionado no tiene id, o si una relación sin cargar no tiene ni `data` ni `meta` (un documento de primer nivel necesita uno de los dos) / if a related resource has no id, or if an unloaded relationship has neither `data` nor `meta` (a top-level document needs one of them)
+     */
+    public function document(): array {
+      $object = $this->toArray();
+
+      if (!array_key_exists('data', $object) && !array_key_exists('meta', $object)) {
+        throw new LogicException('An unloaded relationship cannot be a response with only links: a JSON:API document needs data or meta at the top level.');
+      }
+
+      $document = [];
+
+      if (app(Settings::class)->jsonApiObject()) {
+        $document['jsonapi'] = ['version' => MediaType::JSON_API_VERSION];
+      }
+
+      return $document + $object;
+    }
+
+    /**
+     * La respuesta HTTP de un endpoint de relación: el documento con el `Content-Type` exacto de JSON:API y `200`. Por eso se puede devolver una
+     * `Relationship` desde un controlador.
+     * The HTTP response of a relationship endpoint: the document with the exact JSON:API `Content-Type` and `200`. That is why a `Relationship` can
+     * be returned from a controller.
+     *
+     * @param  Request  $request
+     */
+    public function toResponse($request): JsonResponse {
+      $response = new JsonResponse($this->document());
+      $response->headers->set('Content-Type', MediaType::JSON_API);
+
+      return $response;
     }
 
     /**
