@@ -18,6 +18,7 @@
   use MundoProgra\JsonApi\Http\Middleware\Options;
   use MundoProgra\JsonApi\Http\Middleware\ValidateDocument;
   use MundoProgra\JsonApi\Http\Middleware\ValidateQuery;
+  use MundoProgra\JsonApi\Http\Requests\RequestMixin;
   use MundoProgra\JsonApi\Http\RequestScope;
   use MundoProgra\JsonApi\Query\BuilderMixin;
   use MundoProgra\JsonApi\Query\QueryParameters;
@@ -122,6 +123,12 @@
         /** @var Request $this */
         return QueryParameters::of($this);
       });
+
+      // Los métodos que leen el documento de entrada: `isJsonApi()`, `jsonApiType()`, `jsonApiId()`, `jsonApiAttributes()`,
+      // `hasJsonApiRelationship()`, `jsonApiRelationshipId()` y `jsonApiRelationshipIds()`.
+      // The methods that read the input document: `isJsonApi()`, `jsonApiType()`, `jsonApiId()`, `jsonApiAttributes()`,
+      // `hasJsonApiRelationship()`, `jsonApiRelationshipId()` and `jsonApiRelationshipIds()`.
+      Request::mixin(new RequestMixin());
 
       $this->publishes([
         __DIR__ . '/../config/json-api.php' => config_path('json-api.php'),

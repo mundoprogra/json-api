@@ -60,6 +60,28 @@
     }
 
     /**
+     * El `id` de un linkage ya leído (como arreglo): el de un solo identificador, o null si es `null`, una lista o no hay linkage.
+     * The `id` of an already read linkage (as an array): that of a single identifier, or null if it is `null`, a list or there is no linkage.
+     */
+    public static function id(mixed $data): ?string {
+      return is_array($data) && !array_is_list($data) && isset($data['id']) ? (string) $data['id'] : null;
+    }
+
+    /**
+     * Los `id` de un linkage ya leído (como arreglo), en su orden: uno si es un identificador, ninguno si es `null` o no hay linkage.
+     * The `id`s of an already read linkage (as an array), in its order: one if it is an identifier, none if it is `null` or there is no linkage.
+     *
+     * @return list<string>
+     */
+    public static function ids(mixed $data): array {
+      if (!is_array($data)) {
+        return [];
+      }
+
+      return array_map(fn($identifier) => (string) $identifier['id'], array_is_list($data) ? $data : [$data]);
+    }
+
+    /**
      * @param  list<array{pointer: Pointer, reason: string}>  $violations
      */
     private static function checkIdentifier(stdClass $identifier, Pointer $pointer, array &$violations): void {
