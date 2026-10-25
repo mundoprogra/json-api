@@ -105,6 +105,10 @@
       'conflict' => [
         'title' => 'Conflict',
         'detail' => 'The request conflicts with the current state of the resource.',
+        'reasons' => [
+          'type_mismatch' => 'The type of the resource in the document is not the type this endpoint works with.',
+          'id_mismatch' => 'The id of the resource in the document is not the id in the URL.',
+        ],
       ],
     ],
     'route' => [

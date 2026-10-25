@@ -7,6 +7,9 @@ parameters:
   paths:
     - src
     - config
+    # Estas clases de prueba usan el trait InteractsWithJsonApi: sin ellas PHPStan no analiza el trait (nadie en `src` lo usa).
+    # These test classes use the InteractsWithJsonApi trait: without them PHPStan does not analyse the trait (nothing in `src` uses it).
+    - tests/Fixtures/Requests
   tmpDir: build/phpstan
 
   # Larastan asume la carpeta config/ de una app; aquí es la del propio paquete, donde sí se permite env().

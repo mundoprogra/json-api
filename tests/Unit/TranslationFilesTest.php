@@ -62,6 +62,10 @@
         $cases["bad_query: $reason"] = [ErrorCodes::BAD_QUERY, $reason];
       }
 
+      foreach (['type_mismatch', 'id_mismatch'] as $reason) {
+        $cases["conflict: $reason"] = [ErrorCodes::CONFLICT, $reason];
+      }
+
       foreach (['member_required', 'not_an_object', 'not_a_string', 'reserved_member_name', 'duplicate_member_name', 'invalid_linkage', 'malformed_json'] as $reason) {
         $cases["bad_document: $reason"] = [ErrorCodes::BAD_DOCUMENT, $reason];
       }

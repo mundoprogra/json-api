@@ -33,6 +33,25 @@
     }
 
     /**
+     * El `409` de un documento cuyo `type` o `id` no son los del endpoint, con un error por cada uno y el puntero del miembro que no coincide.
+     * The `409` of a document whose `type` or `id` are not those of the endpoint, with an error for each one and the pointer of the member that does not match.
+     *
+     * @param  list<array{pointer: Pointer, reason: string}>  $conflicts
+     */
+    public static function conflictFor(array $conflicts): JsonApiException {
+      $messages = app(ErrorMessages::class);
+      $codes = app(ErrorCodes::class);
+
+      return new JsonApiException(array_map(fn(array $conflict) => Error::make(
+        status: 409,
+        title: $messages->title(ErrorCodes::CONFLICT),
+        detail: $messages->detail(ErrorCodes::CONFLICT, [], $conflict['reason']),
+        code: $codes->resolve(ErrorCodes::CONFLICT),
+        pointer: $conflict['pointer'],
+      ), $conflicts));
+    }
+
+    /**
      * El `403` de un `POST` que trae un `id` elegido por el cliente cuando `allow_client_ids` está apagado (lo que pide la spec).
      * The `403` of a `POST` that carries an `id` chosen by the client when `allow_client_ids` is off (what the spec asks for).
      */
