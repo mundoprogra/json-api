@@ -17,6 +17,13 @@
       $router->get('api/articles', [ArticleController::class, 'index'])->name('articles.index');
       $router->get('api/articles/{article}', [ArticleController::class, 'show'])->name('articles.show');
 
+      // Lo que cada relación apunta, como recurso o colección, y la relación en sí (solo el linkage).
+      // What each relationship points at, as a resource or collection, and the relationship itself (only the linkage).
+      $router->get('api/articles/{article}/author', [ArticleRelatedController::class, 'author'])->name('articles.author');
+      $router->get('api/articles/{article}/tags', [ArticleRelatedController::class, 'tags'])->name('articles.tags');
+      $router->get('api/articles/{article}/relationships/author', [ArticleRelationshipController::class, 'author'])->name('articles.relationships.author');
+      $router->get('api/articles/{article}/relationships/tags', [ArticleRelationshipController::class, 'tags'])->name('articles.relationships.tags');
+
       $router->middleware(AuthenticateLikeTheSkeleton::class)->group(function (Router $router) {
         $router->post('api/articles', [ArticleController::class, 'store'])->name('articles.store');
         $router->patch('api/articles/{article}', [ArticleController::class, 'update'])->name('articles.update');
