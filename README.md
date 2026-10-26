@@ -240,18 +240,22 @@ El título, el detalle y el código se completan solos a partir del estado. Un e
 | `request.unsupported_media_type` | 415 | El `Content-Type` no es JSON:API (`source.header`) |
 | `request.bad_query` | 400 | Un parámetro de consulta mal formado o no permitido (`source.parameter`) |
 | `request.bad_document` | 400 | El cuerpo no es JSON o no tiene la forma de un documento (`source.pointer`) |
+| `request.bad_request` | 400 | Una petición mal formada que no es de consulta ni de documento |
 | `request.client_id_not_allowed` | 403 | Un `POST` con `id` del cliente y `allow_client_ids` apagado |
 | `auth.unauthenticated` | 401 | Sin autenticar; nunca redirige al login |
 | `auth.forbidden` | 403 | Sin permiso |
+| `auth.invalid_signature` | 403 | La URL firmada es inválida o venció |
 | `resource.not_found` | 404 | El recurso no existe (no revela el nombre del modelo) |
 | `route.not_found` | 404 | La ruta no existe |
 | `request.method_not_allowed` | 405 | El método no está en la ruta; lleva `Allow` |
 | `resource.conflict` | 409 | El `type` o el `id` del documento no son los del endpoint |
-| `validation.<regla>` | 422 | Una regla de validación falló (`validation.required`, `validation.max`…) |
+| `request.payload_too_large` | 413 | El cuerpo de la petición supera el límite |
+| `request.token_mismatch` | 419 | El token CSRF o de sesión venció |
+| `validation.<regla>` / `validation.failed` | 422 | Una regla de validación falló (`validation.required`, `validation.max`…); `validation.failed` si no hay nombre de regla |
 | `request.too_many_requests` | 429 | Límite de peticiones; lleva `Retry-After` |
 | `server.error` / `server.unavailable` | 500 / 503 | Error inesperado o servicio no disponible |
 
-Los códigos llevan el prefijo `mundoprogra.json-api.` (por ejemplo `mundoprogra.json-api.validation.required`). Se cambian con `errors.code_prefix`, se reemplazan uno a uno con `errors.codes` o se apagan con `errors.include_code`.
+Cualquier otro estado HTTP usa `http.<estado>` (por ejemplo `http.402`). Los códigos llevan el prefijo `mundoprogra.json-api.` (por ejemplo `mundoprogra.json-api.validation.required`). Se cambian con `errors.code_prefix`, se reemplazan uno a uno con `errors.codes` o se apagan con `errors.include_code`.
 
 #### El orden de las comprobaciones
 
@@ -335,7 +339,7 @@ docker compose run --rm l13fast vendor/bin/phpstan analyse --no-progress
 docker compose run --rm l13fast vendor/bin/pint --test
 ```
 
-Matriz completa de versiones (cada variante de PHP de cada Laravel, con dependencias estables y mínimas; tarda unos 30 minutos):
+Matriz completa de versiones (cada variante de PHP de cada Laravel, con dependencias estables y mínimas; tarda unos 40 minutos):
 
 ```bash
 bin/matrix.sh                 # todas
@@ -594,18 +598,22 @@ The title, detail and code are filled in from the status. A `5xx` error hides it
 | `request.unsupported_media_type` | 415 | The `Content-Type` is not JSON:API (`source.header`) |
 | `request.bad_query` | 400 | A malformed or not allowed query parameter (`source.parameter`) |
 | `request.bad_document` | 400 | The body is not JSON or does not have the shape of a document (`source.pointer`) |
+| `request.bad_request` | 400 | A malformed request that is neither a query nor a document problem |
 | `request.client_id_not_allowed` | 403 | A `POST` with a client `id` and `allow_client_ids` off |
 | `auth.unauthenticated` | 401 | Not authenticated; it never redirects to login |
 | `auth.forbidden` | 403 | No permission |
+| `auth.invalid_signature` | 403 | The signed URL is invalid or expired |
 | `resource.not_found` | 404 | The resource does not exist (it does not reveal the model name) |
 | `route.not_found` | 404 | The route does not exist |
 | `request.method_not_allowed` | 405 | The method is not on the route; it carries `Allow` |
 | `resource.conflict` | 409 | The `type` or `id` of the document are not those of the endpoint |
-| `validation.<rule>` | 422 | A validation rule failed (`validation.required`, `validation.max`…) |
+| `request.payload_too_large` | 413 | The request body exceeds the limit |
+| `request.token_mismatch` | 419 | The CSRF or session token expired |
+| `validation.<rule>` / `validation.failed` | 422 | A validation rule failed (`validation.required`, `validation.max`…); `validation.failed` when there is no rule name |
 | `request.too_many_requests` | 429 | Rate limit; it carries `Retry-After` |
 | `server.error` / `server.unavailable` | 500 / 503 | Unexpected error or service unavailable |
 
-Codes carry the prefix `mundoprogra.json-api.` (for example `mundoprogra.json-api.validation.required`). Change it with `errors.code_prefix`, replace codes one by one with `errors.codes`, or turn them off with `errors.include_code`.
+Any other HTTP status uses `http.<status>` (for example `http.402`). Codes carry the prefix `mundoprogra.json-api.` (for example `mundoprogra.json-api.validation.required`). Change it with `errors.code_prefix`, replace codes one by one with `errors.codes`, or turn them off with `errors.include_code`.
 
 #### The order of the checks
 
@@ -689,7 +697,7 @@ docker compose run --rm l13fast vendor/bin/phpstan analyse --no-progress
 docker compose run --rm l13fast vendor/bin/pint --test
 ```
 
-Full version matrix (every PHP variant of every Laravel, with stable and lowest dependencies; it takes about 30 minutes):
+Full version matrix (every PHP variant of every Laravel, with stable and lowest dependencies; it takes about 40 minutes):
 
 ```bash
 bin/matrix.sh                 # all of them
