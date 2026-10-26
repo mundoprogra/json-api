@@ -90,6 +90,9 @@ jobs:
           extensions: mbstring, pdo, sqlite, pdo_sqlite, intl, fileinfo
           coverage: none
 
+      - name: Validate composer.json
+        run: composer validate --strict
+
       - name: Install dependencies
         run: composer update --prefer-stable --prefer-dist --no-interaction --with "orchestra/testbench:11.*"
 
