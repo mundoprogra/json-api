@@ -28,6 +28,13 @@
         $router->post('api/articles', [ArticleController::class, 'store'])->name('articles.store');
         $router->patch('api/articles/{article}', [ArticleController::class, 'update'])->name('articles.update');
         $router->delete('api/articles/{article}', [ArticleController::class, 'destroy'])->name('articles.destroy');
+
+        // Escritura de relaciones: a uno solo se reemplaza (`PATCH`); a muchos también se agrega (`POST`) y se quita (`DELETE`).
+        // Writing relationships: a to-one is only replaced (`PATCH`); a to-many is also added to (`POST`) and removed from (`DELETE`).
+        $router->patch('api/articles/{article}/relationships/author', [ArticleRelationshipController::class, 'updateAuthor'])->name('articles.relationships.author.update');
+        $router->patch('api/articles/{article}/relationships/tags', [ArticleRelationshipController::class, 'replaceTags'])->name('articles.relationships.tags.replace');
+        $router->post('api/articles/{article}/relationships/tags', [ArticleRelationshipController::class, 'addTags'])->name('articles.relationships.tags.add');
+        $router->delete('api/articles/{article}/relationships/tags', [ArticleRelationshipController::class, 'removeTags'])->name('articles.relationships.tags.remove');
       });
     }
   }
