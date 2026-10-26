@@ -81,7 +81,7 @@
         // Dentro de la macro `$this` es el constructor de Eloquent y no esta clase; PHPStan solo ve la clase, por eso se ignora este aviso.
         // Inside the macro `$this` is the Eloquent builder and not this class; PHPStan only sees the class, which is why this warning is ignored.
         /** @var Builder<Model> $this */ // @phpstan-ignore varTag.nativeType
-        return Including::apply($this, $allowed);
+        return Including::apply($this, array_values($allowed));
       };
     }
   }

@@ -29,6 +29,9 @@
     ) {
     }
 
+    /**
+     * @param  LengthAwarePaginator<int, mixed>  $paginator
+     */
     public static function of(LengthAwarePaginator $paginator, Request $request): self {
       $current = $paginator->currentPage();
       $last = $paginator->lastPage();

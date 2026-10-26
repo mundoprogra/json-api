@@ -40,7 +40,7 @@
      * @param  list<list<string>>  $includes
      * @param  array<string, list<string>>  $fields
      * @param  list<array{field: string, descending: bool}>  $sort
-     * @param  array<string, mixed>  $filter
+     * @param  array<int|string, mixed>  $filter
      * @param  array<string, mixed>  $page
      */
     private function __construct(
@@ -132,7 +132,7 @@
      * Las condiciones pedidas: `filter[author]=3` es `['author' => '3']`. Los valores son del cliente y los interpreta la aplicación.
      * The requested conditions: `filter[author]=3` is `['author' => '3']`. The values are the client's and the application interprets them.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function filter(): array {
       return $this->filter;
@@ -261,7 +261,7 @@
 
     /**
      * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     private static function parseFilter(mixed $value, MemberName $names, array &$violations): array {
       if ($value === null) {

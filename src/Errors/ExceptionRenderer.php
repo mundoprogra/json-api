@@ -65,7 +65,7 @@
       $errors = [];
 
       foreach ($e->errors() as $key => $messages) {
-        $rules = array_keys($failed[$key] ?? []);
+        $rules = array_map(fn($rule) => (string) $rule, array_keys($failed[$key] ?? []));
         $source = $this->validationSource->resolve((string) $key, $request);
 
         foreach (array_values($messages) as $index => $message) {

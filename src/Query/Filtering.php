@@ -48,11 +48,14 @@
 
       self::reject($request->query->all()['filter'] ?? [], $kindOf);
 
-      foreach ($filters as $name => $value) {
+      foreach ($filters as $key => $value) {
         if (!is_string($value) || $value === '') {
           continue;
         }
 
+        // Un nombre de solo dígitos llega como clave numérica: se vuelve a texto para buscarlo en las listas.
+        // A name made only of digits arrives as a numeric key: it is turned back into text to look it up in the lists.
+        $name = (string) $key;
         $target = $kinds[$kindOf[$name]][$name];
 
         // Solo hay tres clases de lista: lo que no es `exact` ni `partial` es un scope.
@@ -141,6 +144,10 @@
       $escaped = str_replace([self::ESCAPE, '%', '_'], [self::ESCAPE . self::ESCAPE, self::ESCAPE . '%', self::ESCAPE . '_'], $value);
       $wrapped = $query->getQuery()->getGrammar()->wrap($column);
 
-      $query->whereRaw($wrapped . " like ? escape '" . self::ESCAPE . "'", ['%' . $escaped . '%']);
+      // La columna sale de la lista blanca de la app (nunca del cliente) y va escapada con `Grammar::wrap()`; el valor del cliente va como parámetro.
+      // PHPStan solo ve un texto armado con una variable y no puede saber que es seguro.
+      // The column comes from the app whitelist (never from the client) and is escaped with `Grammar::wrap()`; the client value goes as a binding.
+      // PHPStan only sees a string built with a variable and cannot know it is safe.
+      $query->whereRaw($wrapped . " like ? escape '" . self::ESCAPE . "'", ['%' . $escaped . '%']); // @phpstan-ignore argument.type
     }
   }

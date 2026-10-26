@@ -57,7 +57,7 @@
         return $statuses[array_key_first($statuses)];
       }
 
-      return max($statuses) >= 500 ? 500 : 400;
+      return max($statuses ?: [0]) >= 500 ? 500 : 400;
     }
 
     /**

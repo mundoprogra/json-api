@@ -71,7 +71,7 @@
       // Each `prependMiddleware` ends up in front of the previous one, so they are added in reverse order: ApplyJsonApi first (it keeps the
       // original Accept), right after it NegotiateContent (which reads it), then ValidateQuery and last ValidateDocument.
       $this->callAfterResolving(HttpKernel::class, function ($kernel) {
-        if (method_exists($kernel, 'prependMiddleware')) {
+        if (is_object($kernel) && method_exists($kernel, 'prependMiddleware')) {
           $kernel->prependMiddleware(ValidateDocument::class . ':scope');
           $kernel->prependMiddleware(ValidateQuery::class . ':scope');
           $kernel->prependMiddleware(NegotiateContent::class . ':scope');
@@ -153,13 +153,13 @@
      */
     private function hookIntoTheExceptionHandler(): void {
       $this->callAfterResolving(ExceptionHandler::class, function ($handler) {
-        if (method_exists($handler, 'reportable')) {
+        if (is_object($handler) && method_exists($handler, 'reportable')) {
           $handler->reportable(function (Throwable $e) {
             $this->app->make(ErrorIds::class)->reported($e);
           });
         }
 
-        if (!method_exists($handler, 'renderable')) {
+        if (!is_object($handler) || !method_exists($handler, 'renderable')) {
           return;
         }
 

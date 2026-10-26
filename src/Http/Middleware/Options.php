@@ -32,7 +32,7 @@
      * @throws InvalidArgumentException si no hay opciones, si alguna es desconocida, repetida o no es un entero positivo / if there are no options, or one is unknown, repeated or not a positive integer
      */
     public function handle(Request $request, Closure $next, string ...$options): Response {
-      $request->attributes->set(self::ATTRIBUTE, [...$this->current($request), ...$this->parse($options)]);
+      $request->attributes->set(self::ATTRIBUTE, [...$this->current($request), ...$this->parse(array_values($options))]);
 
       return $next($request);
     }
