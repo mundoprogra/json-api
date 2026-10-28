@@ -13,7 +13,7 @@
 
 Paquete para Laravel que convierte una API en un servicio [JSON:API 1.1](https://jsonapi.org/format/) de punta a punta: acepta y valida las peticiones en el estándar y responde en el estándar, tanto en éxito como en error.
 
-> **Estado: versión `0.1.0` en preparación (aún sin publicar).** La API descrita aquí está completa y cubierta por pruebas en Laravel 10 a 13; falta probarla en una aplicación real antes de publicarla. El detalle de cada cambio está en el [CHANGELOG](CHANGELOG.md).
+> **Estado: versión `0.1.0`, en validación.** La API descrita aquí está completa, cubierta por pruebas en Laravel 10 a 13 y probada en una aplicación real. En `0.x` la API puede cambiar entre versiones menores (con `^0.1` Composer solo instala `0.1.x`). El detalle de cada cambio está en el [CHANGELOG](CHANGELOG.md).
 
 ### Qué hace
 
@@ -371,7 +371,7 @@ Licencia MIT. Consulta el archivo [LICENSE](LICENSE.md) para más información.
 
 A Laravel package that turns an API into an end-to-end [JSON:API 1.1](https://jsonapi.org/format/) service: it accepts and validates requests in the standard and responds in the standard, for both success and error responses.
 
-> **Status: version `0.1.0` in preparation (not published yet).** The API described here is complete and covered by tests on Laravel 10 to 13; it still has to be tried in a real application before release. The detail of each change is in the [CHANGELOG](CHANGELOG.md).
+> **Status: version `0.1.0`, under validation.** The API described here is complete, covered by tests on Laravel 10 to 13 and tried in a real application. In `0.x` the API may change between minor versions (with `^0.1` Composer installs only `0.1.x`). The detail of each change is in the [CHANGELOG](CHANGELOG.md).
 
 ### What it does
 

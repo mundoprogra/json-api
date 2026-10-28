@@ -4,6 +4,10 @@ All notable changes to `json-api` will be documented in this file.
 
 ## [Unreleased]
 
+## v0.1.0 - 2026-10-28
+
+First release, under validation: the package is complete and covered by tests on Laravel 10 to 13 (PHP 8.1 to 8.5), and it has been tried in a real application. In `0.x` the API may change between minor versions.
+
 ### Added
 
 - Package skeleton for Laravel 10 to 13 (PHP 8.1+), with a plain service provider and a publishable config file (`json-api-config`).
