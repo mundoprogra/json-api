@@ -1,7 +1,7 @@
 # MundoProgra JSON:API
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mundoprogra/json-api.svg?style=flat-square)](https://packagist.org/packages/mundoprogra/json-api)
-[![Tests](https://img.shields.io/github/actions/workflow/status/mundoprogra/json-api/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/mundoprogra/json-api/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![Tests](https://img.shields.io/github/actions/workflow/status/mundoprogra/json-api/run-tests.yml?branch=master&label=tests&style=flat-square)](https://github.com/mundoprogra/json-api/actions?query=workflow%3Arun-tests+branch%3Amaster)
 [![Total Downloads](https://img.shields.io/packagist/dt/mundoprogra/json-api.svg?style=flat-square)](https://packagist.org/packages/mundoprogra/json-api)
 [![License](https://img.shields.io/packagist/l/mundoprogra/json-api.svg?style=flat-square)](LICENSE.md)
 
