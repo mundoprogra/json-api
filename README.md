@@ -339,7 +339,7 @@ docker compose run --rm l13fast vendor/bin/phpstan analyse --no-progress
 docker compose run --rm l13fast vendor/bin/pint --test
 ```
 
-Matriz completa de versiones (cada variante de PHP de cada Laravel, con dependencias estables y mínimas; tarda unos 40 minutos):
+Matriz completa de versiones (cada variante de PHP de cada Laravel, con dependencias estables y mínimas; tarda unos 45 minutos):
 
 ```bash
 bin/matrix.sh                 # todas
@@ -697,7 +697,7 @@ docker compose run --rm l13fast vendor/bin/phpstan analyse --no-progress
 docker compose run --rm l13fast vendor/bin/pint --test
 ```
 
-Full version matrix (every PHP variant of every Laravel, with stable and lowest dependencies; it takes about 40 minutes):
+Full version matrix (every PHP variant of every Laravel, with stable and lowest dependencies; it takes about 45 minutes):
 
 ```bash
 bin/matrix.sh                 # all of them

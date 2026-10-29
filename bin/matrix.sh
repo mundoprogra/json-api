@@ -14,8 +14,10 @@
 #   bin/matrix.sh l10-php8.1         -> solo esas variantes / only those variants
 #   bin/matrix.sh l12-php8.4 l13-php8.4
 #
-# Variantes / Variants: l10-php8.1 l10-php8.2 l10-php8.3 · l11-php8.2 l11-php8.3 l11-php8.4 · l12-php8.2 l12-php8.3 l12-php8.4 · l13-php8.3 l13-php8.4
-# Extra, solo informativa (no se declara como soportada) / extra, informative only (not declared as supported): l13-php8.5
+# Variantes / Variants: l10-php8.1 l10-php8.2 l10-php8.3 · l11-php8.2 l11-php8.3 l11-php8.4 l11-php8.5 · l12-php8.2 l12-php8.3 l12-php8.4 l12-php8.5 · l13-php8.3 l13-php8.4 l13-php8.5
+#
+# No hay imágenes 11-php8.5 ni 12-php8.5: las variantes con PHP 8.5 usan la imagen 13-php8.5 y el servicio de su Laravel fija la versión (Testbench).
+# There are no 11-php8.5 or 12-php8.5 images: the PHP 8.5 variants use the 13-php8.5 image, and the service of their Laravel pins the version (Testbench).
 #
 # La salida completa de cada corrida queda en build/matrix/<variante>_<estabilidad>.txt, con las deprecaciones, avisos y notas que haya.
 # The full output of each run is left in build/matrix/<variant>_<stability>.txt, with any deprecations, warnings and notices.
@@ -23,9 +25,8 @@ set -u
 
 cd "$(dirname "$0")/.."
 
-official="l10-php8.1 l10-php8.2 l10-php8.3 l11-php8.2 l11-php8.3 l11-php8.4 l12-php8.2 l12-php8.3 l12-php8.4 l13-php8.3 l13-php8.4"
-extra="l13-php8.5"
-variants="${*:-$official $extra}"
+official="l10-php8.1 l10-php8.2 l10-php8.3 l11-php8.2 l11-php8.3 l11-php8.4 l11-php8.5 l12-php8.2 l12-php8.3 l12-php8.4 l12-php8.5 l13-php8.3 l13-php8.4 l13-php8.5"
+variants="${*:-$official}"
 
 mkdir -p build/matrix
 rm -f build/matrix/*.txt
@@ -47,7 +48,12 @@ for variant in $variants; do
     lowest=""
     [ "$stability" = "prefer-lowest" ] && lowest="prefer-lowest"
 
-    env "L${number}_TAG=${number}-${php}" docker compose run --rm \
+    # Con PHP 8.5 solo existe la imagen 13-php8.5; el servicio de cada Laravel fija su versión con Testbench.
+    # With PHP 8.5 only the 13-php8.5 image exists; the service of each Laravel pins its version with Testbench.
+    tag="${number}-${php}"
+    [ "$php" = "php8.5" ] && tag="13-php8.5"
+
+    env "L${number}_TAG=${tag}" docker compose run --rm \
       -e STABILITY="$lowest" -e ARGS="--display-deprecations --display-warnings --display-notices" \
       "$service" > "$file" 2>&1
 
