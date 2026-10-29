@@ -1,0 +1,56 @@
+<p class="lead">El paquete sigue el versionado semántico: <code>MAYOR.MENOR.PARCHE</code>. Esta página explica qué significa cada número, con qué versiones de Laravel y de PHP se prueba, y hasta cuándo recibe correcciones.</p>
+
+<h2 id="que-es-una-version">Qué es una versión</h2>
+
+<p>Una versión es una etiqueta de git (por ejemplo <code>v0.1.0</code>) que Packagist publica. <strong>Una sola versión del paquete cubre varias versiones de Laravel</strong> (hoy de la 10 a la 13): no hay una línea de versiones por cada Laravel.</p>
+
+<h2 id="hoy">Dónde está hoy</h2>
+
+<div class="callout">
+  <p>Hoy el paquete está en <code>0.x</code>: la API está completa y probada, pero se está validando en uso real. En <code>0.x</code> la API puede cambiar entre versiones menores. Con <code>^0.1</code>, Composer instala solo <code>0.1.x</code>; una <code>0.2.0</code> no entra sola.</p>
+</div>
+
+<h2 id="secuencia">La secuencia prevista</h2>
+
+<table>
+  <thead>
+    <tr><th>Versión</th><th>Qué significa</th><th>Laravel</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>0.1.0</code> y siguientes</td><td>En validación; la API puede cambiar entre versiones menores</td><td>10–13</td></tr>
+    <tr><td><code>1.0.0</code></td><td>API estable: las macros, las claves de <code>config/json-api.php</code>, los alias de middleware, los códigos de error, las claves de <code>lang/</code> y los nombres de clases y de trait</td><td>10–13</td></tr>
+    <tr><td><code>1.1.0</code>, <code>1.2.0</code>…</td><td>Suman un Laravel o un PHP nuevo y funciones nuevas, sin romper nada</td><td>10–14, 10–15…</td></tr>
+    <tr><td><code>1.0.1</code>…</td><td>Correcciones, incluidas las incompatibilidades internas con un Laravel o un PHP nuevo</td><td>igual</td></tr>
+    <tr><td><code>2.0.0</code></td><td>Retira Laravel 10 y 11 (que ya no reciben soporte) y puede cambiar la API pública; la línea <code>1.x</code> queda un tiempo solo con correcciones críticas o de seguridad</td><td>12 en adelante</td></tr>
+  </tbody>
+</table>
+
+<h2 id="reglas">Las reglas</h2>
+
+<ol>
+  <li>Un Laravel o un PHP nuevo <strong>no obliga</strong> a un cambio de versión mayor: el número mayor sube solo si se rompe la API o se retira soporte.</li>
+  <li>Retirar el soporte de un Laravel o de un PHP es un cambio mayor (mientras el paquete esté en <code>0.x</code> basta uno menor).</li>
+  <li>Laravel 10 y 11 se conservan durante toda la línea <code>1.x</code> y se retiran juntos en <code>2.0.0</code>.</li>
+  <li>El rango de PHP efectivo es la intersección de <code>php: ^8.1</code> con lo que exige cada Laravel; Composer lo resuelve.</li>
+  <li>Antes de publicar una versión se corre la matriz completa de pruebas, el análisis estático y el estilo, y se actualizan la tabla de versiones y el <a href="https://github.com/mundoprogra/json-api/blob/master/CHANGELOG.md">CHANGELOG</a>.</li>
+</ol>
+
+<h2 id="probado">Con qué se prueba</h2>
+
+<p>La integración continua corre las pruebas con cada una de estas combinaciones, con las dependencias en su última versión y en su versión mínima. Las combinaciones que no aparecen no se prueban:</p>
+
+<table>
+  <thead>
+    <tr><th>Laravel</th><th>PHP</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>10</td><td>8.1, 8.2, 8.3</td></tr>
+    <tr><td>11</td><td>8.2, 8.3, 8.4, 8.5</td></tr>
+    <tr><td>12</td><td>8.2, 8.3, 8.4, 8.5</td></tr>
+    <tr><td>13</td><td>8.3, 8.4, 8.5</td></tr>
+  </tbody>
+</table>
+
+<h2 id="seguridad">Correcciones de seguridad</h2>
+
+<p>Solo la última versión publicada recibe correcciones de seguridad (hoy, la <code>0.x</code> más reciente). Cómo reportar una vulnerabilidad está en la <a href="https://github.com/mundoprogra/json-api/security/policy">política de seguridad</a>.</p>

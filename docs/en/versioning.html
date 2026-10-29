@@ -33,12 +33,68 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Project</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Versioning and support</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>This page is being written.</p>
+<p class="lead">The package follows semantic versioning: <code>MAJOR.<wbr>MINOR.<wbr>PATCH</code>. This page explains what each number means, which Laravel and PHP versions it is tested with, and until when it receives fixes.</p>
+
+<h2 id="what-a-version-is">What a version is</h2>
+
+<p>A version is a git tag (for example <code>v0.1.0</code>) that Packagist publishes. <strong>A single version of the package covers several Laravel versions</strong> (today 10 to 13): there is no line of versions per Laravel.</p>
+
+<h2 id="today">Where it is today</h2>
+
+<div class="callout">
+  <p>Today the package is in <code>0.x</code>: the API is complete and tested, but it is being validated in real use. In <code>0.x</code> the API may change between minor versions. With <code>^0.1</code>, Composer installs only <code>0.1.x</code>; a <code>0.2.0</code> does not come in on its own.</p>
+</div>
+
+<h2 id="sequence">The planned sequence</h2>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Version</th><th>What it means</th><th>Laravel</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Version"><code>0.1.0</code> and following</td><td data-label="What it means">Under validation; the API may change between minor versions</td><td data-label="Laravel">10–13</td></tr>
+    <tr><td data-label="Version"><code>1.0.0</code></td><td data-label="What it means">Stable API: the macros, the keys of <code>config/json-api.php</code>, the middleware aliases, the error codes, the <code>lang/</code> keys and the class and trait names</td><td data-label="Laravel">10–13</td></tr>
+    <tr><td data-label="Version"><code>1.1.0</code>, <code>1.2.0</code>…</td><td data-label="What it means">Add a new Laravel or PHP and new features, without breaking anything</td><td data-label="Laravel">10–14, 10–15…</td></tr>
+    <tr><td data-label="Version"><code>1.0.1</code>…</td><td data-label="What it means">Fixes, including internal incompatibilities with a new Laravel or PHP</td><td data-label="Laravel">same</td></tr>
+    <tr><td data-label="Version"><code>2.0.0</code></td><td data-label="What it means">Drops Laravel 10 and 11 (which no longer receive support) and may change the public API; the <code>1.x</code> line is left for a while with only critical or security fixes</td><td data-label="Laravel">12 onwards</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="rules">The rules</h2>
+
+<ol>
+  <li>A new Laravel or PHP <strong>does not force</strong> a major version change: the major number goes up only if the API breaks or support is dropped.</li>
+  <li>Dropping support for a Laravel or PHP version is a major change (while the package is in <code>0.x</code> a minor one is enough).</li>
+  <li>Laravel 10 and 11 are kept for the whole <code>1.x</code> line and are dropped together in <code>2.0.0</code>.</li>
+  <li>The effective PHP range is the intersection of <code>php: ^8.1</code> with what each Laravel requires; Composer resolves it.</li>
+  <li>Before publishing a version, the full test matrix, the static analysis and the code style are run, and the versions table and the <a href="https://github.com/mundoprogra/json-api/blob/master/CHANGELOG.md">CHANGELOG</a> are updated.</li>
+</ol>
+
+<h2 id="tested">What it is tested with</h2>
+
+<p>Continuous integration runs the tests with each of these combinations, with the dependencies at their latest version and at their minimum version. The combinations that do not appear are not tested:</p>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Laravel</th><th>PHP</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Laravel">10</td><td data-label="PHP">8.1, 8.2, 8.3</td></tr>
+    <tr><td data-label="Laravel">11</td><td data-label="PHP">8.2, 8.3, 8.4, 8.5</td></tr>
+    <tr><td data-label="Laravel">12</td><td data-label="PHP">8.2, 8.3, 8.4, 8.5</td></tr>
+    <tr><td data-label="Laravel">13</td><td data-label="PHP">8.3, 8.4, 8.5</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="security">Security fixes</h2>
+
+<p>Only the latest published version receives security fixes (today, the most recent <code>0.x</code>). How to report a vulnerability is in the <a href="https://github.com/mundoprogra/json-api/security/policy">security policy</a>.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="known-limits.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Previous</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Known limits</span></a><span></span></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="On this page"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On this page</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#what-a-version-is" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">What a version is</a></li><li><a href="#today" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Where it is today</a></li><li><a href="#sequence" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">The planned sequence</a></li><li><a href="#rules" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">The rules</a></li><li><a href="#tested" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">What it is tested with</a></li><li><a href="#security" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Security fixes</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Code and issues</a> ·

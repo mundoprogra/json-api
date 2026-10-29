@@ -1,0 +1,23 @@
+<p class="lead">Lo que el paquete no hace, y algunos detalles que conviene saber antes de encontrarlos por sorpresa.</p>
+
+<h2 id="limites">Límites</h2>
+
+<ul>
+  <li><strong>No registra rutas ni controladores.</strong> Los endpoints, y su autorización, son tuyos. Mira <a href="getting-started.html">Primeros pasos</a>.</li>
+  <li><strong>Extensiones y perfiles.</strong> Se negocia JSON:API 1.1, pero las extensiones y los perfiles no se implementan: cualquier <code>ext</code> se rechaza con <code>415</code> y los perfiles se ignoran. Tampoco hay <code>lid</code>.</li>
+  <li><strong><code>PUT</code>.</strong> No se valida salvo con <code>allow_put</code>; la especificación solo define <code>PATCH</code> para actualizar.</li>
+  <li><strong><code>include</code> sin relación cargada.</strong> Un <code>include</code> sobre una relación que no se cargó se ignora en silencio: la carga anticipada es trabajo de <code>jsonApiInclude()</code>.</li>
+  <li><strong>Paginadores propios.</strong> Un paginador que implemente el contrato de Laravel pero no sea la clase <code>LengthAwarePaginator</code> de Illuminate no recibe <code>links</code> ni <code>meta</code>.</li>
+  <li><strong>Endpoints de relación.</strong> Las reglas de cardinalidad (un identificador o una lista) y de tipo las escribe tu aplicación. Mira <a href="relationship-endpoints.html">Endpoints de relación</a>.</li>
+  <li><strong>Esquema de las pruebas.</strong> El esquema oficial de JSON:API que se usa en las pruebas del paquete es el de la versión 1.0.</li>
+</ul>
+
+<h2 id="detalles">Detalles que conviene saber</h2>
+
+<p>Observados en una aplicación real que usa el paquete:</p>
+
+<ul>
+  <li><strong>El idioma del <code>detail</code> de una validación.</strong> En un error de validación, el <code>title</code> sale en el idioma del paquete, pero el <code>detail</code> es el mensaje de la regla de Laravel, en el idioma de tu aplicación. Si no tienes traducidos los textos de validación (por ejemplo <code>lang/es/validation.php</code>), saldrá en inglés aunque el <code>title</code> salga en español.</li>
+  <li><strong>La regla <code>Password</code>.</strong> Cuando una contraseña incumple varias reglas de <code>Password::min(8)-&gt;letters()-&gt;…</code>, solo el primer error lleva el código <code>validation.password</code>; los demás salen con <code>validation.failed</code>, porque esos mensajes no traen el nombre de la regla.</li>
+  <li><strong>Las cabeceras.</strong> Con <code>strict_headers</code> en <code>true</code>, un cliente que manda <code>Accept: application/json</code> dentro del alcance del paquete recibe un <code>406</code>. Si migras una API con clientes que ya existen, mira <a href="configuration.html">Configuración</a>.</li>
+</ul>

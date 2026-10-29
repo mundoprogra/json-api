@@ -1,0 +1,48 @@
+<p class="lead">The package switches itself on when you install it. This page explains where it acts, what exactly it adds and how to apply it to a single route.</p>
+
+<h2 id="scope">Where it acts</h2>
+
+<p>The scope is decided by three options of the <a href="configuration.html">configuration</a>:</p>
+
+<table>
+  <thead>
+    <tr><th>Option</th><th>Effect</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>mode</code></td><td><code>prefix</code> (default): only routes that start with <code>path_prefix</code>. <code>global</code>: the whole application, <code>404</code> and <code>500</code> included</td></tr>
+    <tr><td><code>path_prefix</code></td><td>The route prefix when <code>mode</code> is <code>prefix</code> (default <code>api</code>): a string or an array of strings</td></tr>
+    <tr><td><code>except</code></td><td>Routes the package never touches, in any mode (default <code>['up']</code>); wildcards allowed</td></tr>
+  </tbody>
+</table>
+
+<p>Outside that scope the package touches nothing: a route such as <code>/</code> answers as usual, with its HTML. Inside it, everything comes out as JSON:API, errors of a route that does not exist included.</p>
+
+<h2 id="middleware">What it adds</h2>
+
+<p>Inside the scope, the package adds only four middleware at the start of the HTTP kernel's global stack. They run before the route is looked up, so they also cover routes that do not exist, and before <code>auth</code>:</p>
+
+<table>
+  <thead>
+    <tr><th>Middleware</th><th>What it does</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>json-api.apply</code></td><td>Marks the request as JSON:API and fixes the <code>Accept</code> so <code>auth</code> answers <code>401</code> instead of looking up the <code>login</code> route</td></tr>
+    <tr><td><code>json-api.negotiate</code></td><td>Negotiates the content: it checks the <code>Content-Type</code> (<code>415</code>) and the <code>Accept</code> (<code>406</code>). The <code>Content-Type</code> is checked only when the request has a body and its method is <code>POST</code>, <code>PATCH</code> or <code>DELETE</code> (<code>PUT</code> only with <code>allow_put</code>)</td></tr>
+    <tr><td><code>json-api.query</code></td><td>Validates the query parameters (<code>400</code>, with <code>source.parameter</code>)</td></tr>
+    <tr><td><code>json-api.document</code></td><td>Validates the body document (<code>400</code> or <code>403</code>, with <code>source.pointer</code>)</td></tr>
+  </tbody>
+</table>
+
+<p>To know in what order everything is checked when a request fails for more than one reason, see <a href="errors.html#order">The order of the checks</a>.</p>
+
+<div class="callout">
+  <p>You do not need to touch <code>bootstrap/app.php</code>, <code>Kernel</code> or <code>Handler</code>. If your <code>bootstrap/app.php</code> replaces the global list with <code>withMiddleware</code> (Laravel 11 to 13), the package middleware are added afterwards and end up at the start of the stack.</p>
+</div>
+
+<h2 id="single-route">A single route outside the scope</h2>
+
+<p>If you need JSON:API on a route that falls outside the scope, apply all four middleware at once with <code>json-api</code>:</p>
+
+<pre><code>Route::get('reports/{report}', [ReportController::class, 'show'])-&gt;middleware('json-api');</code></pre>
+
+<p>The four also exist separately. There is also <code>json-api.options</code>, which sets the pagination limits of a route, for example <code>json-api.options:per_page=25,max_per_page=50</code>. And <code>json-api.document:relationship</code> or <code>json-api.document:resource</code> force the kind of document without looking at the URL.</p>

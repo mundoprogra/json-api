@@ -33,12 +33,35 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Reference</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Known limits</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>This page is being written.</p>
+<p class="lead">What the package does not do, and a few details worth knowing before you run into them by surprise.</p>
+
+<h2 id="limits">Limits</h2>
+
+<ul>
+  <li><strong>It registers no routes or controllers.</strong> The endpoints, and their authorization, are yours. See <a href="getting-started.html">Getting started</a>.</li>
+  <li><strong>Extensions and profiles.</strong> JSON:API 1.1 is negotiated, but extensions and profiles are not implemented: any <code>ext</code> is rejected with <code>415</code> and profiles are ignored. There is no <code>lid</code> either.</li>
+  <li><strong><code>PUT</code>.</strong> It is not validated unless <code>allow_put</code> is on; the specification only defines <code>PATCH</code> for updates.</li>
+  <li><strong><code>include</code> without a loaded relationship.</strong> An <code>include</code> on a relationship that was not loaded is silently ignored: eager loading is the job of <code>jsonApiInclude()</code>.</li>
+  <li><strong>Custom paginators.</strong> A paginator that implements Laravel's contract but is not Illuminate's <code>LengthAwarePaginator</code> class gets no <code>links</code> or <code>meta</code>.</li>
+  <li><strong>Relationship endpoints.</strong> The cardinality rules (an identifier or a list) and the type rules are written by your application. See <a href="relationship-endpoints.html">Relationship endpoints</a>.</li>
+  <li><strong>The tests' schema.</strong> The official JSON:API schema used in the package tests is the one for version 1.0.</li>
+</ul>
+
+<h2 id="details">Details worth knowing</h2>
+
+<p>Observed in a real application that uses the package:</p>
+
+<ul>
+  <li><strong>The language of a validation <code>detail</code>.</strong> In a validation error, the <code>title</code> comes out in the package's language, but the <code>detail</code> is the Laravel rule's message, in your application's language. If you do not have the validation texts translated (for example <code>lang/es/validation.php</code>), it comes out in English even if the <code>title</code> comes out in Spanish.</li>
+  <li><strong>The <code>Password</code> rule.</strong> When a password breaks several rules of <code>Password::min(8)-&gt;letters()-&gt;…</code>, only the first error carries the <code>validation.<wbr>password</code> code; the others come out as <code>validation.<wbr>failed</code>, because those messages do not carry the rule name.</li>
+  <li><strong>Headers.</strong> With <code>strict_<wbr>headers</code> set to <code>true</code>, a client that sends <code>Accept: application/json</code> inside the package scope gets a <code>406</code>. If you are migrating an API with existing clients, see <a href="configuration.html">Configuration</a>.</li>
+</ul>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="naming-style.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Previous</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Naming style</span></a><a href="versioning.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Next →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Versioning and support</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="On this page"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On this page</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#limits" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Limits</a></li><li><a href="#details" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Details worth knowing</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Code and issues</a> ·

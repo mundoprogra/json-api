@@ -1,0 +1,48 @@
+<p class="lead">El paquete se activa solo al instalarlo. Esta página explica dónde actúa, qué agrega exactamente y cómo aplicarlo a una ruta suelta.</p>
+
+<h2 id="alcance">Dónde actúa</h2>
+
+<p>El alcance lo deciden tres opciones de la <a href="configuration.html">configuración</a>:</p>
+
+<table>
+  <thead>
+    <tr><th>Opción</th><th>Efecto</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>mode</code></td><td><code>prefix</code> (por defecto): solo las rutas que empiezan con <code>path_prefix</code>. <code>global</code>: toda la aplicación, incluidos los <code>404</code> y los <code>500</code></td></tr>
+    <tr><td><code>path_prefix</code></td><td>El prefijo de ruta cuando <code>mode</code> es <code>prefix</code> (por defecto <code>api</code>): un texto o un arreglo de textos</td></tr>
+    <tr><td><code>except</code></td><td>Rutas que el paquete nunca toca, en cualquier modo (por defecto <code>['up']</code>); admite comodines</td></tr>
+  </tbody>
+</table>
+
+<p>Fuera de ese alcance el paquete no toca nada: una ruta como <code>/</code> responde como siempre, con su HTML. Dentro, todo sale en JSON:API, también los errores de una ruta que no existe.</p>
+
+<h2 id="middleware">Qué agrega</h2>
+
+<p>Dentro del alcance, el paquete agrega solo cuatro middleware al inicio de la pila global del kernel HTTP. Corren antes de buscar la ruta, y por eso cubren también las rutas que no existen, y antes que <code>auth</code>:</p>
+
+<table>
+  <thead>
+    <tr><th>Middleware</th><th>Qué hace</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>json-api.apply</code></td><td>Marca la petición como JSON:API y arregla el <code>Accept</code> para que <code>auth</code> responda <code>401</code> en lugar de buscar la ruta <code>login</code></td></tr>
+    <tr><td><code>json-api.negotiate</code></td><td>Negocia el contenido: comprueba el <code>Content-Type</code> (<code>415</code>) y el <code>Accept</code> (<code>406</code>). El <code>Content-Type</code> se revisa solo si la petición trae cuerpo y su método es <code>POST</code>, <code>PATCH</code> o <code>DELETE</code> (<code>PUT</code> solo con <code>allow_put</code>)</td></tr>
+    <tr><td><code>json-api.query</code></td><td>Valida los parámetros de consulta (<code>400</code>, con <code>source.parameter</code>)</td></tr>
+    <tr><td><code>json-api.document</code></td><td>Valida el documento del cuerpo (<code>400</code> o <code>403</code>, con <code>source.pointer</code>)</td></tr>
+  </tbody>
+</table>
+
+<p>Para saber en qué orden se comprueba todo cuando una petición falla por más de un motivo, mira <a href="errors.html#orden">El orden de las comprobaciones</a>.</p>
+
+<div class="callout">
+  <p>No hace falta tocar <code>bootstrap/app.php</code>, <code>Kernel</code> ni <code>Handler</code>. Si tu <code>bootstrap/app.php</code> reemplaza la lista global con <code>withMiddleware</code> (Laravel 11 a 13), los middleware del paquete se agregan después y quedan al principio de la fila.</p>
+</div>
+
+<h2 id="ruta-suelta">Una ruta suelta fuera del alcance</h2>
+
+<p>Si necesitas JSON:API en una ruta que queda fuera del alcance, aplica los cuatro middleware de una vez con <code>json-api</code>:</p>
+
+<pre><code>Route::get('reports/{report}', [ReportController::class, 'show'])-&gt;middleware('json-api');</code></pre>
+
+<p>Los cuatro también existen por separado. Además hay <code>json-api.options</code>, que fija los límites de paginación de una ruta, por ejemplo <code>json-api.options:per_page=25,max_per_page=50</code>. Y <code>json-api.document:relationship</code> o <code>json-api.document:resource</code> fuerzan el tipo de documento sin mirar la URL.</p>

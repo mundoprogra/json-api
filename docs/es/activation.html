@@ -33,12 +33,60 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guía</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Cómo se activa</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>Esta página se está escribiendo.</p>
+<p class="lead">El paquete se activa solo al instalarlo. Esta página explica dónde actúa, qué agrega exactamente y cómo aplicarlo a una ruta suelta.</p>
+
+<h2 id="alcance">Dónde actúa</h2>
+
+<p>El alcance lo deciden tres opciones de la <a href="configuration.html">configuración</a>:</p>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Opción</th><th>Efecto</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Opción"><code>mode</code></td><td data-label="Efecto"><code>prefix</code> (por defecto): solo las rutas que empiezan con <code>path_prefix</code>. <code>global</code>: toda la aplicación, incluidos los <code>404</code> y los <code>500</code></td></tr>
+    <tr><td data-label="Opción"><code>path_prefix</code></td><td data-label="Efecto">El prefijo de ruta cuando <code>mode</code> es <code>prefix</code> (por defecto <code>api</code>): un texto o un arreglo de textos</td></tr>
+    <tr><td data-label="Opción"><code>except</code></td><td data-label="Efecto">Rutas que el paquete nunca toca, en cualquier modo (por defecto <code>['up']</code>); admite comodines</td></tr>
+  </tbody>
+</table></div>
+
+<p>Fuera de ese alcance el paquete no toca nada: una ruta como <code>/</code> responde como siempre, con su HTML. Dentro, todo sale en JSON:API, también los errores de una ruta que no existe.</p>
+
+<h2 id="middleware">Qué agrega</h2>
+
+<p>Dentro del alcance, el paquete agrega solo cuatro middleware al inicio de la pila global del kernel HTTP. Corren antes de buscar la ruta, y por eso cubren también las rutas que no existen, y antes que <code>auth</code>:</p>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Middleware</th><th>Qué hace</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Middleware"><code>json-api.apply</code></td><td data-label="Qué hace">Marca la petición como JSON:API y arregla el <code>Accept</code> para que <code>auth</code> responda <code>401</code> en lugar de buscar la ruta <code>login</code></td></tr>
+    <tr><td data-label="Middleware"><code>json-api.negotiate</code></td><td data-label="Qué hace">Negocia el contenido: comprueba el <code>Content-Type</code> (<code>415</code>) y el <code>Accept</code> (<code>406</code>). El <code>Content-Type</code> se revisa solo si la petición trae cuerpo y su método es <code>POST</code>, <code>PATCH</code> o <code>DELETE</code> (<code>PUT</code> solo con <code>allow_put</code>)</td></tr>
+    <tr><td data-label="Middleware"><code>json-api.query</code></td><td data-label="Qué hace">Valida los parámetros de consulta (<code>400</code>, con <code>source.<wbr>parameter</code>)</td></tr>
+    <tr><td data-label="Middleware"><code>json-api.document</code></td><td data-label="Qué hace">Valida el documento del cuerpo (<code>400</code> o <code>403</code>, con <code>source.<wbr>pointer</code>)</td></tr>
+  </tbody>
+</table></div>
+
+<p>Para saber en qué orden se comprueba todo cuando una petición falla por más de un motivo, mira <a href="errors.html#orden">El orden de las comprobaciones</a>.</p>
+
+<div class="callout">
+  <p>No hace falta tocar <code>bootstrap/app.php</code>, <code>Kernel</code> ni <code>Handler</code>. Si tu <code>bootstrap/app.php</code> reemplaza la lista global con <code>withMiddleware</code> (Laravel 11 a 13), los middleware del paquete se agregan después y quedan al principio de la fila.</p>
+</div>
+
+<h2 id="ruta-suelta">Una ruta suelta fuera del alcance</h2>
+
+<p>Si necesitas JSON:API en una ruta que queda fuera del alcance, aplica los cuatro middleware de una vez con <code>json-api</code>:</p>
+
+<pre><code>Route::get('reports/{report}', [ReportController::class, 'show'])-&gt;middleware('json-api');</code></pre>
+
+<p>Los cuatro también existen por separado. Además hay <code>json-api.options</code>, que fija los límites de paginación de una ruta, por ejemplo <code>json-api.options:per_page=25,max_per_page=50</code>. Y <code>json-api.document:relationship</code> o <code>json-api.document:resource</code> fuerzan el tipo de documento sin mirar la URL.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="errors.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Anterior</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Errores</span></a><a href="configuration.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Siguiente →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Configuración</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="En esta página"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">En esta página</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#alcance" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Dónde actúa</a></li><li><a href="#middleware" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Qué agrega</a></li><li><a href="#ruta-suelta" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Una ruta suelta fuera del alcance</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Código e issues</a> ·

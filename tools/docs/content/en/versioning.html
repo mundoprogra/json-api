@@ -1,0 +1,56 @@
+<p class="lead">The package follows semantic versioning: <code>MAJOR.MINOR.PATCH</code>. This page explains what each number means, which Laravel and PHP versions it is tested with, and until when it receives fixes.</p>
+
+<h2 id="what-a-version-is">What a version is</h2>
+
+<p>A version is a git tag (for example <code>v0.1.0</code>) that Packagist publishes. <strong>A single version of the package covers several Laravel versions</strong> (today 10 to 13): there is no line of versions per Laravel.</p>
+
+<h2 id="today">Where it is today</h2>
+
+<div class="callout">
+  <p>Today the package is in <code>0.x</code>: the API is complete and tested, but it is being validated in real use. In <code>0.x</code> the API may change between minor versions. With <code>^0.1</code>, Composer installs only <code>0.1.x</code>; a <code>0.2.0</code> does not come in on its own.</p>
+</div>
+
+<h2 id="sequence">The planned sequence</h2>
+
+<table>
+  <thead>
+    <tr><th>Version</th><th>What it means</th><th>Laravel</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>0.1.0</code> and following</td><td>Under validation; the API may change between minor versions</td><td>10–13</td></tr>
+    <tr><td><code>1.0.0</code></td><td>Stable API: the macros, the keys of <code>config/json-api.php</code>, the middleware aliases, the error codes, the <code>lang/</code> keys and the class and trait names</td><td>10–13</td></tr>
+    <tr><td><code>1.1.0</code>, <code>1.2.0</code>…</td><td>Add a new Laravel or PHP and new features, without breaking anything</td><td>10–14, 10–15…</td></tr>
+    <tr><td><code>1.0.1</code>…</td><td>Fixes, including internal incompatibilities with a new Laravel or PHP</td><td>same</td></tr>
+    <tr><td><code>2.0.0</code></td><td>Drops Laravel 10 and 11 (which no longer receive support) and may change the public API; the <code>1.x</code> line is left for a while with only critical or security fixes</td><td>12 onwards</td></tr>
+  </tbody>
+</table>
+
+<h2 id="rules">The rules</h2>
+
+<ol>
+  <li>A new Laravel or PHP <strong>does not force</strong> a major version change: the major number goes up only if the API breaks or support is dropped.</li>
+  <li>Dropping support for a Laravel or PHP version is a major change (while the package is in <code>0.x</code> a minor one is enough).</li>
+  <li>Laravel 10 and 11 are kept for the whole <code>1.x</code> line and are dropped together in <code>2.0.0</code>.</li>
+  <li>The effective PHP range is the intersection of <code>php: ^8.1</code> with what each Laravel requires; Composer resolves it.</li>
+  <li>Before publishing a version, the full test matrix, the static analysis and the code style are run, and the versions table and the <a href="https://github.com/mundoprogra/json-api/blob/master/CHANGELOG.md">CHANGELOG</a> are updated.</li>
+</ol>
+
+<h2 id="tested">What it is tested with</h2>
+
+<p>Continuous integration runs the tests with each of these combinations, with the dependencies at their latest version and at their minimum version. The combinations that do not appear are not tested:</p>
+
+<table>
+  <thead>
+    <tr><th>Laravel</th><th>PHP</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>10</td><td>8.1, 8.2, 8.3</td></tr>
+    <tr><td>11</td><td>8.2, 8.3, 8.4, 8.5</td></tr>
+    <tr><td>12</td><td>8.2, 8.3, 8.4, 8.5</td></tr>
+    <tr><td>13</td><td>8.3, 8.4, 8.5</td></tr>
+  </tbody>
+</table>
+
+<h2 id="security">Security fixes</h2>
+
+<p>Only the latest published version receives security fixes (today, the most recent <code>0.x</code>). How to report a vulnerability is in the <a href="https://github.com/mundoprogra/json-api/security/policy">security policy</a>.</p>

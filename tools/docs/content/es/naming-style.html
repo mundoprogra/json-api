@@ -1,0 +1,38 @@
+<p class="lead">Un nombre de varias palabras, como la fecha de creación, se puede escribir de tres maneras en el documento. El paquete convierte por ti; en tu código siempre escribes <code>snake_case</code>.</p>
+
+<h2 id="estilos">Los tres estilos</h2>
+
+<p>La opción <code>member_case</code> (variable <code>JSON_API_MEMBER_CASE</code>, por defecto <code>camel</code>) decide cómo se escriben los nombres de varias palabras en el documento:</p>
+
+<table>
+  <thead>
+    <tr><th>Valor</th><th>Cómo se escribe <code>created_at</code></th><th>Ejemplo de orden</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>camel</code></td><td><code>createdAt</code></td><td><code>sort=-createdAt</code></td></tr>
+    <tr><td><code>kebab</code></td><td><code>created-at</code></td><td><code>sort=-created-at</code></td></tr>
+    <tr><td><code>snake</code></td><td><code>created_at</code></td><td><code>sort=-created_at</code></td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p>La especificación JSON:API 1.1 recomienda <code>camelCase</code> para los nombres de los miembros, y por eso es el valor por defecto. <code>kebab</code> y <code>snake</code> son una elección tuya, y el paquete los soporta igual.</p>
+</div>
+
+<h2 id="que-cambia">Qué cambia y qué no</h2>
+
+<p>El estilo se aplica, en la entrada y en la salida, a:</p>
+
+<ul>
+  <li>los atributos y las relaciones;</li>
+  <li>los parámetros <code>sort</code> y <code>fields</code>;</li>
+  <li>el <code>meta</code> de paginación (por ejemplo <code>current-page</code> con <code>kebab</code>).</li>
+</ul>
+
+<p>Los tipos, los <code>id</code>, los enlaces y los punteros de los errores <strong>no cambian</strong> con el estilo.</p>
+
+<h2 id="en-tu-codigo">En tu código</h2>
+
+<p>Escribes siempre <code>snake_case</code>, como en Eloquent: <code>'created_at' =&gt; $this-&gt;created_at</code> en el recurso, <code>jsonApiSort(['created_at'])</code> en el controlador. El paquete convierte el nombre al estilo configurado al responder, y el que llega del cliente a <code>snake_case</code> al leerlo. Si cambias de estilo, tu código no cambia.</p>
+
+<pre><code>JSON_API_MEMBER_CASE=kebab</code></pre>

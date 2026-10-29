@@ -1,0 +1,38 @@
+<p class="lead">A multi-word name, such as the creation date, can be written three ways in the document. The package converts for you; in your code you always write <code>snake_case</code>.</p>
+
+<h2 id="styles">The three styles</h2>
+
+<p>The <code>member_case</code> option (variable <code>JSON_API_MEMBER_CASE</code>, default <code>camel</code>) decides how multi-word names are written in the document:</p>
+
+<table>
+  <thead>
+    <tr><th>Value</th><th>How <code>created_at</code> is written</th><th>Sort example</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>camel</code></td><td><code>createdAt</code></td><td><code>sort=-createdAt</code></td></tr>
+    <tr><td><code>kebab</code></td><td><code>created-at</code></td><td><code>sort=-created-at</code></td></tr>
+    <tr><td><code>snake</code></td><td><code>created_at</code></td><td><code>sort=-created_at</code></td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p>The JSON:API 1.1 specification recommends <code>camelCase</code> for member names, which is why it is the default. <code>kebab</code> and <code>snake</code> are your choice, and the package supports them just the same.</p>
+</div>
+
+<h2 id="what-changes">What changes and what does not</h2>
+
+<p>The style applies, on input and output, to:</p>
+
+<ul>
+  <li>attributes and relationships;</li>
+  <li>the <code>sort</code> and <code>fields</code> parameters;</li>
+  <li>the pagination <code>meta</code> (for example <code>current-page</code> with <code>kebab</code>).</li>
+</ul>
+
+<p>Types, <code>id</code>s, links and error pointers <strong>do not change</strong> with the style.</p>
+
+<h2 id="in-your-code">In your code</h2>
+
+<p>You always write <code>snake_case</code>, as in Eloquent: <code>'created_at' =&gt; $this-&gt;created_at</code> in the resource, <code>jsonApiSort(['created_at'])</code> in the controller. The package converts the name to the configured style when it responds, and the one that comes from the client to <code>snake_case</code> when it reads it. If you change the style, your code does not change.</p>
+
+<pre><code>JSON_API_MEMBER_CASE=kebab</code></pre>

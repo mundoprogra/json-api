@@ -33,12 +33,50 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Referencia</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Estilo de los nombres</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>Esta página se está escribiendo.</p>
+<p class="lead">Un nombre de varias palabras, como la fecha de creación, se puede escribir de tres maneras en el documento. El paquete convierte por ti; en tu código siempre escribes <code>snake_case</code>.</p>
+
+<h2 id="estilos">Los tres estilos</h2>
+
+<p>La opción <code>member_case</code> (variable <code>JSON_<wbr>API_<wbr>MEMBER_<wbr>CASE</code>, por defecto <code>camel</code>) decide cómo se escriben los nombres de varias palabras en el documento:</p>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Valor</th><th>Cómo se escribe <code>created_at</code></th><th>Ejemplo de orden</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Valor"><code>camel</code></td><td data-label="Cómo se escribe created_at"><code>createdAt</code></td><td data-label="Ejemplo de orden"><code>sort=-createdAt</code></td></tr>
+    <tr><td data-label="Valor"><code>kebab</code></td><td data-label="Cómo se escribe created_at"><code>created-at</code></td><td data-label="Ejemplo de orden"><code>sort=-created-at</code></td></tr>
+    <tr><td data-label="Valor"><code>snake</code></td><td data-label="Cómo se escribe created_at"><code>created_at</code></td><td data-label="Ejemplo de orden"><code>sort=-created_at</code></td></tr>
+  </tbody>
+</table></div>
+
+<div class="callout">
+  <p>La especificación JSON:API 1.1 recomienda <code>camelCase</code> para los nombres de los miembros, y por eso es el valor por defecto. <code>kebab</code> y <code>snake</code> son una elección tuya, y el paquete los soporta igual.</p>
+</div>
+
+<h2 id="que-cambia">Qué cambia y qué no</h2>
+
+<p>El estilo se aplica, en la entrada y en la salida, a:</p>
+
+<ul>
+  <li>los atributos y las relaciones;</li>
+  <li>los parámetros <code>sort</code> y <code>fields</code>;</li>
+  <li>el <code>meta</code> de paginación (por ejemplo <code>current-page</code> con <code>kebab</code>).</li>
+</ul>
+
+<p>Los tipos, los <code>id</code>, los enlaces y los punteros de los errores <strong>no cambian</strong> con el estilo.</p>
+
+<h2 id="en-tu-codigo">En tu código</h2>
+
+<p>Escribes siempre <code>snake_case</code>, como en Eloquent: <code>'created_at' =&gt; $this-&gt;created_at</code> en el recurso, <code>jsonApiSort(['created_at'])</code> en el controlador. El paquete convierte el nombre al estilo configurado al responder, y el que llega del cliente a <code>snake_case</code> al leerlo. Si cambias de estilo, tu código no cambia.</p>
+
+<pre><code>JSON_API_MEMBER_CASE=kebab</code></pre>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="configuration.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Anterior</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Configuración</span></a><a href="known-limits.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Siguiente →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Límites conocidos</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="En esta página"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">En esta página</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#estilos" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Los tres estilos</a></li><li><a href="#que-cambia" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Qué cambia y qué no</a></li><li><a href="#en-tu-codigo" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">En tu código</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Código e issues</a> ·

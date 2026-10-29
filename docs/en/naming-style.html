@@ -33,12 +33,50 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Reference</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Naming style</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>This page is being written.</p>
+<p class="lead">A multi-word name, such as the creation date, can be written three ways in the document. The package converts for you; in your code you always write <code>snake_case</code>.</p>
+
+<h2 id="styles">The three styles</h2>
+
+<p>The <code>member_case</code> option (variable <code>JSON_<wbr>API_<wbr>MEMBER_<wbr>CASE</code>, default <code>camel</code>) decides how multi-word names are written in the document:</p>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Value</th><th>How <code>created_at</code> is written</th><th>Sort example</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Value"><code>camel</code></td><td data-label="How created_at is written"><code>createdAt</code></td><td data-label="Sort example"><code>sort=-createdAt</code></td></tr>
+    <tr><td data-label="Value"><code>kebab</code></td><td data-label="How created_at is written"><code>created-at</code></td><td data-label="Sort example"><code>sort=-created-at</code></td></tr>
+    <tr><td data-label="Value"><code>snake</code></td><td data-label="How created_at is written"><code>created_at</code></td><td data-label="Sort example"><code>sort=-created_at</code></td></tr>
+  </tbody>
+</table></div>
+
+<div class="callout">
+  <p>The JSON:API 1.1 specification recommends <code>camelCase</code> for member names, which is why it is the default. <code>kebab</code> and <code>snake</code> are your choice, and the package supports them just the same.</p>
+</div>
+
+<h2 id="what-changes">What changes and what does not</h2>
+
+<p>The style applies, on input and output, to:</p>
+
+<ul>
+  <li>attributes and relationships;</li>
+  <li>the <code>sort</code> and <code>fields</code> parameters;</li>
+  <li>the pagination <code>meta</code> (for example <code>current-page</code> with <code>kebab</code>).</li>
+</ul>
+
+<p>Types, <code>id</code>s, links and error pointers <strong>do not change</strong> with the style.</p>
+
+<h2 id="in-your-code">In your code</h2>
+
+<p>You always write <code>snake_case</code>, as in Eloquent: <code>'created_at' =&gt; $this-&gt;created_at</code> in the resource, <code>jsonApiSort(['created_at'])</code> in the controller. The package converts the name to the configured style when it responds, and the one that comes from the client to <code>snake_case</code> when it reads it. If you change the style, your code does not change.</p>
+
+<pre><code>JSON_API_MEMBER_CASE=kebab</code></pre>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="configuration.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Previous</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Configuration</span></a><a href="known-limits.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Next →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Known limits</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="On this page"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On this page</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#styles" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">The three styles</a></li><li><a href="#what-changes" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">What changes and what does not</a></li><li><a href="#in-your-code" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">In your code</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Code and issues</a> ·
