@@ -1,0 +1,40 @@
+name: Feature request or question
+description: Suggest an idea for the package or ask how to do something
+title: "[Idea]: "
+labels: ["enhancement"]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for your interest. For now the project only accepts issues, so ideas and questions go here. Please check the README and the CHANGELOG first.
+    - type: textarea
+      id: what-do-you-need
+      attributes:
+          label: What do you need?
+          description: Describe the idea or the question. What are you trying to do?
+          placeholder: I would like to X, but the package does Y.
+      validations:
+          required: true
+    - type: textarea
+      id: what-have-you-tried
+      attributes:
+          label: What have you tried?
+          description: Include the code or the configuration you used, if there is any.
+      validations:
+          required: false
+    - type: input
+      id: package-version
+      attributes:
+          label: Package Version
+          description: What version of the package are you running?
+          placeholder: 0.1.0
+      validations:
+          required: false
+    - type: input
+      id: laravel-version
+      attributes:
+          label: Laravel and PHP Version
+          description: Which versions of Laravel and PHP are you running?
+          placeholder: Laravel 12.0, PHP 8.3
+      validations:
+          required: false
