@@ -1,0 +1,69 @@
+<p class="lead">Un endpoint de relación, como <code>/articles/1/relationships/author</code>, devuelve solo el <em>linkage</em> de una relación (el <code>type</code> y el <code>id</code> del relacionado) y permite cambiarlo. Las rutas y los controladores los escribes tú; el paquete valida la forma del documento y arma la respuesta.</p>
+
+<div class="callout warn">
+  <p><strong>Todavía en validación.</strong> Las relaciones, <code>included</code> y los endpoints de relación están probados con una API de referencia completa dentro de las pruebas del paquete, que validan cada respuesta contra el esquema oficial de JSON:API. Aún no se han validado en una aplicación real. Si algo no te encaja, abre un <a href="https://github.com/mundoprogra/json-api/issues">issue</a>.</p>
+</div>
+
+<h2 id="leer">Leer una relación</h2>
+
+<p>Una <code>Relationship</code> devuelta desde un controlador es la respuesta de un endpoint de relación: <code>{jsonapi, links, data, meta}</code> con solo el linkage.</p>
+
+<pre><code>public function author(string $article) {
+  $model = Article::query()-&gt;with('author')-&gt;findOrFail($article);
+
+  return Relationship::one($model-&gt;author, AuthorResource::class)-&gt;links(
+    self: route('articles.relationships.author', [$model]),
+    related: route('articles.author', [$model]),
+  );
+}</code></pre>
+
+<h2 id="escribir">Escribir una relación</h2>
+
+<p>Para <strong>escribir</strong> una relación, lee el linkage con <code>RelationshipDocument</code>: el paquete ya validó su forma (mira <a href="input-document.html">Leer el documento de entrada</a>). Lo que depende de tu modelo lo revisas tú, con estos códigos:</p>
+
+<table>
+  <thead>
+    <tr><th>Situación</th><th>Estado</th><th><code>source.pointer</code></th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Una lista donde va un solo identificador</td><td><code>422</code></td><td><code>/data</code></td></tr>
+    <tr><td>El <code>type</code> no es el de la relación</td><td><code>409</code></td><td><code>/data/type</code></td></tr>
+    <tr><td>El recurso relacionado no existe</td><td><code>404</code></td><td><code>/data</code></td></tr>
+  </tbody>
+</table>
+
+<pre><code>use MundoProgra\JsonApi\Exceptions\JsonApiException;
+use MundoProgra\JsonApi\Http\Requests\RelationshipDocument;
+
+public function updateAuthor(Request $request, string $article) {
+  $document = RelationshipDocument::of($request);        // data() es null, un identificador o una lista; isList() dice cuál
+
+  if ($document-&gt;isList()) {                             // una lista donde va un identificador
+    throw JsonApiException::make(status: 422, detail: 'A to-one relationship takes one identifier or null.', pointer: '/data');
+  }
+
+  $identifier = $document-&gt;data();                       // ['type' =&gt; 'authors', 'id' =&gt; '3'] o null
+
+  if ($identifier !== null &amp;&amp; $identifier['type'] !== 'authors') {
+    throw JsonApiException::make(status: 409, pointer: '/data/type');          // el tipo no es el de la relación
+  }
+
+  $author = $identifier === null ? null : Author::find($identifier['id'])
+    ?? throw JsonApiException::make(status: 404, pointer: '/data');            // el recurso no existe
+
+  // ... asociar, guardar y responder con la relación resultante (`200`)
+}</code></pre>
+
+<h2 id="verbos">Qué hace cada verbo</h2>
+
+<ul>
+  <li><code>PATCH</code> reemplaza la relación.</li>
+  <li><code>POST</code> agrega elementos a una relación a muchos.</li>
+  <li><code>DELETE</code> quita elementos de una relación a muchos.</li>
+</ul>
+
+<div class="callout">
+  <p>Revisa todo <strong>antes</strong> de escribir, para que un error no deje cambios a medias.</p>
+</div>
+
+<p>El ejemplo completo, con lecturas, escrituras y errores, está en <a href="https://github.com/mundoprogra/json-api/tree/master/tests/Fixtures/ReferenceApi"><code>tests/Fixtures/ReferenceApi</code></a>. Los códigos de error están en <a href="errors.html">Errores</a>.</p>

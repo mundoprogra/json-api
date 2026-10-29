@@ -33,12 +33,48 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guide</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Query parameters</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>This page is being written.</p>
+<p class="lead">The client asks for filters, sorting, pages and relationships with query parameters; you decide which ones are allowed with whitelists. The package reads them, validates them and applies them to the Eloquent query with four macros.</p>
+
+<h2 id="macros">The four macros</h2>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Eloquent builder macro</th><th>What it does</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Eloquent builder macro"><code>jsonApiPaginate(?int $perPage = null, ?int $maxPerPage = null)</code></td><td data-label="What it does">Fetches the page the client asked for (<code>page[number]</code>, <code>page[size]</code>) and returns Laravel's paginator. A page out of range is an empty list.</td></tr>
+    <tr><td data-label="Eloquent builder macro"><code>jsonApiSort(array $allowed, ?string $default = null)</code></td><td data-label="What it does">Applies <code>sort</code> (<code>-</code> for descending) with a whitelist. It appends the primary key so pages are stable. It accepts <code>['author' =&gt; 'author_id']</code> to name a column differently.</td></tr>
+    <tr><td data-label="Eloquent builder macro"><code>jsonApiFilter(exact: [], partial: [], scopes: [])</code></td><td data-label="What it does"><code>exact</code>: equality (with commas, an <code>IN</code>). <code>partial</code>: <code>LIKE %value%</code> with <code>%</code> and <code>_</code> escaped. <code>scopes</code>: calls a scope of the model. A name outside the lists is <code>400</code>.</td></tr>
+    <tr><td data-label="Eloquent builder macro"><code>jsonApiInclude(array $allowed)</code></td><td data-label="What it does">Eager loads the relationships in <code>include</code> (<code>['author', 'comments.author']</code>; allowing a path allows its prefixes). A path outside the list is <code>400</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<p>The lists are written in <strong>snake_case</strong> (the columns and relationships of your model); the client sends them in the <a href="naming-style.html">configured style</a>.</p>
+
+<h2 id="errors">When something is not allowed</h2>
+
+<p>A filter, a sort or an <code>include</code> that is not in your list answers <code>400</code> with the failing parameter in <code>source.<wbr>parameter</code> (code <code>request.<wbr>bad_<wbr>query</code>; see <a href="errors.html">Errors</a>). An unknown query parameter is ignored, unless you turn on <code>reject_<wbr>unknown_<wbr>query_<wbr>params</code> in the <a href="configuration.html">configuration</a>.</p>
+
+<h2 id="page-size">The page size</h2>
+
+<p>The page size is decided in this order, and it is always capped by the maximum:</p>
+
+<ol>
+  <li>the client's (<code>page[size]</code>);</li>
+  <li>the <code>jsonApiPaginate(perPage: 30)</code> argument;</li>
+  <li>the middleware options (<code>-&gt;middleware('json-api.options:per_page=25,max_per_page=50')</code>);</li>
+  <li>the <a href="configuration.html#pagination">configuration</a>.</li>
+</ol>
+
+<h2 id="parsed-query">The already parsed query</h2>
+
+<p><code>$request-&gt;jsonApiQuery()</code> gives the already parsed query, with <code>includes()</code>, <code>fields()</code>, <code>sort()</code>, <code>filter()</code> and <code>page()</code>, in case you need to read it yourself.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="relationship-endpoints.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Previous</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Relationship endpoints</span></a><a href="input-document.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Next →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Reading the input document</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="On this page"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On this page</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#macros" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">The four macros</a></li><li><a href="#errors" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">When something is not allowed</a></li><li><a href="#page-size" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">The page size</a></li><li><a href="#parsed-query" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">The already parsed query</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Code and issues</a> ·

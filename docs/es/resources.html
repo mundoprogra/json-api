@@ -33,12 +33,69 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guía</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Recursos, colecciones y relaciones</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>Esta página se está escribiendo.</p>
+<p class="lead">Un recurso dice qué se muestra de un modelo; una colección es una lista de recursos; una relación enlaza un recurso con otros. Esta página resume cómo escribir cada cosa y qué hace el paquete con ellas.</p>
+
+<p>Si todavía no escribiste tu primer recurso, empieza por <a href="getting-started.html">Primeros pasos</a>.</p>
+
+<h2 id="que-escribes">Qué escribes para cada cosa</h2>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Quieres</th><th>Escribes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Quieres">Un recurso</td><td data-label="Escribes"><code>ArticleResource::make($article)</code></td></tr>
+    <tr><td data-label="Quieres">Una colección</td><td data-label="Escribes"><code>ArticleResource::collection($articles)</code> (un arreglo, una colección o un paginador de longitud conocida)</td></tr>
+    <tr><td data-label="Quieres">Una colección paginada</td><td data-label="Escribes"><code>ArticleResource::collection(Article::query()-&gt;jsonApiPaginate())</code></td></tr>
+    <tr><td data-label="Quieres"><code>links</code> o <code>meta</code> propios</td><td data-label="Escribes"><code>jsonApiLinks($request)</code> y <code>jsonApiMeta($request)</code> en el recurso, o <code>-&gt;additional([...])</code></td></tr>
+    <tr><td data-label="Quieres">Una relación a uno o a muchos</td><td data-label="Escribes"><code>Relationship::one($modelo, Clase::class)</code> / <code>Relationship::many($modelos, Clase::class)</code></td></tr>
+    <tr><td data-label="Quieres">Una relación sin cargarla</td><td data-label="Escribes"><code>Relationship::unloaded()-&gt;links(...$this-&gt;relationshipLinks($request, 'author'))</code></td></tr>
+    <tr><td data-label="Quieres">El recurso relacionado vacío</td><td data-label="Escribes"><code>AuthorResource::make(null)</code>, que responde <code>data: null</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="colecciones">Colecciones y paginación</h2>
+
+<ul>
+  <li>Una colección vacía es <code>data: []</code>.</li>
+  <li>La paginación suma <code>links</code> (<code>first</code>, <code>last</code>, <code>prev</code>, <code>next</code>) y <code>meta.page</code> (<code>currentPage</code>, <code>perPage</code>, <code>lastPage</code>, <code>total</code>). Esos enlaces conservan <code>sort</code>, <code>filter</code>, <code>include</code> y <code>fields</code> tal como los mandó el cliente. Los nombres de <code>meta.page</code> siguen el <a href="naming-style.html">estilo de los nombres</a>: con <code>kebab</code> salen <code>current-page</code>, <code>per-page</code>, <code>last-page</code> y <code>total</code>.</li>
+  <li>Un paginador simple o de cursor no se acepta, porque no sabe cuántas páginas hay, y lanza un error claro.</li>
+</ul>
+
+<p>El tamaño de página, su tope y qué pasa si el cliente lo pasa están en <a href="configuration.html#paginacion">Configuración</a>.</p>
+
+<h2 id="relaciones">Relaciones</h2>
+
+<div class="callout warn">
+  <p><strong>Todavía en validación.</strong> Las relaciones, <code>included</code> y los endpoints de relación están probados con una API de referencia completa dentro de las pruebas del paquete, que validan cada respuesta contra el esquema oficial de JSON:API. Aún no se han validado en una aplicación real. Si algo no te encaja, abre un <a href="https://github.com/mundoprogra/json-api/issues">issue</a>.</p>
+</div>
+
+<p>Dentro del recurso, <code>Relationship::one()</code> y <code>Relationship::many()</code> arman una relación con su <em>resource linkage</em> (el <code>type</code> y el <code>id</code> del relacionado). Una relación que no está cargada no sale, así que el paquete nunca dispara una consulta para completar un documento.</p>
+
+<p><code>relationshipLinks($request, 'author')</code> arma <code>{self}/relationships/author</code> y <code>{self}/author</code> a partir del <code>links.self</code> del propio recurso. Es opcional. Las rutas que esos enlaces señalan las escribes tú; mira <a href="relationship-endpoints.html">Endpoints de relación</a>.</p>
+
+<h2 id="included">Los recursos incluidos (<code>included</code>)</h2>
+
+<p>En <code>included</code> sale solo lo que el cliente pidió con <code>include</code>, y solo de relaciones <strong>ya cargadas</strong> y que el recurso muestra:</p>
+
+<ul>
+  <li>Cada recurso aparece una sola vez, identificado por su <code>type</code> y su <code>id</code>, y nunca repite a los que ya están en <code>data</code>.</li>
+  <li>Lo que un <code>fields[tipo]</code> oculta tampoco se incluye, así el documento cumple el <em>full linkage</em> de la especificación.</li>
+</ul>
+
+<div class="callout">
+  <p>El paquete no carga las relaciones por ti al armar el documento. Para cargarlas sin consultas de más (el problema N+1), usa <code>jsonApiInclude([...])</code> en tu controlador, como en <a href="getting-started.html">Primeros pasos</a>. Un <code>include</code> sobre una relación que no se cargó se ignora en silencio.</p>
+</div>
+
+<h2 id="campos">Campos dispersos (<code>fields</code>)</h2>
+
+<p><code>fields[articles]=title</code> recorta los atributos y las relaciones de ese tipo. Se quedan siempre el <code>type</code>, el <code>id</code>, los <code>links</code> y el <code>meta</code>. Los parámetros de consulta, con sus listas blancas, se explican en <a href="query-parameters.html">Parámetros de consulta</a>.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="getting-started.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Anterior</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Primeros pasos</span></a><a href="relationship-endpoints.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Siguiente →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Endpoints de relación</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="En esta página"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">En esta página</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#que-escribes" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Qué escribes para cada cosa</a></li><li><a href="#colecciones" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Colecciones y paginación</a></li><li><a href="#relaciones" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Relaciones</a></li><li><a href="#included" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Los recursos incluidos (included)</a></li><li><a href="#campos" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Campos dispersos (fields)</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Código e issues</a> ·

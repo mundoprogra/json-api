@@ -1,0 +1,57 @@
+<p class="lead">Un recurso dice qué se muestra de un modelo; una colección es una lista de recursos; una relación enlaza un recurso con otros. Esta página resume cómo escribir cada cosa y qué hace el paquete con ellas.</p>
+
+<p>Si todavía no escribiste tu primer recurso, empieza por <a href="getting-started.html">Primeros pasos</a>.</p>
+
+<h2 id="que-escribes">Qué escribes para cada cosa</h2>
+
+<table>
+  <thead>
+    <tr><th>Quieres</th><th>Escribes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Un recurso</td><td><code>ArticleResource::make($article)</code></td></tr>
+    <tr><td>Una colección</td><td><code>ArticleResource::collection($articles)</code> (un arreglo, una colección o un paginador de longitud conocida)</td></tr>
+    <tr><td>Una colección paginada</td><td><code>ArticleResource::collection(Article::query()-&gt;jsonApiPaginate())</code></td></tr>
+    <tr><td><code>links</code> o <code>meta</code> propios</td><td><code>jsonApiLinks($request)</code> y <code>jsonApiMeta($request)</code> en el recurso, o <code>-&gt;additional([...])</code></td></tr>
+    <tr><td>Una relación a uno o a muchos</td><td><code>Relationship::one($modelo, Clase::class)</code> / <code>Relationship::many($modelos, Clase::class)</code></td></tr>
+    <tr><td>Una relación sin cargarla</td><td><code>Relationship::unloaded()-&gt;links(...$this-&gt;relationshipLinks($request, 'author'))</code></td></tr>
+    <tr><td>El recurso relacionado vacío</td><td><code>AuthorResource::make(null)</code>, que responde <code>data: null</code></td></tr>
+  </tbody>
+</table>
+
+<h2 id="colecciones">Colecciones y paginación</h2>
+
+<ul>
+  <li>Una colección vacía es <code>data: []</code>.</li>
+  <li>La paginación suma <code>links</code> (<code>first</code>, <code>last</code>, <code>prev</code>, <code>next</code>) y <code>meta.page</code> (<code>currentPage</code>, <code>perPage</code>, <code>lastPage</code>, <code>total</code>). Esos enlaces conservan <code>sort</code>, <code>filter</code>, <code>include</code> y <code>fields</code> tal como los mandó el cliente. Los nombres de <code>meta.page</code> siguen el <a href="naming-style.html">estilo de los nombres</a>: con <code>kebab</code> salen <code>current-page</code>, <code>per-page</code>, <code>last-page</code> y <code>total</code>.</li>
+  <li>Un paginador simple o de cursor no se acepta, porque no sabe cuántas páginas hay, y lanza un error claro.</li>
+</ul>
+
+<p>El tamaño de página, su tope y qué pasa si el cliente lo pasa están en <a href="configuration.html#paginacion">Configuración</a>.</p>
+
+<h2 id="relaciones">Relaciones</h2>
+
+<div class="callout warn">
+  <p><strong>Todavía en validación.</strong> Las relaciones, <code>included</code> y los endpoints de relación están probados con una API de referencia completa dentro de las pruebas del paquete, que validan cada respuesta contra el esquema oficial de JSON:API. Aún no se han validado en una aplicación real. Si algo no te encaja, abre un <a href="https://github.com/mundoprogra/json-api/issues">issue</a>.</p>
+</div>
+
+<p>Dentro del recurso, <code>Relationship::one()</code> y <code>Relationship::many()</code> arman una relación con su <em>resource linkage</em> (el <code>type</code> y el <code>id</code> del relacionado). Una relación que no está cargada no sale, así que el paquete nunca dispara una consulta para completar un documento.</p>
+
+<p><code>relationshipLinks($request, 'author')</code> arma <code>{self}/relationships/author</code> y <code>{self}/author</code> a partir del <code>links.self</code> del propio recurso. Es opcional. Las rutas que esos enlaces señalan las escribes tú; mira <a href="relationship-endpoints.html">Endpoints de relación</a>.</p>
+
+<h2 id="included">Los recursos incluidos (<code>included</code>)</h2>
+
+<p>En <code>included</code> sale solo lo que el cliente pidió con <code>include</code>, y solo de relaciones <strong>ya cargadas</strong> y que el recurso muestra:</p>
+
+<ul>
+  <li>Cada recurso aparece una sola vez, identificado por su <code>type</code> y su <code>id</code>, y nunca repite a los que ya están en <code>data</code>.</li>
+  <li>Lo que un <code>fields[tipo]</code> oculta tampoco se incluye, así el documento cumple el <em>full linkage</em> de la especificación.</li>
+</ul>
+
+<div class="callout">
+  <p>El paquete no carga las relaciones por ti al armar el documento. Para cargarlas sin consultas de más (el problema N+1), usa <code>jsonApiInclude([...])</code> en tu controlador, como en <a href="getting-started.html">Primeros pasos</a>. Un <code>include</code> sobre una relación que no se cargó se ignora en silencio.</p>
+</div>
+
+<h2 id="campos">Campos dispersos (<code>fields</code>)</h2>
+
+<p><code>fields[articles]=title</code> recorta los atributos y las relaciones de ese tipo. Se quedan siempre el <code>type</code>, el <code>id</code>, los <code>links</code> y el <code>meta</code>. Los parámetros de consulta, con sus listas blancas, se explican en <a href="query-parameters.html">Parámetros de consulta</a>.</p>

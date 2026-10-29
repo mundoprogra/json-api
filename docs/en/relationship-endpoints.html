@@ -33,12 +33,81 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guide</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Relationship endpoints</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>This page is being written.</p>
+<p class="lead">A relationship endpoint, such as <code>/articles/1/relationships/author</code>, returns only the <em>linkage</em> of a relationship (the <code>type</code> and <code>id</code> of the related one) and lets you change it. You write the routes and the controllers; the package validates the shape of the document and builds the response.</p>
+
+<div class="callout warn">
+  <p><strong>Still under validation.</strong> Relationships, <code>included</code> and relationship endpoints are tested with a complete reference API inside the package tests, which validate every response against the official JSON:API schema. They have not been validated in a real application yet. If something does not fit, open an <a href="https://github.com/mundoprogra/json-api/issues">issue</a>.</p>
+</div>
+
+<h2 id="read">Reading a relationship</h2>
+
+<p>A <code>Relationship</code> returned from a controller is the response of a relationship endpoint: <code>{jsonapi, links, data, meta}</code> with only the linkage.</p>
+
+<pre><code>public function author(string $article) {
+  $model = Article::query()-&gt;with('author')-&gt;findOrFail($article);
+
+  return Relationship::one($model-&gt;author, AuthorResource::class)-&gt;links(
+    self: route('articles.relationships.author', [$model]),
+    related: route('articles.author', [$model]),
+  );
+}</code></pre>
+
+<h2 id="write">Writing a relationship</h2>
+
+<p>To <strong>write</strong> a relationship, read the linkage with <code>RelationshipDocument</code>: the package has already validated its shape (see <a href="input-document.html">Reading the input document</a>). What depends on your model you check yourself, with these codes:</p>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Situation</th><th>Status</th><th><code>source.<wbr>pointer</code></th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Situation">A list where a single identifier goes</td><td data-label="Status"><code>422</code></td><td data-label="source.pointer"><code>/data</code></td></tr>
+    <tr><td data-label="Situation">The <code>type</code> is not the one of the relationship</td><td data-label="Status"><code>409</code></td><td data-label="source.pointer"><code>/data/type</code></td></tr>
+    <tr><td data-label="Situation">The related resource does not exist</td><td data-label="Status"><code>404</code></td><td data-label="source.pointer"><code>/data</code></td></tr>
+  </tbody>
+</table></div>
+
+<pre><code>use MundoProgra\JsonApi\Exceptions\JsonApiException;
+use MundoProgra\JsonApi\Http\Requests\RelationshipDocument;
+
+public function updateAuthor(Request $request, string $article) {
+  $document = RelationshipDocument::of($request);        // data() is null, an identifier or a list; isList() says which
+
+  if ($document-&gt;isList()) {                             // a list where an identifier goes
+    throw JsonApiException::make(status: 422, detail: 'A to-one relationship takes one identifier or null.', pointer: '/data');
+  }
+
+  $identifier = $document-&gt;data();                       // ['type' =&gt; 'authors', 'id' =&gt; '3'] or null
+
+  if ($identifier !== null &amp;&amp; $identifier['type'] !== 'authors') {
+    throw JsonApiException::make(status: 409, pointer: '/data/type');          // the type is not the relationship's
+  }
+
+  $author = $identifier === null ? null : Author::find($identifier['id'])
+    ?? throw JsonApiException::make(status: 404, pointer: '/data');            // the resource does not exist
+
+  // ... associate, save and answer with the resulting relationship (`200`)
+}</code></pre>
+
+<h2 id="verbs">What each verb does</h2>
+
+<ul>
+  <li><code>PATCH</code> replaces the relationship.</li>
+  <li><code>POST</code> adds elements to a to-many relationship.</li>
+  <li><code>DELETE</code> removes elements from a to-many relationship.</li>
+</ul>
+
+<div class="callout">
+  <p>Check everything <strong>before</strong> writing, so an error does not leave half-made changes.</p>
+</div>
+
+<p>The complete example, with reads, writes and errors, is in <a href="https://github.com/mundoprogra/json-api/tree/master/tests/Fixtures/ReferenceApi"><code>tests/Fixtures/ReferenceApi</code></a>. The error codes are in <a href="errors.html">Errors</a>.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="resources.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Previous</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Resources, collections and relationships</span></a><a href="query-parameters.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Next →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Query parameters</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="On this page"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On this page</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#read" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Reading a relationship</a></li><li><a href="#write" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Writing a relationship</a></li><li><a href="#verbs" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">What each verb does</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Code and issues</a> ·

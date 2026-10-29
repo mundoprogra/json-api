@@ -33,12 +33,90 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guide</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Reading the input document</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>This page is being written.</p>
+<p class="lead">The package validates the body of write requests before they reach your controller. This page explains what it validates, how to read the document and how to write the validation rules with a <code>FormRequest</code>.</p>
+
+<h2 id="what-is-validated">What is validated</h2>
+
+<p>The package validates the body of every JSON <code>POST</code> and <code>PATCH</code> before it reaches your controller, and the <code>DELETE</code> of a relationship endpoint too (<code>PUT</code> only with <code>allow_put</code>). If the document is not JSON or does not have the shape of a JSON:API document, it answers <code>400</code> with the exact <code>source.<wbr>pointer</code> of the failing member; an <code>id</code> sent by the client when creating is a <code>403</code> unless you turn on <code>allow_<wbr>client_<wbr>ids</code>.</p>
+
+<h2 id="reading-it">How to read it</h2>
+
+<p>To read it, the request has these methods (attribute and relationship names are in snake_case):</p>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Method</th><th>Returns</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Method"><code>$request-&gt;isJsonApi()</code></td><td data-label="Returns">Whether the package treats the request as JSON:API</td></tr>
+    <tr><td data-label="Method"><code>$request-&gt;jsonApiType()</code> / <code>jsonApiId()</code></td><td data-label="Returns">The <code>type</code> and <code>id</code> of the document (<code>id</code> is <code>null</code> if absent)</td></tr>
+    <tr><td data-label="Method"><code>$request-&gt;jsonApiAttributes()</code></td><td data-label="Returns">The attributes, with names in snake_case</td></tr>
+    <tr><td data-label="Method"><code>$request-&gt;hasJsonApiRelationship('author')</code></td><td data-label="Returns">Whether the client sent that relationship (even as <code>data: null</code>)</td></tr>
+    <tr><td data-label="Method"><code>$request-&gt;jsonApiRelationshipId('author')</code></td><td data-label="Returns">The <code>id</code> of a to-one relationship, or <code>null</code></td></tr>
+    <tr><td data-label="Method"><code>$request-&gt;jsonApiRelationshipIds('tags')</code></td><td data-label="Returns">The <code>id</code>s of a to-many relationship, in order</td></tr>
+  </tbody>
+</table></div>
+
+<p>Without the name, <code>jsonApiRelationshipId()</code> and <code>jsonApiRelationshipIds()</code> read the linkage of the body of a relationship endpoint (see <a href="relationship-endpoints.html">Relationship endpoints</a>).</p>
+
+<h2 id="form-request">Validating with a <code>FormRequest</code></h2>
+
+<p>Add the <code>InteractsWithJsonApi</code> trait and write the rules over the flat data of the document: attributes in snake_case and, for each relationship, its object. <code>validated()</code> can fill a model and each error comes out with its <code>source.<wbr>pointer</code>:</p>
+
+<pre><code>use Illuminate\Foundation\Http\FormRequest;
+use MundoProgra\JsonApi\Http\Requests\InteractsWithJsonApi;
+
+class StoreArticleRequest extends FormRequest {
+  use InteractsWithJsonApi;
+
+  public function authorize(): bool {
+    return true;
+  }
+
+  public function rules(): array {
+    return [
+      'title' =&gt; ['required', 'string', 'max:50'],        // /data/attributes/title
+      'status' =&gt; ['sometimes', 'in:draft,published'],    // /data/attributes/status
+      'author.data.id' =&gt; ['integer'],                    // /data/relationships/author/data/id
+      'tags.data.*.type' =&gt; ['in:labels'],                // /data/relationships/tags/data/0/type
+    ];
+  }
+
+  // The `type` this endpoint accepts: any other is a 409. And on PATCH/PUT, the `id` must be the one in the URL
+  // (jsonApiExpectedId(), by default the last route parameter).
+  protected function jsonApiExpectedType(): ?string {
+    return 'articles';
+  }
+}</code></pre>
+
+<div class="callout">
+  <p>Only what has a rule reaches <code>validated()</code>. An attribute of the document without a rule is ignored: it is not assigned to the model, and the response is the same as if you had not sent it. It is a useful protection if your model allows mass assignment, but you have to remember to write a rule for every attribute you want to accept.</p>
+</div>
+
+<h2 id="example-422">A validation error</h2>
+
+<p>A repeated value in a unique column, for example, answers like this (with the application locale set to Spanish):</p>
+
+<pre><code>{
+  "jsonapi": { "version": "1.1" },
+  "errors": [
+    {
+      "status": "422",
+      "code": "mundoprogra.json-api.validation.unique",
+      "title": "Falló la validación",
+      "detail": "The email has already been taken.",
+      "source": { "pointer": "/data/attributes/email" }
+    }
+  ]
+}</code></pre>
+
+<p>The <code>detail</code> is the Laravel rule's message, in your application's language; see <a href="known-limits.html#details">Known limits</a>. The other error codes, such as the <code>409</code> for a different <code>type</code>, are in <a href="errors.html">Errors</a>.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="query-parameters.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Previous</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Query parameters</span></a><a href="errors.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Next →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Errors</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="On this page"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On this page</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#what-is-validated" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">What is validated</a></li><li><a href="#reading-it" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">How to read it</a></li><li><a href="#form-request" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Validating with a FormRequest</a></li><li><a href="#example-422" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">A validation error</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Code and issues</a> ·

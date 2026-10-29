@@ -1,0 +1,36 @@
+<p class="lead">The client asks for filters, sorting, pages and relationships with query parameters; you decide which ones are allowed with whitelists. The package reads them, validates them and applies them to the Eloquent query with four macros.</p>
+
+<h2 id="macros">The four macros</h2>
+
+<table>
+  <thead>
+    <tr><th>Eloquent builder macro</th><th>What it does</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>jsonApiPaginate(?int $perPage = null, ?int $maxPerPage = null)</code></td><td>Fetches the page the client asked for (<code>page[number]</code>, <code>page[size]</code>) and returns Laravel's paginator. A page out of range is an empty list.</td></tr>
+    <tr><td><code>jsonApiSort(array $allowed, ?string $default = null)</code></td><td>Applies <code>sort</code> (<code>-</code> for descending) with a whitelist. It appends the primary key so pages are stable. It accepts <code>['author' =&gt; 'author_id']</code> to name a column differently.</td></tr>
+    <tr><td><code>jsonApiFilter(exact: [], partial: [], scopes: [])</code></td><td><code>exact</code>: equality (with commas, an <code>IN</code>). <code>partial</code>: <code>LIKE %value%</code> with <code>%</code> and <code>_</code> escaped. <code>scopes</code>: calls a scope of the model. A name outside the lists is <code>400</code>.</td></tr>
+    <tr><td><code>jsonApiInclude(array $allowed)</code></td><td>Eager loads the relationships in <code>include</code> (<code>['author', 'comments.author']</code>; allowing a path allows its prefixes). A path outside the list is <code>400</code>.</td></tr>
+  </tbody>
+</table>
+
+<p>The lists are written in <strong>snake_case</strong> (the columns and relationships of your model); the client sends them in the <a href="naming-style.html">configured style</a>.</p>
+
+<h2 id="errors">When something is not allowed</h2>
+
+<p>A filter, a sort or an <code>include</code> that is not in your list answers <code>400</code> with the failing parameter in <code>source.parameter</code> (code <code>request.bad_query</code>; see <a href="errors.html">Errors</a>). An unknown query parameter is ignored, unless you turn on <code>reject_unknown_query_params</code> in the <a href="configuration.html">configuration</a>.</p>
+
+<h2 id="page-size">The page size</h2>
+
+<p>The page size is decided in this order, and it is always capped by the maximum:</p>
+
+<ol>
+  <li>the client's (<code>page[size]</code>);</li>
+  <li>the <code>jsonApiPaginate(perPage: 30)</code> argument;</li>
+  <li>the middleware options (<code>-&gt;middleware('json-api.options:per_page=25,max_per_page=50')</code>);</li>
+  <li>the <a href="configuration.html#pagination">configuration</a>.</li>
+</ol>
+
+<h2 id="parsed-query">The already parsed query</h2>
+
+<p><code>$request-&gt;jsonApiQuery()</code> gives the already parsed query, with <code>includes()</code>, <code>fields()</code>, <code>sort()</code>, <code>filter()</code> and <code>page()</code>, in case you need to read it yourself.</p>

@@ -33,12 +33,90 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guía</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Leer el documento de entrada</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>Esta página se está escribiendo.</p>
+<p class="lead">El paquete valida el cuerpo de las peticiones de escritura antes de que lleguen a tu controlador. Esta página explica qué valida, cómo leer el documento y cómo escribir las reglas de validación con un <code>FormRequest</code>.</p>
+
+<h2 id="que-se-valida">Qué se valida</h2>
+
+<p>El paquete valida el cuerpo de todo <code>POST</code> y <code>PATCH</code> JSON antes de que llegue a tu controlador, y de un endpoint de relación también el <code>DELETE</code> (el <code>PUT</code> solo con <code>allow_put</code>). Si el documento no es JSON o no tiene la forma de un documento JSON:API, responde <code>400</code> con el <code>source.<wbr>pointer</code> exacto del miembro que falla; un <code>id</code> mandado por el cliente al crear es un <code>403</code> salvo que actives <code>allow_<wbr>client_<wbr>ids</code>.</p>
+
+<h2 id="leerlo">Cómo leerlo</h2>
+
+<p>Para leerlo, la petición tiene estos métodos (los nombres de atributos y relaciones van en snake_case):</p>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Método</th><th>Devuelve</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Método"><code>$request-&gt;isJsonApi()</code></td><td data-label="Devuelve">Si el paquete trata la petición como de JSON:API</td></tr>
+    <tr><td data-label="Método"><code>$request-&gt;jsonApiType()</code> / <code>jsonApiId()</code></td><td data-label="Devuelve">El <code>type</code> y el <code>id</code> del documento (<code>id</code> es <code>null</code> si no vino)</td></tr>
+    <tr><td data-label="Método"><code>$request-&gt;jsonApiAttributes()</code></td><td data-label="Devuelve">Los atributos, con los nombres en snake_case</td></tr>
+    <tr><td data-label="Método"><code>$request-&gt;hasJsonApiRelationship('author')</code></td><td data-label="Devuelve">Si el cliente mandó esa relación (aunque sea <code>data: null</code>)</td></tr>
+    <tr><td data-label="Método"><code>$request-&gt;jsonApiRelationshipId('author')</code></td><td data-label="Devuelve">El <code>id</code> de una relación a uno, o <code>null</code></td></tr>
+    <tr><td data-label="Método"><code>$request-&gt;jsonApiRelationshipIds('tags')</code></td><td data-label="Devuelve">Los <code>id</code> de una relación a muchos, en orden</td></tr>
+  </tbody>
+</table></div>
+
+<p>Sin el nombre, <code>jsonApiRelationshipId()</code> y <code>jsonApiRelationshipIds()</code> leen el linkage del cuerpo de un endpoint de relación (mira <a href="relationship-endpoints.html">Endpoints de relación</a>).</p>
+
+<h2 id="form-request">Validar con un <code>FormRequest</code></h2>
+
+<p>Agrega el trait <code>InteractsWithJsonApi</code> y escribe las reglas sobre los datos planos del documento: los atributos en snake_case y, para cada relación, su objeto. <code>validated()</code> sirve para llenar un modelo y cada error sale con su <code>source.<wbr>pointer</code>:</p>
+
+<pre><code>use Illuminate\Foundation\Http\FormRequest;
+use MundoProgra\JsonApi\Http\Requests\InteractsWithJsonApi;
+
+class StoreArticleRequest extends FormRequest {
+  use InteractsWithJsonApi;
+
+  public function authorize(): bool {
+    return true;
+  }
+
+  public function rules(): array {
+    return [
+      'title' =&gt; ['required', 'string', 'max:50'],        // /data/attributes/title
+      'status' =&gt; ['sometimes', 'in:draft,published'],    // /data/attributes/status
+      'author.data.id' =&gt; ['integer'],                    // /data/relationships/author/data/id
+      'tags.data.*.type' =&gt; ['in:labels'],                // /data/relationships/tags/data/0/type
+    ];
+  }
+
+  // El `type` que acepta este endpoint: otro es un 409. Y en PATCH/PUT, el `id` debe ser el de la URL
+  // (jsonApiExpectedId(), por defecto el último parámetro de la ruta).
+  protected function jsonApiExpectedType(): ?string {
+    return 'articles';
+  }
+}</code></pre>
+
+<div class="callout">
+  <p>Solo lo que tiene una regla llega a <code>validated()</code>. Un atributo del documento sin regla se ignora: no se asigna al modelo, y la respuesta es la misma que si no lo hubieras mandado. Es una protección útil si tu modelo permite asignación masiva, pero hay que acordarse de escribir una regla para cada atributo que quieras aceptar.</p>
+</div>
+
+<h2 id="ejemplo-422">Un error de validación</h2>
+
+<p>Un valor repetido en una columna única, por ejemplo, responde así (con el idioma de la aplicación en español):</p>
+
+<pre><code>{
+  "jsonapi": { "version": "1.1" },
+  "errors": [
+    {
+      "status": "422",
+      "code": "mundoprogra.json-api.validation.unique",
+      "title": "Falló la validación",
+      "detail": "The email has already been taken.",
+      "source": { "pointer": "/data/attributes/email" }
+    }
+  ]
+}</code></pre>
+
+<p>El <code>detail</code> es el mensaje de la regla de Laravel, en el idioma de tu aplicación; mira <a href="known-limits.html#detalles">Límites conocidos</a>. Los demás códigos de error, como el <code>409</code> por un <code>type</code> distinto, están en <a href="errors.html">Errores</a>.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="query-parameters.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Anterior</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Parámetros de consulta</span></a><a href="errors.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Siguiente →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Errores</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="En esta página"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">En esta página</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#que-se-valida" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Qué se valida</a></li><li><a href="#leerlo" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Cómo leerlo</a></li><li><a href="#form-request" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Validar con un FormRequest</a></li><li><a href="#ejemplo-422" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Un error de validación</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Código e issues</a> ·

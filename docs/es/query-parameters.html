@@ -33,12 +33,48 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guía</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Parámetros de consulta</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>Esta página se está escribiendo.</p>
+<p class="lead">El cliente pide filtros, orden, páginas y relaciones con parámetros de consulta; tú decides cuáles se permiten con listas blancas. El paquete los lee, los valida y los aplica a la consulta de Eloquent con cuatro macros.</p>
+
+<h2 id="macros">Las cuatro macros</h2>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Macro del constructor de Eloquent</th><th>Qué hace</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Macro del constructor de Eloquent"><code>jsonApiPaginate(?int $perPage = null, ?int $maxPerPage = null)</code></td><td data-label="Qué hace">Trae la página que pidió el cliente (<code>page[number]</code>, <code>page[size]</code>) y devuelve el paginador de Laravel. Una página fuera de rango es una lista vacía.</td></tr>
+    <tr><td data-label="Macro del constructor de Eloquent"><code>jsonApiSort(array $allowed, ?string $default = null)</code></td><td data-label="Qué hace">Aplica <code>sort</code> (<code>-</code> para descendente) con una lista blanca. Agrega la clave primaria para que las páginas sean estables. Acepta <code>['author' =&gt; 'author_id']</code> para nombrar de otra forma una columna.</td></tr>
+    <tr><td data-label="Macro del constructor de Eloquent"><code>jsonApiFilter(exact: [], partial: [], scopes: [])</code></td><td data-label="Qué hace"><code>exact</code>: igualdad (con comas, un <code>IN</code>). <code>partial</code>: <code>LIKE %valor%</code> con <code>%</code> y <code>_</code> escapados. <code>scopes</code>: llama a un scope del modelo. Un nombre fuera de las listas es <code>400</code>.</td></tr>
+    <tr><td data-label="Macro del constructor de Eloquent"><code>jsonApiInclude(array $allowed)</code></td><td data-label="Qué hace">Carga por anticipado las relaciones de <code>include</code> (<code>['author', 'comments.author']</code>; pedir una ruta permite sus prefijos). Una ruta fuera de la lista es <code>400</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<p>Las listas se escriben en <strong>snake_case</strong> (las columnas y relaciones de tu modelo); el cliente las manda en el <a href="naming-style.html">estilo configurado</a>.</p>
+
+<h2 id="errores">Cuando algo no está permitido</h2>
+
+<p>Un filtro, un orden o un <code>include</code> que no está en tu lista responde <code>400</code> con el parámetro que falla en <code>source.<wbr>parameter</code> (código <code>request.<wbr>bad_<wbr>query</code>; mira <a href="errors.html">Errores</a>). Un parámetro de consulta desconocido se ignora, salvo que actives <code>reject_<wbr>unknown_<wbr>query_<wbr>params</code> en la <a href="configuration.html">configuración</a>.</p>
+
+<h2 id="tamano">El tamaño de página</h2>
+
+<p>El tamaño de página se decide en este orden, y siempre queda acotado por el máximo:</p>
+
+<ol>
+  <li>el del cliente (<code>page[size]</code>);</li>
+  <li>el argumento <code>jsonApiPaginate(perPage: 30)</code>;</li>
+  <li>las opciones del middleware (<code>-&gt;middleware('json-api.options:per_page=25,max_per_page=50')</code>);</li>
+  <li>la <a href="configuration.html#paginacion">configuración</a>.</li>
+</ol>
+
+<h2 id="consulta-analizada">La consulta ya analizada</h2>
+
+<p><code>$request-&gt;jsonApiQuery()</code> entrega la consulta ya analizada, con <code>includes()</code>, <code>fields()</code>, <code>sort()</code>, <code>filter()</code> y <code>page()</code>, por si necesitas leerla tú mismo.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="relationship-endpoints.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Anterior</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Endpoints de relación</span></a><a href="input-document.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Siguiente →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Leer el documento de entrada</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="En esta página"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">En esta página</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#macros" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Las cuatro macros</a></li><li><a href="#errores" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Cuando algo no está permitido</a></li><li><a href="#tamano" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">El tamaño de página</a></li><li><a href="#consulta-analizada" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">La consulta ya analizada</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Código e issues</a> ·

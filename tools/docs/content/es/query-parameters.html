@@ -1,0 +1,36 @@
+<p class="lead">El cliente pide filtros, orden, páginas y relaciones con parámetros de consulta; tú decides cuáles se permiten con listas blancas. El paquete los lee, los valida y los aplica a la consulta de Eloquent con cuatro macros.</p>
+
+<h2 id="macros">Las cuatro macros</h2>
+
+<table>
+  <thead>
+    <tr><th>Macro del constructor de Eloquent</th><th>Qué hace</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>jsonApiPaginate(?int $perPage = null, ?int $maxPerPage = null)</code></td><td>Trae la página que pidió el cliente (<code>page[number]</code>, <code>page[size]</code>) y devuelve el paginador de Laravel. Una página fuera de rango es una lista vacía.</td></tr>
+    <tr><td><code>jsonApiSort(array $allowed, ?string $default = null)</code></td><td>Aplica <code>sort</code> (<code>-</code> para descendente) con una lista blanca. Agrega la clave primaria para que las páginas sean estables. Acepta <code>['author' =&gt; 'author_id']</code> para nombrar de otra forma una columna.</td></tr>
+    <tr><td><code>jsonApiFilter(exact: [], partial: [], scopes: [])</code></td><td><code>exact</code>: igualdad (con comas, un <code>IN</code>). <code>partial</code>: <code>LIKE %valor%</code> con <code>%</code> y <code>_</code> escapados. <code>scopes</code>: llama a un scope del modelo. Un nombre fuera de las listas es <code>400</code>.</td></tr>
+    <tr><td><code>jsonApiInclude(array $allowed)</code></td><td>Carga por anticipado las relaciones de <code>include</code> (<code>['author', 'comments.author']</code>; pedir una ruta permite sus prefijos). Una ruta fuera de la lista es <code>400</code>.</td></tr>
+  </tbody>
+</table>
+
+<p>Las listas se escriben en <strong>snake_case</strong> (las columnas y relaciones de tu modelo); el cliente las manda en el <a href="naming-style.html">estilo configurado</a>.</p>
+
+<h2 id="errores">Cuando algo no está permitido</h2>
+
+<p>Un filtro, un orden o un <code>include</code> que no está en tu lista responde <code>400</code> con el parámetro que falla en <code>source.parameter</code> (código <code>request.bad_query</code>; mira <a href="errors.html">Errores</a>). Un parámetro de consulta desconocido se ignora, salvo que actives <code>reject_unknown_query_params</code> en la <a href="configuration.html">configuración</a>.</p>
+
+<h2 id="tamano">El tamaño de página</h2>
+
+<p>El tamaño de página se decide en este orden, y siempre queda acotado por el máximo:</p>
+
+<ol>
+  <li>el del cliente (<code>page[size]</code>);</li>
+  <li>el argumento <code>jsonApiPaginate(perPage: 30)</code>;</li>
+  <li>las opciones del middleware (<code>-&gt;middleware('json-api.options:per_page=25,max_per_page=50')</code>);</li>
+  <li>la <a href="configuration.html#paginacion">configuración</a>.</li>
+</ol>
+
+<h2 id="consulta-analizada">La consulta ya analizada</h2>
+
+<p><code>$request-&gt;jsonApiQuery()</code> entrega la consulta ya analizada, con <code>includes()</code>, <code>fields()</code>, <code>sort()</code>, <code>filter()</code> y <code>page()</code>, por si necesitas leerla tú mismo.</p>

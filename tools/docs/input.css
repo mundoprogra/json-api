@@ -62,7 +62,7 @@
 .prose > .callout {
   max-width: 46rem;
 }
-.prose td code {
+.prose :not(pre) > code {
   overflow-wrap: anywhere;
 }
 

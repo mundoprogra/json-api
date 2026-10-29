@@ -33,12 +33,69 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guide</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Resources, collections and relationships</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>This page is being written.</p>
+<p class="lead">A resource says what is shown of a model; a collection is a list of resources; a relationship links a resource with others. This page summarizes how to write each thing and what the package does with them.</p>
+
+<p>If you have not written your first resource yet, start with <a href="getting-started.html">Getting started</a>.</p>
+
+<h2 id="what-you-write">What you write for each thing</h2>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>You want</th><th>You write</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="You want">A resource</td><td data-label="You write"><code>ArticleResource::make($article)</code></td></tr>
+    <tr><td data-label="You want">A collection</td><td data-label="You write"><code>ArticleResource::collection($articles)</code> (an array, a collection or a length-aware paginator)</td></tr>
+    <tr><td data-label="You want">A paginated collection</td><td data-label="You write"><code>ArticleResource::collection(Article::query()-&gt;jsonApiPaginate())</code></td></tr>
+    <tr><td data-label="You want">Your own <code>links</code> or <code>meta</code></td><td data-label="You write"><code>jsonApiLinks($request)</code> and <code>jsonApiMeta($request)</code> in the resource, or <code>-&gt;additional([...])</code></td></tr>
+    <tr><td data-label="You want">A to-one or to-many relationship</td><td data-label="You write"><code>Relationship::one($model, Class::class)</code> / <code>Relationship::many($models, Class::class)</code></td></tr>
+    <tr><td data-label="You want">A relationship without loading it</td><td data-label="You write"><code>Relationship::unloaded()-&gt;links(...$this-&gt;relationshipLinks($request, 'author'))</code></td></tr>
+    <tr><td data-label="You want">The empty related resource</td><td data-label="You write"><code>AuthorResource::make(null)</code>, which answers <code>data: null</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="collections">Collections and pagination</h2>
+
+<ul>
+  <li>An empty collection is <code>data: []</code>.</li>
+  <li>Pagination adds <code>links</code> (<code>first</code>, <code>last</code>, <code>prev</code>, <code>next</code>) and <code>meta.page</code> (<code>currentPage</code>, <code>perPage</code>, <code>lastPage</code>, <code>total</code>). Those links keep <code>sort</code>, <code>filter</code>, <code>include</code> and <code>fields</code> exactly as the client sent them. The names in <code>meta.page</code> follow the <a href="naming-style.html">naming style</a>: with <code>kebab</code> they come out as <code>current-page</code>, <code>per-page</code>, <code>last-page</code> and <code>total</code>.</li>
+  <li>A simple or cursor paginator is not accepted, because it does not know how many pages there are, and throws a clear error.</li>
+</ul>
+
+<p>The page size, its limit and what happens when the client goes over it are in <a href="configuration.html#pagination">Configuration</a>.</p>
+
+<h2 id="relationships">Relationships</h2>
+
+<div class="callout warn">
+  <p><strong>Still under validation.</strong> Relationships, <code>included</code> and relationship endpoints are tested with a complete reference API inside the package tests, which validate every response against the official JSON:API schema. They have not been validated in a real application yet. If something does not fit, open an <a href="https://github.com/mundoprogra/json-api/issues">issue</a>.</p>
+</div>
+
+<p>Inside the resource, <code>Relationship::one()</code> and <code>Relationship::many()</code> build a relationship with its <em>resource linkage</em> (the <code>type</code> and <code>id</code> of the related one). A relationship that is not loaded does not come out, so the package never fires a query to complete a document.</p>
+
+<p><code>relationshipLinks($request, 'author')</code> builds <code>{self}/relationships/author</code> and <code>{self}/author</code> from the resource's own <code>links.self</code>. It is optional. You write the routes those links point to; see <a href="relationship-endpoints.html">Relationship endpoints</a>.</p>
+
+<h2 id="included">Included resources (<code>included</code>)</h2>
+
+<p>In <code>included</code> only what the client asked for with <code>include</code> comes out, and only from relationships that are <strong>already loaded</strong> and that the resource shows:</p>
+
+<ul>
+  <li>Each resource appears once, identified by its <code>type</code> and <code>id</code>, and never repeats those already in <code>data</code>.</li>
+  <li>What a <code>fields[type]</code> hides is not included either, so the document keeps the specification's <em>full linkage</em>.</li>
+</ul>
+
+<div class="callout">
+  <p>The package does not load relationships for you when it builds the document. To load them without extra queries (the N+1 problem), use <code>jsonApiInclude([...])</code> in your controller, as in <a href="getting-started.html">Getting started</a>. An <code>include</code> on a relationship that was not loaded is silently ignored.</p>
+</div>
+
+<h2 id="fields">Sparse fieldsets (<code>fields</code>)</h2>
+
+<p><code>fields[articles]=title</code> trims the attributes and relationships of that type. The <code>type</code>, <code>id</code>, <code>links</code> and <code>meta</code> always stay. The query parameters, with their whitelists, are explained in <a href="query-parameters.html">Query parameters</a>.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="getting-started.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Previous</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Getting started</span></a><a href="relationship-endpoints.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Next →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Relationship endpoints</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="On this page"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On this page</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#what-you-write" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">What you write for each thing</a></li><li><a href="#collections" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Collections and pagination</a></li><li><a href="#relationships" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Relationships</a></li><li><a href="#included" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Included resources (included)</a></li><li><a href="#fields" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Sparse fieldsets (fields)</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Code and issues</a> ·

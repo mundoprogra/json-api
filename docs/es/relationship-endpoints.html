@@ -33,12 +33,81 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guía</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Endpoints de relación</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>Esta página se está escribiendo.</p>
+<p class="lead">Un endpoint de relación, como <code>/articles/1/relationships/author</code>, devuelve solo el <em>linkage</em> de una relación (el <code>type</code> y el <code>id</code> del relacionado) y permite cambiarlo. Las rutas y los controladores los escribes tú; el paquete valida la forma del documento y arma la respuesta.</p>
+
+<div class="callout warn">
+  <p><strong>Todavía en validación.</strong> Las relaciones, <code>included</code> y los endpoints de relación están probados con una API de referencia completa dentro de las pruebas del paquete, que validan cada respuesta contra el esquema oficial de JSON:API. Aún no se han validado en una aplicación real. Si algo no te encaja, abre un <a href="https://github.com/mundoprogra/json-api/issues">issue</a>.</p>
+</div>
+
+<h2 id="leer">Leer una relación</h2>
+
+<p>Una <code>Relationship</code> devuelta desde un controlador es la respuesta de un endpoint de relación: <code>{jsonapi, links, data, meta}</code> con solo el linkage.</p>
+
+<pre><code>public function author(string $article) {
+  $model = Article::query()-&gt;with('author')-&gt;findOrFail($article);
+
+  return Relationship::one($model-&gt;author, AuthorResource::class)-&gt;links(
+    self: route('articles.relationships.author', [$model]),
+    related: route('articles.author', [$model]),
+  );
+}</code></pre>
+
+<h2 id="escribir">Escribir una relación</h2>
+
+<p>Para <strong>escribir</strong> una relación, lee el linkage con <code>RelationshipDocument</code>: el paquete ya validó su forma (mira <a href="input-document.html">Leer el documento de entrada</a>). Lo que depende de tu modelo lo revisas tú, con estos códigos:</p>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Situación</th><th>Estado</th><th><code>source.<wbr>pointer</code></th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Situación">Una lista donde va un solo identificador</td><td data-label="Estado"><code>422</code></td><td data-label="source.pointer"><code>/data</code></td></tr>
+    <tr><td data-label="Situación">El <code>type</code> no es el de la relación</td><td data-label="Estado"><code>409</code></td><td data-label="source.pointer"><code>/data/type</code></td></tr>
+    <tr><td data-label="Situación">El recurso relacionado no existe</td><td data-label="Estado"><code>404</code></td><td data-label="source.pointer"><code>/data</code></td></tr>
+  </tbody>
+</table></div>
+
+<pre><code>use MundoProgra\JsonApi\Exceptions\JsonApiException;
+use MundoProgra\JsonApi\Http\Requests\RelationshipDocument;
+
+public function updateAuthor(Request $request, string $article) {
+  $document = RelationshipDocument::of($request);        // data() es null, un identificador o una lista; isList() dice cuál
+
+  if ($document-&gt;isList()) {                             // una lista donde va un identificador
+    throw JsonApiException::make(status: 422, detail: 'A to-one relationship takes one identifier or null.', pointer: '/data');
+  }
+
+  $identifier = $document-&gt;data();                       // ['type' =&gt; 'authors', 'id' =&gt; '3'] o null
+
+  if ($identifier !== null &amp;&amp; $identifier['type'] !== 'authors') {
+    throw JsonApiException::make(status: 409, pointer: '/data/type');          // el tipo no es el de la relación
+  }
+
+  $author = $identifier === null ? null : Author::find($identifier['id'])
+    ?? throw JsonApiException::make(status: 404, pointer: '/data');            // el recurso no existe
+
+  // ... asociar, guardar y responder con la relación resultante (`200`)
+}</code></pre>
+
+<h2 id="verbos">Qué hace cada verbo</h2>
+
+<ul>
+  <li><code>PATCH</code> reemplaza la relación.</li>
+  <li><code>POST</code> agrega elementos a una relación a muchos.</li>
+  <li><code>DELETE</code> quita elementos de una relación a muchos.</li>
+</ul>
+
+<div class="callout">
+  <p>Revisa todo <strong>antes</strong> de escribir, para que un error no deje cambios a medias.</p>
+</div>
+
+<p>El ejemplo completo, con lecturas, escrituras y errores, está en <a href="https://github.com/mundoprogra/json-api/tree/master/tests/Fixtures/ReferenceApi"><code>tests/Fixtures/ReferenceApi</code></a>. Los códigos de error están en <a href="errors.html">Errores</a>.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="resources.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Anterior</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Recursos, colecciones y relaciones</span></a><a href="query-parameters.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Siguiente →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Parámetros de consulta</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="En esta página"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">En esta página</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#leer" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Leer una relación</a></li><li><a href="#escribir" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Escribir una relación</a></li><li><a href="#verbos" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Qué hace cada verbo</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Código e issues</a> ·
