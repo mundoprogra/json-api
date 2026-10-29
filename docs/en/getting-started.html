@@ -33,12 +33,94 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Start</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Getting started</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>This page is being written.</p>
+<p class="lead">A resource, a controller and its routes: with three pieces you already have an endpoint that filters, sorts, paginates and loads relationships.</p>
+
+<div class="callout">
+  <p>By default the package acts on routes starting with <code>api</code> (<code>mode = prefix</code>, <code>path_prefix = api</code>). Everything else answers as usual. To make the <strong>whole</strong> application respond in JSON:API, set <code>JSON_API_MODE=global</code> in <code>.env</code>.</p>
+</div>
+
+<h2 id="resource">1. A resource</h2>
+
+<p>A resource says what is shown of a model:</p>
+
+<pre><code>use Illuminate\Http\Request;
+use MundoProgra\JsonApi\Resources\Relationship;
+use MundoProgra\JsonApi\Resources\ResourceObject;
+
+class ArticleResource extends ResourceObject {
+  // The short name of the route that shows an article: its `links.self` comes from there.
+  protected function jsonApiRoute(): ?string {
+    return 'articles.show';
+  }
+
+  // Names are written in snake_case and come out in the configured style (`createdAt` by default).
+  protected function jsonApiAttributes(Request $request): array {
+    return [
+      'title' =&gt; $this-&gt;title,
+      'status' =&gt; $this-&gt;status,
+      'created_at' =&gt; $this-&gt;created_at?-&gt;toIso8601String(),
+    ];
+  }
+
+  // Only loaded relationships come out: the package never fires a query to complete a document.
+  protected function jsonApiRelationships(Request $request): array {
+    return [
+      'author' =&gt; $this-&gt;whenLoaded('author', fn() =&gt; Relationship::one($this-&gt;author, AuthorResource::class)),
+      'tags' =&gt; $this-&gt;whenLoaded('tags', fn() =&gt; Relationship::many($this-&gt;tags, TagResource::class)),
+    ];
+  }
+}</code></pre>
+
+<p>The <code>type</code> of a resource is the model table and its <code>id</code> is the route key, always as text. Override <code>type()</code> and <code>id()</code> to change them.</p>
+
+<h2 id="controller">2. A controller</h2>
+
+<p>The controller applies the client query with whitelists you write:</p>
+
+<pre><code>class ArticleController {
+  public function index() {
+    return ArticleResource::collection(
+      Article::query()
+        -&gt;jsonApiFilter(exact: ['status', 'author' =&gt; 'author_id'], partial: ['title'], scopes: ['published'])
+        -&gt;jsonApiSort(['id', 'title', 'created_at'], default: '-id')
+        -&gt;jsonApiInclude(['author', 'tags', 'comments.author'])
+        -&gt;jsonApiPaginate()
+    );
+  }
+
+  public function show(string $article) {
+    return ArticleResource::make(
+      Article::query()-&gt;jsonApiInclude(['author', 'tags'])-&gt;findOrFail($article)
+    );
+  }
+}</code></pre>
+
+<h2 id="routes">3. The routes</h2>
+
+<p>The routes are the usual ones; the package registers none. The only requirement is that the one you named in <code>jsonApiRoute()</code> exists, because each resource's <code>links.self</code> comes from it:</p>
+
+<pre><code>use Illuminate\Support\Facades\Route;
+
+Route::get('articles', [ArticleController::class, 'index'])-&gt;name('articles.index');
+Route::get('articles/{article}', [ArticleController::class, 'show'])-&gt;name('articles.show');</code></pre>
+
+<p>If your routes carry a prefix in their name (for example <code>v1.<wbr>articles.<wbr>show</code>), set it in <code>links.<wbr>route_<wbr>name_<wbr>prefix</code>, as explained in <a href="configuration.html">Configuration</a>.</p>
+
+<h2 id="result">What you get</h2>
+
+<p>With that, this request already works end to end:</p>
+
+<pre><code>GET /api/articles?filter[status]=published&amp;sort=-createdAt&amp;include=author&amp;fields[articles]=title,author&amp;page[size]=5</code></pre>
+
+<p>It filters, sorts, paginates, loads the author without extra queries and returns the document with <code>data</code>, <code>included</code>, <code>links</code> and <code>meta</code>. Every filter, sort or <code>include</code> that is not in your list answers <code>400</code> naming the failing parameter.</p>
+
+<p>The details of each part are in <a href="resources.html">Resources, collections and relationships</a> and in <a href="query-parameters.html">Query parameters</a>.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="installation.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Previous</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Installation</span></a><a href="resources.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Next →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Resources, collections and relationships</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="On this page"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On this page</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#resource" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">1. A resource</a></li><li><a href="#controller" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">2. A controller</a></li><li><a href="#routes" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">3. The routes</a></li><li><a href="#result" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">What you get</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Code and issues</a> ·

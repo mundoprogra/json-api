@@ -33,12 +33,49 @@
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Start</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Installation</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
-<p>This page is being written.</p>
+<p class="lead">A single Composer command. The package is auto-discovered and there is nothing to register by hand.</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<ul>
+  <li>PHP 8.1 or higher</li>
+  <li>Laravel 10, 11, 12 or 13</li>
+</ul>
+
+<h2 id="install">Install</h2>
+
+<pre><code>composer require mundoprogra/json-api</code></pre>
+
+<p>That is all. Laravel discovers the package on its own: at boot it hooks into exception handling and adds its middleware at the start of the global stack of the HTTP kernel, without touching <code>bootstrap/app.php</code>, <code>Kernel</code> or <code>Handler</code>.</p>
+
+<div class="callout">
+  <p>It also works if your <code>bootstrap/app.php</code> replaces the global middleware list with <code>withMiddleware</code> (Laravel 11 to 13): the package middleware are added afterwards and end up at the start of the stack.</p>
+</div>
+
+<h2 id="publish">Publishing the configuration and the texts</h2>
+
+<p>It is optional. With these two commands you copy the configuration file and the error texts into your application, so you can change them:</p>
+
+<pre><code>php artisan vendor:publish --tag="json-api-config"
+php artisan vendor:publish --tag="json-api-lang"</code></pre>
+
+<p>The first one creates <code>config/json-api.php</code>; every option is explained in <a href="configuration.html">Configuration</a>. The second one copies the error texts (<code>title</code> and <code>detail</code>), which come in Spanish and English and are shown in the current Laravel locale.</p>
+
+<h2 id="check">Check that it works</h2>
+
+<p>With the application running, ask for a route that does not exist inside the <code>api</code> prefix:</p>
+
+<pre><code>curl -i -H "Accept: application/vnd.api+json" http://localhost:8000/api/does-not-exist</code></pre>
+
+<p>It must answer <code>404</code> with <code>Content-Type: application/vnd.api+json</code> and an <code>errors</code> document whose <code>code</code> is <code>mundoprogra.json-api.route.not_found</code>.</p>
+
+<p>If you see Laravel's HTML error page instead, the route is not inside the package scope: by default it only acts on routes that start with <code>api</code> (or on the whole application with <code>JSON_API_MODE=global</code>). It is explained in <a href="activation.html">How it switches on</a>.</p>
+
         </article>
         <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="index.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Previous</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Home</span></a><a href="getting-started.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Next →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Getting started</span></a></nav>
       </div>
     </main>
-    
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="On this page"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On this page</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#requirements" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Requirements</a></li><li><a href="#install" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Install</a></li><li><a href="#publish" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Publishing the configuration and the texts</a></li><li><a href="#check" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Check that it works</a></li></ul></nav></aside>
   </div>
   <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
     <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Code and issues</a> ·

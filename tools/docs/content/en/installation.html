@@ -1,0 +1,37 @@
+<p class="lead">A single Composer command. The package is auto-discovered and there is nothing to register by hand.</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<ul>
+  <li>PHP 8.1 or higher</li>
+  <li>Laravel 10, 11, 12 or 13</li>
+</ul>
+
+<h2 id="install">Install</h2>
+
+<pre><code>composer require mundoprogra/json-api</code></pre>
+
+<p>That is all. Laravel discovers the package on its own: at boot it hooks into exception handling and adds its middleware at the start of the global stack of the HTTP kernel, without touching <code>bootstrap/app.php</code>, <code>Kernel</code> or <code>Handler</code>.</p>
+
+<div class="callout">
+  <p>It also works if your <code>bootstrap/app.php</code> replaces the global middleware list with <code>withMiddleware</code> (Laravel 11 to 13): the package middleware are added afterwards and end up at the start of the stack.</p>
+</div>
+
+<h2 id="publish">Publishing the configuration and the texts</h2>
+
+<p>It is optional. With these two commands you copy the configuration file and the error texts into your application, so you can change them:</p>
+
+<pre><code>php artisan vendor:publish --tag="json-api-config"
+php artisan vendor:publish --tag="json-api-lang"</code></pre>
+
+<p>The first one creates <code>config/json-api.php</code>; every option is explained in <a href="configuration.html">Configuration</a>. The second one copies the error texts (<code>title</code> and <code>detail</code>), which come in Spanish and English and are shown in the current Laravel locale.</p>
+
+<h2 id="check">Check that it works</h2>
+
+<p>With the application running, ask for a route that does not exist inside the <code>api</code> prefix:</p>
+
+<pre><code>curl -i -H "Accept: application/vnd.api+json" http://localhost:8000/api/does-not-exist</code></pre>
+
+<p>It must answer <code>404</code> with <code>Content-Type: application/vnd.api+json</code> and an <code>errors</code> document whose <code>code</code> is <code>mundoprogra.json-api.route.not_found</code>.</p>
+
+<p>If you see Laravel's HTML error page instead, the route is not inside the package scope: by default it only acts on routes that start with <code>api</code> (or on the whole application with <code>JSON_API_MODE=global</code>). It is explained in <a href="activation.html">How it switches on</a>.</p>

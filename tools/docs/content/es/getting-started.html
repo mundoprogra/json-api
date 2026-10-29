@@ -1,0 +1,82 @@
+<p class="lead">Un recurso, un controlador y sus rutas: con tres piezas ya tienes un endpoint que filtra, ordena, pagina y carga relaciones.</p>
+
+<div class="callout">
+  <p>Por defecto el paquete actúa sobre las rutas que empiezan con <code>api</code> (<code>mode = prefix</code>, <code>path_prefix = api</code>). Todo lo demás responde como siempre. Para que <strong>toda</strong> la aplicación responda en JSON:API, usa <code>JSON_API_MODE=global</code> en el <code>.env</code>.</p>
+</div>
+
+<h2 id="recurso">1. Un recurso</h2>
+
+<p>Un recurso dice qué se muestra de un modelo:</p>
+
+<pre><code>use Illuminate\Http\Request;
+use MundoProgra\JsonApi\Resources\Relationship;
+use MundoProgra\JsonApi\Resources\ResourceObject;
+
+class ArticleResource extends ResourceObject {
+  // El nombre corto de la ruta que muestra un artículo: de ahí sale su `links.self`.
+  protected function jsonApiRoute(): ?string {
+    return 'articles.show';
+  }
+
+  // Los nombres se escriben en snake_case y salen en el estilo configurado (`createdAt` por defecto).
+  protected function jsonApiAttributes(Request $request): array {
+    return [
+      'title' =&gt; $this-&gt;title,
+      'status' =&gt; $this-&gt;status,
+      'created_at' =&gt; $this-&gt;created_at?-&gt;toIso8601String(),
+    ];
+  }
+
+  // Solo salen las relaciones que están cargadas: el paquete nunca dispara una consulta para completar un documento.
+  protected function jsonApiRelationships(Request $request): array {
+    return [
+      'author' =&gt; $this-&gt;whenLoaded('author', fn() =&gt; Relationship::one($this-&gt;author, AuthorResource::class)),
+      'tags' =&gt; $this-&gt;whenLoaded('tags', fn() =&gt; Relationship::many($this-&gt;tags, TagResource::class)),
+    ];
+  }
+}</code></pre>
+
+<p>El <code>type</code> de un recurso es la tabla del modelo y su <code>id</code> es la clave de ruta, siempre como texto. Se cambian sobrescribiendo <code>type()</code> e <code>id()</code>.</p>
+
+<h2 id="controlador">2. Un controlador</h2>
+
+<p>El controlador aplica la consulta del cliente con listas blancas que escribes tú:</p>
+
+<pre><code>class ArticleController {
+  public function index() {
+    return ArticleResource::collection(
+      Article::query()
+        -&gt;jsonApiFilter(exact: ['status', 'author' =&gt; 'author_id'], partial: ['title'], scopes: ['published'])
+        -&gt;jsonApiSort(['id', 'title', 'created_at'], default: '-id')
+        -&gt;jsonApiInclude(['author', 'tags', 'comments.author'])
+        -&gt;jsonApiPaginate()
+    );
+  }
+
+  public function show(string $article) {
+    return ArticleResource::make(
+      Article::query()-&gt;jsonApiInclude(['author', 'tags'])-&gt;findOrFail($article)
+    );
+  }
+}</code></pre>
+
+<h2 id="rutas">3. Las rutas</h2>
+
+<p>Las rutas son las de siempre; el paquete no registra ninguna. Solo hace falta que exista la que nombraste en <code>jsonApiRoute()</code>, porque de ella sale el <code>links.self</code> de cada recurso:</p>
+
+<pre><code>use Illuminate\Support\Facades\Route;
+
+Route::get('articles', [ArticleController::class, 'index'])-&gt;name('articles.index');
+Route::get('articles/{article}', [ArticleController::class, 'show'])-&gt;name('articles.show');</code></pre>
+
+<p>Si tus rutas llevan un prefijo en el nombre (por ejemplo <code>v1.articles.show</code>), indícalo en <code>links.route_name_prefix</code>, como se explica en <a href="configuration.html">Configuración</a>.</p>
+
+<h2 id="resultado">Qué obtienes</h2>
+
+<p>Con eso, esta petición ya funciona de punta a punta:</p>
+
+<pre><code>GET /api/articles?filter[status]=published&amp;sort=-createdAt&amp;include=author&amp;fields[articles]=title,author&amp;page[size]=5</code></pre>
+
+<p>Filtra, ordena, pagina, carga el autor sin consultas de más y devuelve el documento con <code>data</code>, <code>included</code>, <code>links</code> y <code>meta</code>. Cada filtro, orden o <code>include</code> que no esté en tu lista responde <code>400</code> con el parámetro que falla.</p>
+
+<p>Los detalles de cada parte están en <a href="resources.html">Recursos, colecciones y relaciones</a> y en <a href="query-parameters.html">Parámetros de consulta</a>.</p>

@@ -1,0 +1,37 @@
+<p class="lead">Un solo comando de Composer. El paquete se descubre solo y no hay nada que registrar a mano.</p>
+
+<h2 id="requisitos">Requisitos</h2>
+
+<ul>
+  <li>PHP 8.1 o superior</li>
+  <li>Laravel 10, 11, 12 o 13</li>
+</ul>
+
+<h2 id="instalar">Instalar</h2>
+
+<pre><code>composer require mundoprogra/json-api</code></pre>
+
+<p>Eso es todo. Laravel descubre el paquete solo: al arrancar, se engancha al manejo de excepciones y agrega sus middleware al inicio de la fila global del kernel HTTP, sin tocar <code>bootstrap/app.php</code>, <code>Kernel</code> ni <code>Handler</code>.</p>
+
+<div class="callout">
+  <p>Funciona también si tu <code>bootstrap/app.php</code> reemplaza la lista global de middleware con <code>withMiddleware</code> (Laravel 11 a 13): los middleware del paquete se agregan después y quedan al principio de la fila.</p>
+</div>
+
+<h2 id="publicar">Publicar la configuración y los textos</h2>
+
+<p>Es opcional. Con estos dos comandos copias a tu aplicación el archivo de configuración y los textos de los errores, para cambiarlos:</p>
+
+<pre><code>php artisan vendor:publish --tag="json-api-config"
+php artisan vendor:publish --tag="json-api-lang"</code></pre>
+
+<p>El primero crea <code>config/json-api.php</code>; todas sus opciones se explican en <a href="configuration.html">Configuración</a>. El segundo copia los textos de los errores (<code>title</code> y <code>detail</code>), que vienen en español y en inglés y salen en el idioma actual de Laravel.</p>
+
+<h2 id="comprobar">Comprobar que funciona</h2>
+
+<p>Con la aplicación en marcha, pide una ruta que no existe dentro del prefijo <code>api</code>:</p>
+
+<pre><code>curl -i -H "Accept: application/vnd.api+json" http://localhost:8000/api/no-existe</code></pre>
+
+<p>Debe responder <code>404</code> con <code>Content-Type: application/vnd.api+json</code> y un documento <code>errors</code> cuyo <code>code</code> es <code>mundoprogra.json-api.route.not_found</code>.</p>
+
+<p>Si ves la página de error de Laravel en HTML, la ruta no está dentro del alcance del paquete: por defecto solo actúa sobre las rutas que empiezan con <code>api</code> (o sobre toda la aplicación con <code>JSON_API_MODE=global</code>). Está explicado en <a href="activation.html">Cómo se activa</a>.</p>
