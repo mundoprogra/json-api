@@ -79,6 +79,36 @@
       $file = __DIR__ . "/content/$lang/$slug.html";
       $content = is_file($file) ? (string) file_get_contents($file) : '<p>' . e($ui['writing']) . '</p>';
 
+      // A cada <td> se le pone el nombre de su columna (`data-label`), tomado de los <th> de su tabla: en pantallas pequeñas cada fila se muestra como
+      // una tarjeta y la etiqueta se imprime con CSS. Las tablas sin <th> no cambian.
+      // Every <td> gets the name of its column (`data-label`), taken from the <th> of its table: on small screens each row is shown as a card and the
+      // label is printed with CSS. Tables without <th> do not change.
+      $content = (string) preg_replace_callback('~<table\b.*?</table>~s', function (array $table) {
+        preg_match_all('~<th\b[^>]*>(.*?)</th>~s', $table[0], $heads);
+        $labels = array_map(fn(string $head) => e(trim(strip_tags($head))), $heads[1]);
+        if ($labels === []) {
+          return $table[0];
+        }
+
+        return (string) preg_replace_callback('~<tbody>.*?</tbody>~s', function (array $body) use ($labels) {
+          return (string) preg_replace_callback('~<tr>.*?</tr>~s', function (array $row) use ($labels) {
+            $column = 0;
+
+            return (string) preg_replace_callback('~<td>~', function () use (&$column, $labels) {
+              return '<td data-label="' . ($labels[$column++] ?? '') . '">';
+            }, $row[0]);
+          }, $body[0]);
+        }, $table[0]);
+      }, $content);
+
+      // Los identificadores largos (variables, opciones, códigos) pueden partirse después de un guion bajo o un punto, no a media palabra. Se marca con
+      // <wbr>; bin/check-docs.php lo ignora al comparar.
+      // Long identifiers (variables, options, codes) may break after an underscore or a dot, not mid-word. It is marked with <wbr>; bin/check-docs.php
+      // ignores it when comparing.
+      $content = (string) preg_replace_callback('~<code>([A-Za-z0-9_.]{12,})</code>~', function (array $code) {
+        return '<code>' . preg_replace('~([_.])~', '$1<wbr>', $code[1]) . '</code>';
+      }, $content);
+
       // Las tablas van en un contenedor que se desplaza, para que no desborden en móvil. / Tables go in a scrolling container so they do not overflow on mobile.
       $content = str_replace(['<table', '</table>'], ['<div class="overflow-x-auto"><table', '</table></div>'], $content);
 
@@ -91,7 +121,7 @@
           . ' text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">'
           . trim(strip_tags($heading[3])) . '</a></li>';
       }
-      $tocBlock = $toc === '' ? '' : '<aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 xl:block"><nav aria-label="' . e($ui['on_this_page']) . '">'
+      $tocBlock = $toc === '' ? '' : '<aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="' . e($ui['on_this_page']) . '">'
         . '<p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">' . e($ui['on_this_page']) . '</p>'
         . '<ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800">' . $toc . '</ul></nav></aside>';
 
@@ -143,12 +173,12 @@
     <summary class="cursor-pointer select-none py-3 text-sm font-medium text-slate-700 dark:text-slate-200">{$ui['menu']}</summary>
     <nav class="pb-4" aria-label="{$ui['nav']}">{$menuHtml}</nav>
   </details>
-  <div class="mx-auto grid max-w-7xl lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
+  <div class="mx-auto grid max-w-7xl lg:grid-cols-[15rem_minmax(0,1fr)] 2xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
     <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto border-r border-slate-200 p-5 lg:block dark:border-slate-800">
       <nav aria-label="{$ui['nav']}">{$menuHtml}</nav>
     </aside>
     <main id="content" class="min-w-0 px-4 py-10 sm:px-8 lg:px-12">
-      <div class="mx-auto max-w-3xl">
+      <div class="mx-auto max-w-4xl">
         <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">{$groupName}</p>
         <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">{$titleHtml}</h1>
         <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">

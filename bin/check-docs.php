@@ -17,6 +17,8 @@
    *   5. enlaces: cada enlace relativo apunta a un archivo y a un ancla que existen / links: every relative link points to an existing file and anchor
    *   6. higiene: ningún término interno en la documentación / hygiene: no internal term in the documentation
    *
+   * Las marcas <wbr> (donde un identificador largo puede partirse) se ignoran al comparar. / The <wbr> marks (where a long identifier may break) are ignored when comparing.
+   *
    * Termina con código 1 si algo falla / It exits with code 1 if anything fails.
    */
 
@@ -76,7 +78,7 @@
     $report('errores / errors', 'no se encontraron códigos en src/Errors/ErrorCodes.php / no codes found in src/Errors/ErrorCodes.php');
   }
   foreach ($languages as $language) {
-    $page = (string) @file_get_contents("$docs/$language/errors.html");
+    $page = str_replace('<wbr>', '', (string) @file_get_contents("$docs/$language/errors.html"));
     foreach ($codes as $code) {
       if (!str_contains($page, $code)) {
         $report('errores / errors', "docs/$language/errors.html no menciona $code / does not mention $code");
@@ -108,7 +110,7 @@
   };
   $keys = $flatten($config);
   foreach ($languages as $language) {
-    $page = (string) @file_get_contents("$docs/$language/configuration.html");
+    $page = str_replace('<wbr>', '', (string) @file_get_contents("$docs/$language/configuration.html"));
     foreach ($keys as $key) {
       if (!preg_match('~<code>\s*' . preg_quote($key, '~') . '\s*</code>~', $page)) {
         $report('configuración / configuration', "docs/$language/configuration.html no tiene <code>$key</code> / has no <code>$key</code>");

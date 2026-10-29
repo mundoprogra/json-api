@@ -1,0 +1,87 @@
+<p class="lead">Todo se puede definir en el <code>.env</code>. Casi no hace falta tocar nada: los valores por defecto sirven para empezar.</p>
+
+<h2 id="publicar">Publicar el archivo</h2>
+
+<p>Para editar la configuración en el código en vez de en el <code>.env</code> (por ejemplo, para dar varios prefijos de ruta o una lista de <code>except</code>), publica el archivo:</p>
+
+<pre><code>php artisan vendor:publish --tag="json-api-config"</code></pre>
+
+<p>Queda en <code>config/json-api.php</code>. Los valores booleanos del <code>.env</code> aceptan <code>true</code>/<code>false</code>, <code>1</code>/<code>0</code>, <code>yes</code>/<code>no</code> y <code>on</code>/<code>off</code>. Las listas (<code>path_prefix</code> como arreglo y <code>except</code>) solo se definen en el archivo.</p>
+
+<div class="callout">
+  <p>La configuración se valida al arrancar: un valor inválido detiene la aplicación con un mensaje que lista <strong>todos</strong> los problemas a la vez, en lugar de fallar de a uno.</p>
+</div>
+
+<h2 id="general">General</h2>
+
+<table>
+  <thead>
+    <tr><th>Opción</th><th>Variable en <code>.env</code></th><th>Por defecto</th><th>Qué hace</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>mode</code></td><td><code>JSON_API_MODE</code></td><td><code>prefix</code></td><td><code>prefix</code>: solo las rutas que empiezan con <code>path_prefix</code>. <code>global</code>: toda la aplicación responde en JSON:API (incluidos los <code>404</code> y los <code>500</code>)</td></tr>
+    <tr><td><code>path_prefix</code></td><td><code>JSON_API_PATH_PREFIX</code></td><td><code>api</code></td><td>Prefijo(s) de ruta cuando <code>mode</code> es <code>prefix</code>: un texto o un arreglo de textos</td></tr>
+    <tr><td><code>except</code></td><td>—</td><td><code>['up']</code></td><td>Rutas que el paquete nunca toca (admite comodines)</td></tr>
+    <tr><td><code>strict_headers</code></td><td><code>JSON_API_STRICT_HEADERS</code></td><td><code>true</code></td><td>Exige las cabeceras JSON:API (<code>Accept</code> y <code>Content-Type</code>); con <code>false</code> también acepta <code>application/json</code></td></tr>
+    <tr><td><code>member_case</code></td><td><code>JSON_API_MEMBER_CASE</code></td><td><code>camel</code></td><td>Estilo de los nombres de atributos y relaciones, en la entrada y en la salida: <code>camel</code>, <code>kebab</code> o <code>snake</code></td></tr>
+    <tr><td><code>jsonapi_object</code></td><td><code>JSON_API_JSONAPI_OBJECT</code></td><td><code>true</code></td><td>Incluye <code>{"jsonapi": {"version": "1.1"}}</code> en las respuestas</td></tr>
+    <tr><td><code>allow_client_ids</code></td><td><code>JSON_API_ALLOW_CLIENT_IDS</code></td><td><code>false</code></td><td>Con <code>false</code>, un <code>POST</code> con <code>data.id</code> responde <code>403</code>; con <code>true</code> se acepta el <code>id</code> que manda el cliente al crear</td></tr>
+    <tr><td><code>allow_put</code></td><td><code>JSON_API_ALLOW_PUT</code></td><td><code>false</code></td><td>También valida <code>PUT</code> como JSON:API (la especificación solo define <code>PATCH</code> para actualizar)</td></tr>
+    <tr><td><code>reject_unknown_query_params</code></td><td><code>JSON_API_REJECT_UNKNOWN_QUERY_PARAMS</code></td><td><code>false</code></td><td>Con <code>true</code>, un parámetro de consulta desconocido (de solo letras <code>a-z</code>) responde <code>400</code>; con <code>false</code> se ignora</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <p>Con <code>strict_headers</code> en <code>true</code>, que es el valor por defecto, un cliente que manda <code>Accept: application/json</code> (o <code>text/html</code>) dentro del alcance del paquete recibe un <code>406</code>. Si migras una API que ya tiene clientes, <code>JSON_API_STRICT_HEADERS=false</code> te permite hacerlo de a poco.</p>
+</div>
+
+<h2 id="paginacion">Paginación</h2>
+
+<table>
+  <thead>
+    <tr><th>Opción</th><th>Variable en <code>.env</code></th><th>Por defecto</th><th>Qué hace</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>pagination.size</code></td><td><code>JSON_API_PAGE_SIZE</code></td><td><code>15</code></td><td>Tamaño de página por defecto</td></tr>
+    <tr><td><code>pagination.max_size</code></td><td><code>JSON_API_PAGE_MAX_SIZE</code></td><td><code>100</code></td><td>Tope del <code>page[size]</code> que manda el cliente</td></tr>
+    <tr><td><code>pagination.on_exceed</code></td><td><code>JSON_API_PAGE_ON_EXCEED</code></td><td><code>clamp</code></td><td>Si el cliente pide más que <code>max_size</code>: <code>clamp</code> lo recorta al máximo, <code>error</code> responde <code>400</code></td></tr>
+  </tbody>
+</table>
+
+<h2 id="consulta">Consulta y enlaces</h2>
+
+<table>
+  <thead>
+    <tr><th>Opción</th><th>Variable en <code>.env</code></th><th>Por defecto</th><th>Qué hace</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>query.max_include_depth</code></td><td><code>JSON_API_MAX_INCLUDE_DEPTH</code></td><td><code>3</code></td><td>Profundidad máxima de <code>include</code> (por ejemplo, <code>author.comments.user</code> tiene profundidad 3)</td></tr>
+    <tr><td><code>links.route_name_prefix</code></td><td><code>JSON_API_ROUTE_NAME_PREFIX</code></td><td>vacío</td><td>Prefijo para resolver el nombre de las rutas al construir los <code>links</code>. Si la ruta no existe, el enlace se omite</td></tr>
+  </tbody>
+</table>
+
+<h2 id="errores">Errores</h2>
+
+<table>
+  <thead>
+    <tr><th>Opción</th><th>Variable en <code>.env</code></th><th>Por defecto</th><th>Qué hace</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>errors.expose_details</code></td><td><code>JSON_API_EXPOSE_DETAILS</code></td><td><code>app.debug</code></td><td>Muestra el detalle real de la excepción en los errores <code>500</code>. Sin valor, sigue a <code>app.debug</code></td></tr>
+    <tr><td><code>errors.include_code</code></td><td><code>JSON_API_INCLUDE_CODE</code></td><td><code>true</code></td><td>Envía <code>code</code> en cada error; apagado significa nunca: ningún error lo lleva</td></tr>
+    <tr><td><code>errors.code_prefix</code></td><td><code>JSON_API_CODE_PREFIX</code></td><td><code>mundoprogra.json-api</code></td><td>Prefijo de los códigos por defecto del paquete. Vacío: sin prefijo</td></tr>
+    <tr><td><code>errors.codes</code></td><td>—</td><td><code>[]</code></td><td>Reemplaza códigos por los tuyos: la clave es el código base sin prefijo y el valor se usa tal cual, sin prefijo</td></tr>
+    <tr><td><code>errors.include_id</code></td><td><code>JSON_API_INCLUDE_ID</code></td><td><code>false</code></td><td>Agrega un <code>id</code> único a cada error y lo escribe también en el log, para encontrar una ocurrencia concreta</td></tr>
+  </tbody>
+</table>
+
+<p>Por ejemplo, para reemplazar dos códigos por los tuyos:</p>
+
+<pre><code>'errors' =&gt; [
+    'codes' =&gt; [
+        'validation.required' =&gt; 'ERR-1001',
+        'resource.not_found' =&gt; 'ERR-4040',
+    ],
+],</code></pre>
+
+<p>Los códigos base que puedes reemplazar están en la página de <a href="errors.html">errores</a>.</p>

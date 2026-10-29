@@ -47,3 +47,62 @@
 .prose :where(pre) code {
   @apply rounded-none bg-transparent p-0 text-inherit;
 }
+
+/*
+  El contenido ocupa hasta 56rem para que las tablas respiren, pero el texto corrido se limita a 46rem para que las líneas se lean bien; los nombres
+  largos de variables pueden partirse dentro de una celda.
+  The content takes up to 56rem so tables can breathe, but running text is limited to 46rem so lines read well; long variable names may break
+  inside a cell.
+*/
+.prose > p,
+.prose > ul,
+.prose > ol,
+.prose > h2,
+.prose > h3,
+.prose > .callout {
+  max-width: 46rem;
+}
+.prose td code {
+  overflow-wrap: anywhere;
+}
+
+/*
+  Tablas en pantallas pequeñas: cada fila es una tarjeta y cada celda lleva su etiqueta (`data-label`, que agrega tools/docs/build.php).
+  El encabezado queda oculto a la vista pero disponible para lectores de pantalla. El borde usa el color del texto con poca opacidad, para valer en claro y oscuro.
+  Tables on small screens: each row is a card and each cell carries its label (`data-label`, added by tools/docs/build.php).
+  The header is hidden from view but still available to screen readers. The border uses the text color at low opacity, so it works in light and dark.
+*/
+@media (max-width: 639px) {
+  .prose table,
+  .prose tbody,
+  .prose tr,
+  .prose td {
+    display: block;
+  }
+  .prose thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .prose tr {
+    margin-bottom: 1rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid color-mix(in oklab, currentColor 20%, transparent);
+    border-radius: 0.6rem;
+  }
+  .prose td {
+    padding: 0.35rem 0;
+    border: 0;
+  }
+  .prose td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+}
