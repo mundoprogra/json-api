@@ -1,0 +1,75 @@
+<p class="lead">It turns a Laravel API into an end-to-end JSON:API 1.1 service: it accepts and validates requests in the standard and responds in the standard, for both success and error responses.</p>
+
+<div class="callout">
+  <p><strong>Status: version <code>0.1.0</code>, under validation.</strong> The API described here is complete, covered by tests on Laravel 10 to 13 and tried in a real application. In <code>0.x</code> the API may change between minor versions (with <code>^0.1</code> Composer installs only <code>0.1.x</code>).</p>
+</div>
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-2">
+  <a href="installation.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Installation →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">One command and you are done: the package is auto-discovered.</span>
+  </a>
+  <a href="getting-started.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Getting started →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">A resource, a controller and its routes, from start to finish.</span>
+  </a>
+  <a href="errors.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Errors →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">Every code and the order in which they are checked.</span>
+  </a>
+  <a href="configuration.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Configuration →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">Every option, its environment variable and its default.</span>
+  </a>
+</div>
+
+<h2 id="what-is-json-api">What is JSON:API</h2>
+
+<p>JSON:API is a <strong>specification</strong>, not a library: an agreement on how a server and a client exchange data as JSON over HTTP. It defines the shape of responses, of the requests that create or change data, of the relationships between resources, of the query parameters and of the errors. The full text is at <a href="https://jsonapi.org/format/">jsonapi.org/format</a>.</p>
+
+<p>Because every API that follows it speaks the same way, a client or a library written for one works with another, and the team no longer has to argue about how to name fields, how to paginate or how to return an error.</p>
+
+<p>Its main ideas:</p>
+
+<ul>
+  <li><strong>Resources</strong>: everything the API exposes is an object with a <code>type</code> and an <code>id</code>, and its data goes inside <code>attributes</code>.</li>
+  <li><strong>Relationships</strong>: a resource points to others by their <code>type</code> and <code>id</code>, inside <code>relationships</code>. With <code>include</code> they can come in the same response, in <code>included</code> and without repeating.</li>
+  <li><strong>Queries with fixed names</strong>: <code>include</code> to bring relationships, <code>fields[type]</code> to ask for only some fields and <code>sort</code> to order; <code>page</code> and <code>filter</code> are reserved for pagination and filtering.</li>
+  <li><strong>Uniform errors</strong>: always an <code>errors</code> array with the status, a code and a <code>source</code> that points to the field or parameter that failed.</li>
+  <li><strong>Its own content type</strong>: <code>application/vnd.api+json</code>, in both <code>Accept</code> and <code>Content-Type</code>.</li>
+</ul>
+
+<p>This is what a response with an article and its author looks like:</p>
+
+<pre><code>{
+  "jsonapi": { "version": "1.1" },
+  "data": {
+    "type": "articles",
+    "id": "1",
+    "attributes": { "title": "Hello, JSON:API" },
+    "relationships": {
+      "author": { "data": { "type": "people", "id": "9" } }
+    },
+    "links": { "self": "/articles/1" }
+  },
+  "included": [
+    { "type": "people", "id": "9", "attributes": { "name": "Ada" } }
+  ]
+}</code></pre>
+
+<h2 id="what-it-does">What this package does</h2>
+
+<ul>
+  <li><strong>Responds in JSON:API</strong>: resources, paginated collections, relationships, <code>included</code>, <code>links</code> and <code>meta</code>, and every error (validation, <code>401</code>, <code>404</code>, <code>405</code> and <code>500</code> included) as an error document with <code>source.pointer</code> or <code>source.parameter</code>.</li>
+  <li><strong>Validates what arrives</strong>: the headers (<code>Accept</code> and <code>Content-Type</code>), the query parameters (<code>include</code>, <code>fields</code>, <code>sort</code>, <code>filter</code>, <code>page</code>) and the body document, with the exact pointer of the failing member.</li>
+  <li><strong>Applies the query to Eloquent</strong> with whitelists you write: filters, sorting, pagination and eager loading of relationships.</li>
+  <li><strong>Registers no routes or controllers</strong>: you decide the URLs and the logic; the package takes care of the format.</li>
+  <li><strong>Switches itself on</strong> on install, without touching <code>bootstrap/app.php</code>, <code>Kernel</code> or <code>Handler</code>.</li>
+</ul>
+
+<h2 id="requirements">Requirements</h2>
+
+<ul>
+  <li>PHP 8.1 or higher</li>
+  <li>Laravel 10, 11, 12 or 13</li>
+</ul>

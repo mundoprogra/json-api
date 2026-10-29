@@ -1,0 +1,75 @@
+<p class="lead">Convierte una API de Laravel en un servicio JSON:API 1.1 de punta a punta: acepta y valida las peticiones en el estándar y responde en el estándar, tanto en éxito como en error.</p>
+
+<div class="callout">
+  <p><strong>Estado: versión <code>0.1.0</code>, en validación.</strong> La API descrita aquí está completa, cubierta por pruebas en Laravel 10 a 13 y probada en una aplicación real. En <code>0.x</code> la API puede cambiar entre versiones menores (con <code>^0.1</code> Composer solo instala <code>0.1.x</code>).</p>
+</div>
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-2">
+  <a href="installation.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Instalación →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">Un comando y listo: el paquete se descubre solo.</span>
+  </a>
+  <a href="getting-started.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Primeros pasos →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">Un recurso, un controlador y sus rutas, de principio a fin.</span>
+  </a>
+  <a href="errors.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Errores →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">Todos los códigos y el orden en que se comprueban.</span>
+  </a>
+  <a href="configuration.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Configuración →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">Cada opción, su variable de entorno y su valor por defecto.</span>
+  </a>
+</div>
+
+<h2 id="que-es-json-api">Qué es JSON:API</h2>
+
+<p>JSON:API es una <strong>especificación</strong>, no una librería: un acuerdo sobre cómo un servidor y un cliente intercambian datos en JSON por HTTP. Define la forma de las respuestas, de las peticiones que crean o cambian datos, de las relaciones entre recursos, de los parámetros de consulta y de los errores. El texto completo está en <a href="https://jsonapi.org/format/">jsonapi.org/format</a>.</p>
+
+<p>Como todas las APIs que la siguen hablan igual, un cliente o una librería escritos para una sirven para otra, y el equipo ya no tiene que discutir cómo nombrar los campos, cómo paginar o cómo devolver un error.</p>
+
+<p>Sus ideas principales:</p>
+
+<ul>
+  <li><strong>Recursos</strong>: cada cosa que la API expone es un objeto con <code>type</code> e <code>id</code>, y sus datos van dentro de <code>attributes</code>.</li>
+  <li><strong>Relaciones</strong>: un recurso apunta a otros por su <code>type</code> y su <code>id</code>, dentro de <code>relationships</code>. Con <code>include</code> se pueden traer en la misma respuesta, en <code>included</code> y sin repetirse.</li>
+  <li><strong>Consultas con nombres fijos</strong>: <code>include</code> para traer relaciones, <code>fields[tipo]</code> para pedir solo algunos campos y <code>sort</code> para ordenar; <code>page</code> y <code>filter</code> están reservados para paginar y filtrar.</li>
+  <li><strong>Errores uniformes</strong>: siempre un arreglo <code>errors</code> con el estado, un código y un <code>source</code> que señala qué campo o parámetro falló.</li>
+  <li><strong>Un tipo de contenido propio</strong>: <code>application/vnd.api+json</code>, tanto en <code>Accept</code> como en <code>Content-Type</code>.</li>
+</ul>
+
+<p>Así se ve una respuesta con un artículo y su autor:</p>
+
+<pre><code>{
+  "jsonapi": { "version": "1.1" },
+  "data": {
+    "type": "articles",
+    "id": "1",
+    "attributes": { "title": "Hola, JSON:API" },
+    "relationships": {
+      "author": { "data": { "type": "people", "id": "9" } }
+    },
+    "links": { "self": "/articles/1" }
+  },
+  "included": [
+    { "type": "people", "id": "9", "attributes": { "name": "Ada" } }
+  ]
+}</code></pre>
+
+<h2 id="que-hace">Qué hace este paquete</h2>
+
+<ul>
+  <li><strong>Responde en JSON:API</strong>: recursos, colecciones paginadas, relaciones, <code>included</code>, <code>links</code> y <code>meta</code>, y todos los errores (incluidos los de validación, <code>401</code>, <code>404</code>, <code>405</code> y <code>500</code>) como documentos de errores con <code>source.pointer</code> o <code>source.parameter</code>.</li>
+  <li><strong>Valida lo que llega</strong>: las cabeceras (<code>Accept</code> y <code>Content-Type</code>), los parámetros de consulta (<code>include</code>, <code>fields</code>, <code>sort</code>, <code>filter</code>, <code>page</code>) y el documento del cuerpo, con el puntero exacto del miembro que falla.</li>
+  <li><strong>Aplica la consulta a Eloquent</strong> con listas blancas que escribes tú: filtros, orden, paginación y carga anticipada de relaciones.</li>
+  <li><strong>No registra rutas ni controladores</strong>: tú decides las URL y la lógica; el paquete se ocupa del formato.</li>
+  <li><strong>Se activa solo</strong> al instalarlo, sin tocar <code>bootstrap/app.php</code>, <code>Kernel</code> ni <code>Handler</code>.</li>
+</ul>
+
+<h2 id="requisitos">Requisitos</h2>
+
+<ul>
+  <li>PHP 8.1 o superior</li>
+  <li>Laravel 10, 11, 12 o 13</li>
+</ul>

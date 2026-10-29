@@ -1,0 +1,55 @@
+<p class="lead">Every error comes out as <code>{"errors": [...]}</code> with <code>status</code>, <code>title</code>, <code>detail</code>, <code>code</code> and <code>source</code> (<code>pointer</code>, <code>parameter</code> or <code>header</code>), in the app language (Spanish and English included).</p>
+
+<p>The package hooks into Laravel's exception handling and works the same on versions 10 to 13; if the app registers its own <code>renderable</code>, the app's wins. To throw one by hand:</p>
+
+<pre><code>throw JsonApiException::make(status: 404, pointer: '/data/relationships/author/data');</code></pre>
+
+<p>The title, detail and code are filled in from the status. A <code>5xx</code> error hides its internals unless <code>errors.expose_details</code> (or <code>app.debug</code>) allows it.</p>
+
+<h2 id="codes">Error codes</h2>
+
+<table>
+  <thead>
+    <tr><th>Base code</th><th>Status</th><th>When</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>request.not_acceptable</code></td><td>406</td><td>The <code>Accept</code> does not allow JSON:API (<code>source.header</code>)</td></tr>
+    <tr><td><code>request.unsupported_media_type</code></td><td>415</td><td>The <code>Content-Type</code> is not JSON:API (<code>source.header</code>)</td></tr>
+    <tr><td><code>request.bad_query</code></td><td>400</td><td>A malformed or not allowed query parameter (<code>source.parameter</code>)</td></tr>
+    <tr><td><code>request.bad_document</code></td><td>400</td><td>The body is not JSON or does not have the shape of a document (<code>source.pointer</code>)</td></tr>
+    <tr><td><code>request.bad_request</code></td><td>400</td><td>A malformed request that is neither a query nor a document problem</td></tr>
+    <tr><td><code>request.client_id_not_allowed</code></td><td>403</td><td>A <code>POST</code> with a client <code>id</code> and <code>allow_client_ids</code> off</td></tr>
+    <tr><td><code>auth.unauthenticated</code></td><td>401</td><td>Not authenticated; it never redirects to login</td></tr>
+    <tr><td><code>auth.forbidden</code></td><td>403</td><td>No permission</td></tr>
+    <tr><td><code>auth.invalid_signature</code></td><td>403</td><td>The signed URL is invalid or expired</td></tr>
+    <tr><td><code>resource.not_found</code></td><td>404</td><td>The resource does not exist (it does not reveal the model name)</td></tr>
+    <tr><td><code>route.not_found</code></td><td>404</td><td>The route does not exist</td></tr>
+    <tr><td><code>request.method_not_allowed</code></td><td>405</td><td>The method is not on the route; it carries <code>Allow</code></td></tr>
+    <tr><td><code>resource.conflict</code></td><td>409</td><td>The <code>type</code> or <code>id</code> of the document are not those of the endpoint</td></tr>
+    <tr><td><code>request.payload_too_large</code></td><td>413</td><td>The request body exceeds the limit</td></tr>
+    <tr><td><code>request.token_mismatch</code></td><td>419</td><td>The CSRF or session token expired</td></tr>
+    <tr><td><code>validation.&lt;rule&gt;</code> / <code>validation.failed</code></td><td>422</td><td>A validation rule failed (<code>validation.required</code>, <code>validation.max</code>…); <code>validation.failed</code> when there is no rule name</td></tr>
+    <tr><td><code>request.too_many_requests</code></td><td>429</td><td>Rate limit; it carries <code>Retry-After</code></td></tr>
+    <tr><td><code>server.error</code> / <code>server.unavailable</code></td><td>500 / 503</td><td>Unexpected error or service unavailable</td></tr>
+  </tbody>
+</table>
+
+<p>Any other HTTP status uses <code>http.&lt;status&gt;</code> (for example <code>http.402</code>). Codes carry the prefix <code>mundoprogra.json-api.</code> (for example <code>mundoprogra.json-api.validation.required</code>). Change it with <code>errors.code_prefix</code>, replace codes one by one with <code>errors.codes</code>, or turn them off with <code>errors.include_code</code>.</p>
+
+<h2 id="order">The order of the checks</h2>
+
+<p>When a request fails for more than one reason, only the first comes out, in this order:</p>
+
+<ol>
+  <li><code>Content-Type</code> (<code>415</code>) and then <code>Accept</code> (<code>406</code>).</li>
+  <li>The syntax of the query (<code>400</code>).</li>
+  <li>The document: broken or malformed JSON (<code>400</code>) or a client <code>id</code> (<code>403</code>).</li>
+  <li>The route: method not allowed (<code>405</code>) or a route that does not exist (<code>404</code>).</li>
+  <li>Authentication (<code>401</code>).</li>
+  <li>The <code>FormRequest</code>: a different <code>type</code> or <code>id</code> (<code>409</code>) and then the rules (<code>422</code>).</li>
+  <li>Your controller: the query whitelist (<code>400</code>) and a resource that does not exist (<code>404</code>).</li>
+</ol>
+
+<div class="callout">
+  <p>Steps 1 to 3 run before <code>auth</code>: without a session, broken JSON is a <code>400</code>, not a <code>401</code>.</p>
+</div>

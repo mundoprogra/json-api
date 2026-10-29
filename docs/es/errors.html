@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Errores · MundoProgra JSON:API</title>
+  <meta name="description" content="JSON:API 1.1 de punta a punta para Laravel 10 a 13.">
+  <link rel="stylesheet" href="../assets/style.css">
+  <script defer src="../assets/docs.js"></script>
+</head>
+<body class="min-h-screen bg-white font-sans text-slate-700 antialiased dark:bg-slate-950 dark:text-slate-300">
+  <a href="#content" class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-indigo-600 focus:px-4 focus:py-2 focus:text-white">Saltar al contenido</a>
+  <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
+    <div class="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
+      <a href="index.html" class="flex items-center gap-2 font-semibold text-slate-900 dark:text-white"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" class="shrink-0"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#4338ca"/></linearGradient></defs><rect width="32" height="32" rx="8" fill="url(#g)"/><text x="16" y="21.5" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-weight="700" font-size="15" fill="#fff">{ }</text></svg><span>MundoProgra <span class="text-indigo-600 dark:text-indigo-400">JSON:API</span></span></a>
+      <nav class="ml-auto flex items-center gap-2 text-sm">
+        <a href="https://github.com/mundoprogra/json-api" class="hidden rounded-md px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 sm:inline-flex dark:text-slate-300 dark:hover:bg-slate-800">GitHub</a>
+        <a href="../en/errors.html" hreflang="en" lang="en" title="Read this page in English" class="rounded-full border border-slate-300 px-3 py-1 font-medium text-slate-700 hover:border-indigo-400 hover:text-indigo-700 dark:border-slate-700 dark:text-slate-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300">English</a>
+      </nav>
+    </div>
+  </header>
+  <details class="border-b border-slate-200 bg-slate-50 px-4 lg:hidden dark:border-slate-800 dark:bg-slate-900/60">
+    <summary class="cursor-pointer select-none py-3 text-sm font-medium text-slate-700 dark:text-slate-200">Menú</summary>
+    <nav class="pb-4" aria-label="Documentación"><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Empezar</p><ul class="space-y-0.5"><li><a href="index.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Inicio</a></li><li><a href="installation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Instalación</a></li><li><a href="getting-started.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Primeros pasos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Guía</p><ul class="space-y-0.5"><li><a href="resources.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Recursos, colecciones y relaciones</a></li><li><a href="relationship-endpoints.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Endpoints de relación</a></li><li><a href="query-parameters.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Parámetros de consulta</a></li><li><a href="input-document.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Leer el documento de entrada</a></li><li><a href="errors.html" class="block rounded-md px-2 py-1.5 text-sm bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300" aria-current="page">Errores</a></li><li><a href="activation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Cómo se activa</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Referencia</p><ul class="space-y-0.5"><li><a href="configuration.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Configuración</a></li><li><a href="naming-style.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Estilo de los nombres</a></li><li><a href="known-limits.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Límites conocidos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Proyecto</p><ul class="space-y-0.5"><li><a href="versioning.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Versionado y soporte</a></li></ul></nav>
+  </details>
+  <div class="mx-auto grid max-w-7xl lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto border-r border-slate-200 p-5 lg:block dark:border-slate-800">
+      <nav aria-label="Documentación"><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Empezar</p><ul class="space-y-0.5"><li><a href="index.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Inicio</a></li><li><a href="installation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Instalación</a></li><li><a href="getting-started.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Primeros pasos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Guía</p><ul class="space-y-0.5"><li><a href="resources.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Recursos, colecciones y relaciones</a></li><li><a href="relationship-endpoints.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Endpoints de relación</a></li><li><a href="query-parameters.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Parámetros de consulta</a></li><li><a href="input-document.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Leer el documento de entrada</a></li><li><a href="errors.html" class="block rounded-md px-2 py-1.5 text-sm bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300" aria-current="page">Errores</a></li><li><a href="activation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Cómo se activa</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Referencia</p><ul class="space-y-0.5"><li><a href="configuration.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Configuración</a></li><li><a href="naming-style.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Estilo de los nombres</a></li><li><a href="known-limits.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Límites conocidos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Proyecto</p><ul class="space-y-0.5"><li><a href="versioning.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Versionado y soporte</a></li></ul></nav>
+    </aside>
+    <main id="content" class="min-w-0 px-4 py-10 sm:px-8 lg:px-12">
+      <div class="mx-auto max-w-3xl">
+        <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guía</p>
+        <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Errores</h1>
+        <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
+<p class="lead">Todo error sale como <code>{"errors": [...]}</code> con <code>status</code>, <code>title</code>, <code>detail</code>, <code>code</code> y <code>source</code> (<code>pointer</code>, <code>parameter</code> o <code>header</code>), en el idioma de la app (español e inglés incluidos).</p>
+
+<p>El paquete se engancha al manejo de excepciones de Laravel y sale igual en las versiones 10 a 13; si la app registra su propio <code>renderable</code>, el de la app gana. Para lanzar uno a mano:</p>
+
+<pre><code>throw JsonApiException::make(status: 404, pointer: '/data/relationships/author/data');</code></pre>
+
+<p>El título, el detalle y el código se completan solos a partir del estado. Un error <code>5xx</code> oculta sus detalles internos salvo que <code>errors.expose_details</code> (o <code>app.debug</code>) lo permita.</p>
+
+<h2 id="codigos">Códigos de error</h2>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Código base</th><th>Estado</th><th>Cuándo</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>request.not_acceptable</code></td><td>406</td><td>El <code>Accept</code> no permite JSON:API (<code>source.header</code>)</td></tr>
+    <tr><td><code>request.unsupported_media_type</code></td><td>415</td><td>El <code>Content-Type</code> no es JSON:API (<code>source.header</code>)</td></tr>
+    <tr><td><code>request.bad_query</code></td><td>400</td><td>Un parámetro de consulta mal formado o no permitido (<code>source.parameter</code>)</td></tr>
+    <tr><td><code>request.bad_document</code></td><td>400</td><td>El cuerpo no es JSON o no tiene la forma de un documento (<code>source.pointer</code>)</td></tr>
+    <tr><td><code>request.bad_request</code></td><td>400</td><td>Una petición mal formada que no es de consulta ni de documento</td></tr>
+    <tr><td><code>request.client_id_not_allowed</code></td><td>403</td><td>Un <code>POST</code> con <code>id</code> del cliente y <code>allow_client_ids</code> apagado</td></tr>
+    <tr><td><code>auth.unauthenticated</code></td><td>401</td><td>Sin autenticar; nunca redirige al login</td></tr>
+    <tr><td><code>auth.forbidden</code></td><td>403</td><td>Sin permiso</td></tr>
+    <tr><td><code>auth.invalid_signature</code></td><td>403</td><td>La URL firmada es inválida o venció</td></tr>
+    <tr><td><code>resource.not_found</code></td><td>404</td><td>El recurso no existe (no revela el nombre del modelo)</td></tr>
+    <tr><td><code>route.not_found</code></td><td>404</td><td>La ruta no existe</td></tr>
+    <tr><td><code>request.method_not_allowed</code></td><td>405</td><td>El método no está en la ruta; lleva <code>Allow</code></td></tr>
+    <tr><td><code>resource.conflict</code></td><td>409</td><td>El <code>type</code> o el <code>id</code> del documento no son los del endpoint</td></tr>
+    <tr><td><code>request.payload_too_large</code></td><td>413</td><td>El cuerpo de la petición supera el límite</td></tr>
+    <tr><td><code>request.token_mismatch</code></td><td>419</td><td>El token CSRF o de sesión venció</td></tr>
+    <tr><td><code>validation.&lt;regla&gt;</code> / <code>validation.failed</code></td><td>422</td><td>Una regla de validación falló (<code>validation.required</code>, <code>validation.max</code>…); <code>validation.failed</code> si no hay nombre de regla</td></tr>
+    <tr><td><code>request.too_many_requests</code></td><td>429</td><td>Límite de peticiones; lleva <code>Retry-After</code></td></tr>
+    <tr><td><code>server.error</code> / <code>server.unavailable</code></td><td>500 / 503</td><td>Error inesperado o servicio no disponible</td></tr>
+  </tbody>
+</table></div>
+
+<p>Cualquier otro estado HTTP usa <code>http.&lt;estado&gt;</code> (por ejemplo <code>http.402</code>). Los códigos llevan el prefijo <code>mundoprogra.json-api.</code> (por ejemplo <code>mundoprogra.json-api.validation.required</code>). Se cambia con <code>errors.code_prefix</code>, se reemplazan uno a uno con <code>errors.codes</code> o se apagan con <code>errors.include_code</code>.</p>
+
+<h2 id="orden">El orden de las comprobaciones</h2>
+
+<p>Cuando una petición falla por más de un motivo, sale solo el primero, en este orden:</p>
+
+<ol>
+  <li><code>Content-Type</code> (<code>415</code>) y después <code>Accept</code> (<code>406</code>).</li>
+  <li>La sintaxis de la consulta (<code>400</code>).</li>
+  <li>El documento: JSON roto o mal formado (<code>400</code>) o un <code>id</code> del cliente (<code>403</code>).</li>
+  <li>La ruta: método no permitido (<code>405</code>) o ruta que no existe (<code>404</code>).</li>
+  <li>La autenticación (<code>401</code>).</li>
+  <li>El <code>FormRequest</code>: <code>type</code> o <code>id</code> distintos (<code>409</code>) y después las reglas (<code>422</code>).</li>
+  <li>Tu controlador: la lista blanca de la consulta (<code>400</code>) y el recurso que no existe (<code>404</code>).</li>
+</ol>
+
+<div class="callout">
+  <p>Los pasos 1 a 3 corren antes que <code>auth</code>: sin sesión, un JSON roto es un <code>400</code> y no un <code>401</code>.</p>
+</div>
+
+        </article>
+        <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="input-document.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Anterior</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Leer el documento de entrada</span></a><a href="activation.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Siguiente →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Cómo se activa</span></a></nav>
+      </div>
+    </main>
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 xl:block"><nav aria-label="En esta página"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">En esta página</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#codigos" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Códigos de error</a></li><li><a href="#orden" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">El orden de las comprobaciones</a></li></ul></nav></aside>
+  </div>
+  <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Código e issues</a> ·
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api/blob/master/CHANGELOG.md">Changelog</a> ·
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api/security/policy">Seguridad</a> ·
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api/blob/master/LICENSE.md">Licencia MIT</a>
+  </footer>
+</body>
+</html>

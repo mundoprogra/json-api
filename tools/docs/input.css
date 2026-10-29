@@ -1,0 +1,49 @@
+/*
+  Entrada de Tailwind para docs/assets/style.css. Se compila con bin/build-docs.sh; el resultado se sube al repositorio.
+  Solo se escanean las páginas, el constructor y el contenido: así el CSS no recoge palabras sueltas del resto del repositorio.
+  Tailwind entry for docs/assets/style.css. It is compiled with bin/build-docs.sh; the result is committed to the repository.
+  Only the pages, the builder and the content are scanned, so the CSS does not pick up stray words from the rest of the repository.
+*/
+@import "tailwindcss" source(none);
+@plugin "@tailwindcss/typography";
+
+@source "../../docs/**/*.html";
+@source "../../docs/assets/docs.js";
+@source "./build.php";
+@source "./content";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/*
+  Estas reglas van fuera de las capas de Tailwind a propósito: las de la tipografía (`prose`) viven en una capa y le ganarían a las de aquí
+  aunque tengan menos especificidad (por ejemplo, el margen del primer párrafo de un aviso).
+  These rules sit outside the Tailwind layers on purpose: the typography ones (`prose`) live in a layer and would win over these ones even with
+  less specificity (for example, the margin of the first paragraph of a notice).
+*/
+
+/* Aviso dentro del contenido: <div class="callout">…</div>. / Notice inside the content. */
+.callout {
+  @apply my-6 rounded-lg border-l-4 border-indigo-500 bg-indigo-50 px-4 py-3 text-sm text-slate-700 dark:border-indigo-400 dark:bg-indigo-950/40 dark:text-slate-200;
+}
+.callout > :first-child {
+  @apply mt-0;
+}
+.callout > :last-child {
+  @apply mb-0;
+}
+.callout.warn {
+  @apply border-amber-500 bg-amber-50 dark:border-amber-400 dark:bg-amber-950/30;
+}
+
+/* Botón de copiar de los bloques de código; lo agrega assets/docs.js. / Copy button of the code blocks; assets/docs.js adds it. */
+.copy {
+  @apply absolute right-2 top-2 rounded-md border border-slate-600 bg-slate-800 px-2 py-1 text-xs font-medium text-slate-200 opacity-0 transition hover:bg-slate-700 focus:opacity-100 group-hover:opacity-100;
+}
+
+/* El código dentro de un bloque no lleva el fondo ni el relleno del código en línea. / Code inside a block does not get the background or padding of inline code. */
+.prose :where(pre) code {
+  @apply rounded-none bg-transparent p-0 text-inherit;
+}

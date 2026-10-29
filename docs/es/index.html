@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Inicio · MundoProgra JSON:API</title>
+  <meta name="description" content="JSON:API 1.1 de punta a punta para Laravel 10 a 13.">
+  <link rel="stylesheet" href="../assets/style.css">
+  <script defer src="../assets/docs.js"></script>
+</head>
+<body class="min-h-screen bg-white font-sans text-slate-700 antialiased dark:bg-slate-950 dark:text-slate-300">
+  <a href="#content" class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-indigo-600 focus:px-4 focus:py-2 focus:text-white">Saltar al contenido</a>
+  <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
+    <div class="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
+      <a href="index.html" class="flex items-center gap-2 font-semibold text-slate-900 dark:text-white"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" class="shrink-0"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#4338ca"/></linearGradient></defs><rect width="32" height="32" rx="8" fill="url(#g)"/><text x="16" y="21.5" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-weight="700" font-size="15" fill="#fff">{ }</text></svg><span>MundoProgra <span class="text-indigo-600 dark:text-indigo-400">JSON:API</span></span></a>
+      <nav class="ml-auto flex items-center gap-2 text-sm">
+        <a href="https://github.com/mundoprogra/json-api" class="hidden rounded-md px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 sm:inline-flex dark:text-slate-300 dark:hover:bg-slate-800">GitHub</a>
+        <a href="../en/index.html" hreflang="en" lang="en" title="Read this page in English" class="rounded-full border border-slate-300 px-3 py-1 font-medium text-slate-700 hover:border-indigo-400 hover:text-indigo-700 dark:border-slate-700 dark:text-slate-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300">English</a>
+      </nav>
+    </div>
+  </header>
+  <details class="border-b border-slate-200 bg-slate-50 px-4 lg:hidden dark:border-slate-800 dark:bg-slate-900/60">
+    <summary class="cursor-pointer select-none py-3 text-sm font-medium text-slate-700 dark:text-slate-200">Menú</summary>
+    <nav class="pb-4" aria-label="Documentación"><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Empezar</p><ul class="space-y-0.5"><li><a href="index.html" class="block rounded-md px-2 py-1.5 text-sm bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300" aria-current="page">Inicio</a></li><li><a href="installation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Instalación</a></li><li><a href="getting-started.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Primeros pasos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Guía</p><ul class="space-y-0.5"><li><a href="resources.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Recursos, colecciones y relaciones</a></li><li><a href="relationship-endpoints.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Endpoints de relación</a></li><li><a href="query-parameters.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Parámetros de consulta</a></li><li><a href="input-document.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Leer el documento de entrada</a></li><li><a href="errors.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Errores</a></li><li><a href="activation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Cómo se activa</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Referencia</p><ul class="space-y-0.5"><li><a href="configuration.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Configuración</a></li><li><a href="naming-style.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Estilo de los nombres</a></li><li><a href="known-limits.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Límites conocidos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Proyecto</p><ul class="space-y-0.5"><li><a href="versioning.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Versionado y soporte</a></li></ul></nav>
+  </details>
+  <div class="mx-auto grid max-w-7xl lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto border-r border-slate-200 p-5 lg:block dark:border-slate-800">
+      <nav aria-label="Documentación"><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Empezar</p><ul class="space-y-0.5"><li><a href="index.html" class="block rounded-md px-2 py-1.5 text-sm bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300" aria-current="page">Inicio</a></li><li><a href="installation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Instalación</a></li><li><a href="getting-started.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Primeros pasos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Guía</p><ul class="space-y-0.5"><li><a href="resources.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Recursos, colecciones y relaciones</a></li><li><a href="relationship-endpoints.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Endpoints de relación</a></li><li><a href="query-parameters.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Parámetros de consulta</a></li><li><a href="input-document.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Leer el documento de entrada</a></li><li><a href="errors.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Errores</a></li><li><a href="activation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Cómo se activa</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Referencia</p><ul class="space-y-0.5"><li><a href="configuration.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Configuración</a></li><li><a href="naming-style.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Estilo de los nombres</a></li><li><a href="known-limits.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Límites conocidos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Proyecto</p><ul class="space-y-0.5"><li><a href="versioning.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Versionado y soporte</a></li></ul></nav>
+    </aside>
+    <main id="content" class="min-w-0 px-4 py-10 sm:px-8 lg:px-12">
+      <div class="mx-auto max-w-3xl">
+        <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Empezar</p>
+        <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Inicio</h1>
+        <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
+<p class="lead">Convierte una API de Laravel en un servicio JSON:API 1.1 de punta a punta: acepta y valida las peticiones en el estándar y responde en el estándar, tanto en éxito como en error.</p>
+
+<div class="callout">
+  <p><strong>Estado: versión <code>0.1.0</code>, en validación.</strong> La API descrita aquí está completa, cubierta por pruebas en Laravel 10 a 13 y probada en una aplicación real. En <code>0.x</code> la API puede cambiar entre versiones menores (con <code>^0.1</code> Composer solo instala <code>0.1.x</code>).</p>
+</div>
+
+<div class="not-prose my-8 grid gap-4 sm:grid-cols-2">
+  <a href="installation.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Instalación →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">Un comando y listo: el paquete se descubre solo.</span>
+  </a>
+  <a href="getting-started.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Primeros pasos →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">Un recurso, un controlador y sus rutas, de principio a fin.</span>
+  </a>
+  <a href="errors.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Errores →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">Todos los códigos y el orden en que se comprueban.</span>
+  </a>
+  <a href="configuration.html" class="group rounded-xl border border-slate-200 p-5 transition hover:border-indigo-400 hover:shadow-sm dark:border-slate-800 dark:hover:border-indigo-500">
+    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Configuración →</span>
+    <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">Cada opción, su variable de entorno y su valor por defecto.</span>
+  </a>
+</div>
+
+<h2 id="que-es-json-api">Qué es JSON:API</h2>
+
+<p>JSON:API es una <strong>especificación</strong>, no una librería: un acuerdo sobre cómo un servidor y un cliente intercambian datos en JSON por HTTP. Define la forma de las respuestas, de las peticiones que crean o cambian datos, de las relaciones entre recursos, de los parámetros de consulta y de los errores. El texto completo está en <a href="https://jsonapi.org/format/">jsonapi.org/format</a>.</p>
+
+<p>Como todas las APIs que la siguen hablan igual, un cliente o una librería escritos para una sirven para otra, y el equipo ya no tiene que discutir cómo nombrar los campos, cómo paginar o cómo devolver un error.</p>
+
+<p>Sus ideas principales:</p>
+
+<ul>
+  <li><strong>Recursos</strong>: cada cosa que la API expone es un objeto con <code>type</code> e <code>id</code>, y sus datos van dentro de <code>attributes</code>.</li>
+  <li><strong>Relaciones</strong>: un recurso apunta a otros por su <code>type</code> y su <code>id</code>, dentro de <code>relationships</code>. Con <code>include</code> se pueden traer en la misma respuesta, en <code>included</code> y sin repetirse.</li>
+  <li><strong>Consultas con nombres fijos</strong>: <code>include</code> para traer relaciones, <code>fields[tipo]</code> para pedir solo algunos campos y <code>sort</code> para ordenar; <code>page</code> y <code>filter</code> están reservados para paginar y filtrar.</li>
+  <li><strong>Errores uniformes</strong>: siempre un arreglo <code>errors</code> con el estado, un código y un <code>source</code> que señala qué campo o parámetro falló.</li>
+  <li><strong>Un tipo de contenido propio</strong>: <code>application/vnd.api+json</code>, tanto en <code>Accept</code> como en <code>Content-Type</code>.</li>
+</ul>
+
+<p>Así se ve una respuesta con un artículo y su autor:</p>
+
+<pre><code>{
+  "jsonapi": { "version": "1.1" },
+  "data": {
+    "type": "articles",
+    "id": "1",
+    "attributes": { "title": "Hola, JSON:API" },
+    "relationships": {
+      "author": { "data": { "type": "people", "id": "9" } }
+    },
+    "links": { "self": "/articles/1" }
+  },
+  "included": [
+    { "type": "people", "id": "9", "attributes": { "name": "Ada" } }
+  ]
+}</code></pre>
+
+<h2 id="que-hace">Qué hace este paquete</h2>
+
+<ul>
+  <li><strong>Responde en JSON:API</strong>: recursos, colecciones paginadas, relaciones, <code>included</code>, <code>links</code> y <code>meta</code>, y todos los errores (incluidos los de validación, <code>401</code>, <code>404</code>, <code>405</code> y <code>500</code>) como documentos de errores con <code>source.pointer</code> o <code>source.parameter</code>.</li>
+  <li><strong>Valida lo que llega</strong>: las cabeceras (<code>Accept</code> y <code>Content-Type</code>), los parámetros de consulta (<code>include</code>, <code>fields</code>, <code>sort</code>, <code>filter</code>, <code>page</code>) y el documento del cuerpo, con el puntero exacto del miembro que falla.</li>
+  <li><strong>Aplica la consulta a Eloquent</strong> con listas blancas que escribes tú: filtros, orden, paginación y carga anticipada de relaciones.</li>
+  <li><strong>No registra rutas ni controladores</strong>: tú decides las URL y la lógica; el paquete se ocupa del formato.</li>
+  <li><strong>Se activa solo</strong> al instalarlo, sin tocar <code>bootstrap/app.php</code>, <code>Kernel</code> ni <code>Handler</code>.</li>
+</ul>
+
+<h2 id="requisitos">Requisitos</h2>
+
+<ul>
+  <li>PHP 8.1 o superior</li>
+  <li>Laravel 10, 11, 12 o 13</li>
+</ul>
+
+        </article>
+        <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><span></span><a href="installation.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Siguiente →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Instalación</span></a></nav>
+      </div>
+    </main>
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 xl:block"><nav aria-label="En esta página"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">En esta página</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#que-es-json-api" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Qué es JSON:API</a></li><li><a href="#que-hace" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Qué hace este paquete</a></li><li><a href="#requisitos" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Requisitos</a></li></ul></nav></aside>
+  </div>
+  <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Código e issues</a> ·
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api/blob/master/CHANGELOG.md">Changelog</a> ·
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api/security/policy">Seguridad</a> ·
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api/blob/master/LICENSE.md">Licencia MIT</a>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<p class="lead">Todo error sale como <code>{"errors": [...]}</code> con <code>status</code>, <code>title</code>, <code>detail</code>, <code>code</code> y <code>source</code> (<code>pointer</code>, <code>parameter</code> o <code>header</code>), en el idioma de la app (español e inglés incluidos).</p>
+
+<p>El paquete se engancha al manejo de excepciones de Laravel y sale igual en las versiones 10 a 13; si la app registra su propio <code>renderable</code>, el de la app gana. Para lanzar uno a mano:</p>
+
+<pre><code>throw JsonApiException::make(status: 404, pointer: '/data/relationships/author/data');</code></pre>
+
+<p>El título, el detalle y el código se completan solos a partir del estado. Un error <code>5xx</code> oculta sus detalles internos salvo que <code>errors.expose_details</code> (o <code>app.debug</code>) lo permita.</p>
+
+<h2 id="codigos">Códigos de error</h2>
+
+<table>
+  <thead>
+    <tr><th>Código base</th><th>Estado</th><th>Cuándo</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>request.not_acceptable</code></td><td>406</td><td>El <code>Accept</code> no permite JSON:API (<code>source.header</code>)</td></tr>
+    <tr><td><code>request.unsupported_media_type</code></td><td>415</td><td>El <code>Content-Type</code> no es JSON:API (<code>source.header</code>)</td></tr>
+    <tr><td><code>request.bad_query</code></td><td>400</td><td>Un parámetro de consulta mal formado o no permitido (<code>source.parameter</code>)</td></tr>
+    <tr><td><code>request.bad_document</code></td><td>400</td><td>El cuerpo no es JSON o no tiene la forma de un documento (<code>source.pointer</code>)</td></tr>
+    <tr><td><code>request.bad_request</code></td><td>400</td><td>Una petición mal formada que no es de consulta ni de documento</td></tr>
+    <tr><td><code>request.client_id_not_allowed</code></td><td>403</td><td>Un <code>POST</code> con <code>id</code> del cliente y <code>allow_client_ids</code> apagado</td></tr>
+    <tr><td><code>auth.unauthenticated</code></td><td>401</td><td>Sin autenticar; nunca redirige al login</td></tr>
+    <tr><td><code>auth.forbidden</code></td><td>403</td><td>Sin permiso</td></tr>
+    <tr><td><code>auth.invalid_signature</code></td><td>403</td><td>La URL firmada es inválida o venció</td></tr>
+    <tr><td><code>resource.not_found</code></td><td>404</td><td>El recurso no existe (no revela el nombre del modelo)</td></tr>
+    <tr><td><code>route.not_found</code></td><td>404</td><td>La ruta no existe</td></tr>
+    <tr><td><code>request.method_not_allowed</code></td><td>405</td><td>El método no está en la ruta; lleva <code>Allow</code></td></tr>
+    <tr><td><code>resource.conflict</code></td><td>409</td><td>El <code>type</code> o el <code>id</code> del documento no son los del endpoint</td></tr>
+    <tr><td><code>request.payload_too_large</code></td><td>413</td><td>El cuerpo de la petición supera el límite</td></tr>
+    <tr><td><code>request.token_mismatch</code></td><td>419</td><td>El token CSRF o de sesión venció</td></tr>
+    <tr><td><code>validation.&lt;regla&gt;</code> / <code>validation.failed</code></td><td>422</td><td>Una regla de validación falló (<code>validation.required</code>, <code>validation.max</code>…); <code>validation.failed</code> si no hay nombre de regla</td></tr>
+    <tr><td><code>request.too_many_requests</code></td><td>429</td><td>Límite de peticiones; lleva <code>Retry-After</code></td></tr>
+    <tr><td><code>server.error</code> / <code>server.unavailable</code></td><td>500 / 503</td><td>Error inesperado o servicio no disponible</td></tr>
+  </tbody>
+</table>
+
+<p>Cualquier otro estado HTTP usa <code>http.&lt;estado&gt;</code> (por ejemplo <code>http.402</code>). Los códigos llevan el prefijo <code>mundoprogra.json-api.</code> (por ejemplo <code>mundoprogra.json-api.validation.required</code>). Se cambia con <code>errors.code_prefix</code>, se reemplazan uno a uno con <code>errors.codes</code> o se apagan con <code>errors.include_code</code>.</p>
+
+<h2 id="orden">El orden de las comprobaciones</h2>
+
+<p>Cuando una petición falla por más de un motivo, sale solo el primero, en este orden:</p>
+
+<ol>
+  <li><code>Content-Type</code> (<code>415</code>) y después <code>Accept</code> (<code>406</code>).</li>
+  <li>La sintaxis de la consulta (<code>400</code>).</li>
+  <li>El documento: JSON roto o mal formado (<code>400</code>) o un <code>id</code> del cliente (<code>403</code>).</li>
+  <li>La ruta: método no permitido (<code>405</code>) o ruta que no existe (<code>404</code>).</li>
+  <li>La autenticación (<code>401</code>).</li>
+  <li>El <code>FormRequest</code>: <code>type</code> o <code>id</code> distintos (<code>409</code>) y después las reglas (<code>422</code>).</li>
+  <li>Tu controlador: la lista blanca de la consulta (<code>400</code>) y el recurso que no existe (<code>404</code>).</li>
+</ol>
+
+<div class="callout">
+  <p>Los pasos 1 a 3 corren antes que <code>auth</code>: sin sesión, un JSON roto es un <code>400</code> y no un <code>401</code>.</p>
+</div>

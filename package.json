@@ -1,0 +1,13 @@
+{
+  "name": "json-api-docs",
+  "private": true,
+  "description": "Herramientas para compilar los estilos de la documentación (docs/). No forma parte del paquete de Composer. / Tools to compile the documentation styles (docs/). It is not part of the Composer package.",
+  "scripts": {
+    "build:css": "tailwindcss -i tools/docs/input.css -o docs/assets/style.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.3",
+    "@tailwindcss/typography": "0.5.20",
+    "tailwindcss": "4.3.3"
+  }
+}
