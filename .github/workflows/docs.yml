@@ -1,0 +1,46 @@
+name: docs
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+      - 'tools/docs/**'
+      - 'config/json-api.php'
+      - 'src/Errors/ErrorCodes.php'
+      - 'bin/check-docs.php'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'tools/docs/**'
+      - 'config/json-api.php'
+      - 'src/Errors/ErrorCodes.php'
+      - 'bin/check-docs.php'
+      - '.github/workflows/docs.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Check the documentation
+        run: php bin/check-docs.php
+
+      - name: Check the pages are built
+        run: |
+          php tools/docs/build.php
+          git diff --exit-code -- docs
