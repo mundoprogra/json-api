@@ -18,7 +18,8 @@
   ],
   "support": {
     "issues": "https://github.com/mundoprogra/json-api/issues",
-    "source": "https://github.com/mundoprogra/json-api"
+    "source": "https://github.com/mundoprogra/json-api",
+    "docs": "https://mundoprogra.github.io/json-api/"
   },
   "require": {
     "php": "^8.1",
