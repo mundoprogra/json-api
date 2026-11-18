@@ -32,6 +32,24 @@
     }
 
     /**
+     * Solo los nombres del cliente, en el orden dado y sin quitar los repetidos: `Allowed` es quien decide si un nombre repetido es un error.
+     *
+     * Only the client names, in the order given and without removing the repeated ones: `Allowed` is the one that decides whether a repeated name is an error.
+     *
+     * @param  array<int|string, string>  $allowed
+     * @return list<string>
+     */
+    public static function names(array $allowed): array {
+      $names = [];
+
+      foreach ($allowed as $name => $target) {
+        $names[] = is_int($name) ? $target : $name;
+      }
+
+      return $names;
+    }
+
+    /**
      * La columna con el nombre de la tabla, salvo que ya lo traiga (`authors.name`).
      *
      * The column with the table name, unless it already has one (`authors.name`).

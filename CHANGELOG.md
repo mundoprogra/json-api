@@ -13,6 +13,7 @@ All notable changes to `json-api` will be documented in this file.
 
 ### Changed
 
+- `jsonApiSort()` and `jsonApiInclude()` check their list with `Allowed`. For the client nothing changes. For whoever writes the controller, a repeated or invalid name in the list, which used to be accepted silently, is now an `InvalidArgumentException`, and the message of a default sort that is not in the list now says "allowed sort names".
 - `Relationship::one()` and `Relationship::many()` accept any object, not only Eloquent models: the resource class is the one that understands it. Passing a model works exactly as before.
 
 ## v0.1.0 - 2026-10-28

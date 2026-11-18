@@ -4,6 +4,7 @@
 
   use Illuminate\Database\Eloquent\Builder;
   use Illuminate\Database\Eloquent\Model;
+  use InvalidArgumentException;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
 
   /**
@@ -25,39 +26,21 @@
      * @param  list<string>  $allowed  rutas como `author` o `comments.author` / paths like `author` or `comments.author`
      * @return Builder<TModel>
      *
+     * @throws InvalidArgumentException si una ruta de la lista se repite o no es válida / if a path in the list is repeated or not valid
      * @throws JsonApiException si el cliente pide una ruta que no está en la lista / if the client asks for a path that is not in the list
      */
     public static function apply(Builder $query, array $allowed): Builder {
-      $paths = self::withPrefixes($allowed);
+      // `Allowed` revisa las rutas (los errores del programador salen aquí) y sabe que permitir una ruta permite también sus prefijos.
+      // `Allowed` checks the paths (developer errors come out here) and knows that allowing a path also allows its prefixes.
+      $list = Allowed::make(include: $allowed);
       $asked = array_map(fn(array $segments) => implode('.', $segments), QueryParameters::of(app('request'))->includes());
 
       foreach ($asked as $path) {
-        if (!isset($paths[$path])) {
+        if (!$list->allowsInclude($path)) {
           throw QueryParameters::exceptionFor([['parameter' => 'include', 'reason' => 'include_not_allowed']]);
         }
       }
 
       return $asked === [] ? $query : $query->with($asked);
-    }
-
-    /**
-     * Las rutas permitidas con todos sus prefijos: `comments.author` permite `comments` y `comments.author`.
-     * The allowed paths with all their prefixes: `comments.author` allows `comments` and `comments.author`.
-     *
-     * @param  list<string>  $allowed
-     * @return array<string, true>
-     */
-    private static function withPrefixes(array $allowed): array {
-      $paths = [];
-
-      foreach ($allowed as $path) {
-        $segments = explode('.', $path);
-
-        foreach (array_keys($segments) as $index) {
-          $paths[implode('.', array_slice($segments, 0, $index + 1))] = true;
-        }
-      }
-
-      return $paths;
     }
   }
