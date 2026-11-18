@@ -28,7 +28,9 @@
     // porque estos nombres terminan en consultas de Eloquent y en URL.
     // A letter or digit at the start and the end, and hyphens and underscores between them too. It is stricter than the spec (which tolerates
     // spaces) because these names end up in Eloquent queries and URLs.
-    private const NAME = '/^[\p{L}\p{N}](?:[\p{L}\p{N}_-]*[\p{L}\p{N}])?$/u';
+    // Es público para que `Allowed` valide sus nombres con la misma regla; es de uso interno del paquete.
+    // It is public so `Allowed` validates its names with the same rule; it is for the package's internal use.
+    public const NAME = '/^[\p{L}\p{N}](?:[\p{L}\p{N}_-]*[\p{L}\p{N}])?$/u';
 
     // Los cinco parámetros que define la spec; cualquier otro nombre de solo `a-z` es desconocido.
     // The five parameters the spec defines; any other name of only `a-z` is unknown.
