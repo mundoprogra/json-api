@@ -4,6 +4,7 @@
 
   use Illuminate\Database\Eloquent\Builder;
   use Illuminate\Database\Eloquent\Model;
+  use Illuminate\Pagination\LengthAwarePaginator;
   use InvalidArgumentException;
   use LogicException;
   use MundoProgra\JsonApi\Query\Columns;
@@ -74,6 +75,109 @@
       }
 
       return $query;
+    }
+
+    /**
+     * Aplica el orden del criterio, en el orden dado y con su dirección. Cada nombre se mapea a su columna con `$columns` (`'nombre' => 'columna'`;
+     * una entrada sin nombre es su propia columna), una columna a la que apuntan dos nombres se ordena una sola vez y al final se agrega la clave
+     * primaria (si no está ya) para que las páginas sean estables. Sin orden en el criterio, la consulta queda como está.
+     * Applies the criteria sort, in the order given and with its direction. Each name is mapped to its column with `$columns` (`'name' =>
+     * 'column'`; an entry without a name is its own column), a column two names point to is ordered only once and the primary key is added at
+     * the end (if it is not there already) so the pages are stable. With no sort in the criteria, the query is left as it is.
+     *
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     * @param  array<int|string, string>  $columns
+     * @return Builder<TModel>
+     *
+     * @throws LogicException si el criterio ordena por un nombre que el mapa no conoce / if the criteria sorts by a name the map does not know
+     */
+    public static function sort(Builder $query, ListCriteria $criteria, array $columns = []): Builder {
+      $sort = $criteria->sort();
+
+      if ($sort === []) {
+        return $query;
+      }
+
+      $map = Columns::map($columns);
+      $key = $query->getModel()->getQualifiedKeyName();
+      $applied = [];
+
+      foreach ($sort as $item) {
+        if (!array_key_exists($item['field'], $map)) {
+          throw new LogicException(sprintf('The criteria sorts by "%s" but the repository does not map it: add it to the sort map, or take it out of Allowed.', $item['field']));
+        }
+
+        $column = Columns::qualify($query, $map[$item['field']]);
+
+        if (in_array($column, $applied, true)) {
+          continue;
+        }
+
+        $applied[] = $column;
+        $query->orderBy($column, $item['descending'] ? 'desc' : 'asc');
+      }
+
+      // El desempate por la clave primaria: sin él, las filas con el mismo valor pueden repetirse o saltarse entre páginas.
+      // The tie-break on the primary key: without it, rows with the same value may repeat or be skipped between pages.
+      if (!in_array($key, $applied, true)) {
+        $query->orderBy($key, 'asc');
+      }
+
+      return $query;
+    }
+
+    /**
+     * Carga por anticipado las rutas de `include` del criterio, tal cual como nombres de relación de Eloquent. Sin inclusiones, la consulta queda
+     * como está.
+     * Eager loads the criteria `include` paths, as they are, as Eloquent relation names. With no includes, the query is left as it is.
+     *
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
+     */
+    public static function includes(Builder $query, ListCriteria $criteria): Builder {
+      return $criteria->includes() === [] ? $query : $query->with($criteria->includes());
+    }
+
+    /**
+     * Trae la página que dice el criterio, con su tamaño. Una página fuera de rango es una página vacía.
+     * Fetches the page the criteria says, with its size. A page out of range is an empty page.
+     *
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return LengthAwarePaginator<int, TModel>
+     */
+    public static function paginate(Builder $query, ListCriteria $criteria): LengthAwarePaginator {
+      return $query->paginate($criteria->pageSize(), ['*'], 'page', $criteria->pageNumber());
+    }
+
+    /**
+     * Aplica el criterio completo a la consulta: los filtros, el orden y las inclusiones (en ese orden). No pagina: la página se pide aparte con
+     * `paginate()`, para que el repositorio pueda también contar o recorrer sin ella. Devuelve la misma consulta.
+     * Applies the whole criteria to the query: the filters, the sort and the includes (in that order). It does not paginate: the page is asked
+     * for separately with `paginate()`, so the repository can also count or walk without it. It returns the same query.
+     *
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     * @param  array<int|string, string>  $exact
+     * @param  array<int|string, string>  $partial
+     * @param  array<int|string, string>  $scopes
+     * @param  array<int|string, string>  $sort
+     * @return Builder<TModel>
+     *
+     * @throws InvalidArgumentException si un mismo nombre de filtro está en más de una lista / if the same filter name is in more than one list
+     * @throws LogicException si el criterio trae un filtro o un orden que el mapa no conoce / if the criteria carries a filter or a sort the map does not know
+     */
+    public static function to(Builder $query, ListCriteria $criteria, array $exact = [], array $partial = [], array $scopes = [], array $sort = []): Builder {
+      self::filters($query, $criteria, $exact, $partial, $scopes);
+      self::sort($query, $criteria, $sort);
+
+      return self::includes($query, $criteria);
     }
 
     /**
