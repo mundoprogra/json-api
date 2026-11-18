@@ -51,6 +51,8 @@
       private readonly array $sort,
       private readonly array $filter,
       private readonly array $page,
+      private readonly Request $request,
+      private readonly MemberName $names,
     ) {
     }
 
@@ -68,6 +70,8 @@
         self::parseSort($query['sort'] ?? null, $names, $violations),
         self::parseFilter($query['filter'] ?? null, $names, $violations),
         self::parsePage($query['page'] ?? null, $violations),
+        $request,
+        $names,
       );
 
       if ($settings->rejectUnknownQueryParams()) {
@@ -162,6 +166,93 @@
       $size = $this->page['size'] ?? null;
 
       return is_int($size) ? $size : null;
+    }
+
+    /**
+     * La consulta ya validada contra lo que el API permite (`Allowed`) y sin nada de Eloquent ni de Laravel, lista para pasarle al repositorio de la
+     * app: los filtros (los vacíos se descartan), el orden (el `defaultSort` si el cliente no pide ninguno), las inclusiones y la página calculada como
+     * en `jsonApiPaginate()` (`$perPage` y `$maxPerPage` hacen lo mismo que en esa macro). Lo que el cliente pida fuera de `Allowed` es un `400` y
+     * todas las violaciones salen JUNTAS, en el orden `include`, `sort`, `filter` y `page`; un filtro se informa con el nombre que escribió el
+     * cliente (`filter[blockedBy]`), no con el que ya se pasó a snake_case.
+     * The query already validated against what the API allows (`Allowed`) and with nothing from Eloquent or Laravel, ready to hand to the app's
+     * repository: the filters (empty ones are dropped), the sort (the `defaultSort` if the client asks for none), the includes and the page worked
+     * out as in `jsonApiPaginate()` (`$perPage` and `$maxPerPage` do the same as in that macro). Whatever the client asks for outside `Allowed` is a
+     * `400` and ALL the violations come out TOGETHER, in the order `include`, `sort`, `filter` and `page`; a filter is reported with the name the
+     * client wrote (`filter[blockedBy]`), not the one already turned into snake_case.
+     *
+     * @throws InvalidArgumentException si `$perPage` o `$maxPerPage` no son enteros positivos / if `$perPage` or `$maxPerPage` are not positive integers
+     * @throws JsonApiException con un error `400` por cada violación / with a `400` error for each violation
+     */
+    public function criteria(Allowed $allowed, ?int $perPage = null, ?int $maxPerPage = null): ListCriteria {
+      $violations = [];
+
+      $includes = array_map(fn(array $segments) => implode('.', $segments), $this->includes);
+
+      foreach ($includes as $path) {
+        if (!$allowed->allowsInclude($path)) {
+          $violations[] = ['parameter' => 'include', 'reason' => 'include_not_allowed'];
+
+          break;
+        }
+      }
+
+      foreach ($this->sort as $item) {
+        if (!$allowed->allowsSort($item['field'])) {
+          $violations[] = ['parameter' => 'sort', 'reason' => 'sort_not_allowed'];
+
+          break;
+        }
+      }
+
+      $sort = $this->sort !== [] ? $this->sort : $allowed->defaultSort();
+      $filters = $this->allowedFilters($allowed, $violations);
+
+      // El tamaño de página mayor al máximo lo lanza `PageRequest`; se recoge para que salga junto con los demás errores.
+      // The page size above the maximum is thrown by `PageRequest`; it is caught so it comes out together with the other errors.
+      $pageErrors = [];
+      $page = null;
+
+      try {
+        $page = PageRequest::of($this->request, $perPage, $maxPerPage);
+      } catch (JsonApiException $exception) {
+        $pageErrors = $exception->errors();
+      }
+
+      if ($violations !== [] || $page === null) {
+        throw new JsonApiException([...self::errorsFor($violations), ...$pageErrors]);
+      }
+
+      return new ListCriteria($page->size(), $page->number(), $filters, $sort, $includes);
+    }
+
+    /**
+     * Los filtros que el cliente mandó, revisados con lo que se escribió en la query string (no con las claves ya convertidas): un nombre fuera de
+     * `Allowed` es una violación `filter[nombre]` con el nombre del cliente, y un valor que no es texto es una violación `malformed`. Un valor vacío
+     * se ignora (llega como `null` con el middleware `ConvertEmptyStringsToNull` de Laravel).
+     * The filters the client sent, checked against what was written in the query string (not the already converted keys): a name outside `Allowed`
+     * is a `filter[name]` violation with the client's name, and a value that is not text is a `malformed` violation. An empty value is ignored
+     * (it arrives as `null` with Laravel's `ConvertEmptyStringsToNull` middleware).
+     *
+     * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
+     * @return array<string, string>
+     */
+    private function allowedFilters(Allowed $allowed, array &$violations): array {
+      $raw = $this->request->query->all()['filter'] ?? [];
+      $filters = [];
+
+      foreach (is_array($raw) ? $raw : [] as $key => $value) {
+        $name = $this->names->toSnake((string) $key);
+
+        if (!$allowed->allowsFilter($name)) {
+          $violations[] = ['parameter' => "filter[$key]", 'reason' => 'filter_not_allowed'];
+        } elseif ($value !== null && !is_string($value)) {
+          $violations[] = ['parameter' => "filter[$key]", 'reason' => 'malformed'];
+        } elseif (is_string($value) && $value !== '') {
+          $filters[$name] = $value;
+        }
+      }
+
+      return $filters;
     }
 
     /**
@@ -424,15 +515,26 @@
      * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
      */
     public static function exceptionFor(array $violations): JsonApiException {
+      return new JsonApiException(self::errorsFor($violations));
+    }
+
+    /**
+     * Los errores `400` de la familia `request.bad_query`, uno por cada problema, sin lanzarlos: `criteria()` los une con los de la página.
+     * The `400` errors of the `request.bad_query` family, one for each problem, without throwing them: `criteria()` joins them with the page ones.
+     *
+     * @param  list<array{parameter: string, reason: string, replace?: array<string, string>}>  $violations
+     * @return list<Error>
+     */
+    private static function errorsFor(array $violations): array {
       $messages = app(ErrorMessages::class);
       $codes = app(ErrorCodes::class);
 
-      return new JsonApiException(array_map(fn(array $violation) => Error::make(
+      return array_map(fn(array $violation) => Error::make(
         status: 400,
         title: $messages->title(ErrorCodes::BAD_QUERY),
         detail: $messages->detail(ErrorCodes::BAD_QUERY, $violation['replace'] ?? [], $violation['reason']),
         code: $codes->resolve(ErrorCodes::BAD_QUERY),
         parameter: $violation['parameter'],
-      ), $violations));
+      ), $violations);
     }
   }

@@ -6,6 +6,9 @@ All notable changes to `json-api` will be documented in this file.
 
 ### Added
 
+- `Allowed`: what the API allows to filter, sort and include, with API names only (no columns, scopes or Eloquent). It validates when built: a repeated or invalid name, a `'name' => 'column'` pair or a default sort that is not allowed is a developer error.
+- `ListCriteria`: the validated query of a listing (filters, sort, includes and page) with nothing from Laravel in it, ready to hand to a repository. It can also be built by hand.
+- `QueryParameters::criteria(Allowed, $perPage, $maxPerPage)` (`$request->jsonApiQuery()->criteria($allowed)`): checks the query against `Allowed` and returns a `ListCriteria`. Everything the client asks for outside the list comes out together in one `400`, in the order `include`, `sort`, `filter`, `page`, and a filter is reported with the name the client wrote.
 - `ResourceObject::asCreated()`: asks for a `201` response (with `Location`, the `links.self` of the resource) when the source is not an Eloquent model that was just created, for example a domain entity or a DTO. It also wins over a model whose `wasRecentlyCreated` is false.
 
 ### Changed
