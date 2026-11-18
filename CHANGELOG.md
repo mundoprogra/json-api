@@ -4,6 +4,14 @@ All notable changes to `json-api` will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `ResourceObject::asCreated()`: asks for a `201` response (with `Location`, the `links.self` of the resource) when the source is not an Eloquent model that was just created, for example a domain entity or a DTO. It also wins over a model whose `wasRecentlyCreated` is false.
+
+### Changed
+
+- `Relationship::one()` and `Relationship::many()` accept any object, not only Eloquent models: the resource class is the one that understands it. Passing a model works exactly as before.
+
 ## v0.1.0 - 2026-10-28
 
 First release, under validation: the package is complete and covered by tests on Laravel 10 to 13 (PHP 8.1 to 8.5), and it has been tried in a real application. In `0.x` the API may change between minor versions.

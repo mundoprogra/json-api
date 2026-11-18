@@ -23,6 +23,22 @@
    * with `type()` and `id()`, and a resource that is not a model has to declare them. They are public because a relationship reads them.
    */
   abstract class ResourceObject extends JsonResource {
+    private bool $created = false;
+
+    /**
+     * Pide que la respuesta sea un `201` (con `Location`, el `links.self` del recurso) aunque el origen no sea un modelo recién creado. Un objeto
+     * simple (una entidad de dominio, un DTO) no tiene `wasRecentlyCreated`, así que el controlador lo dice explícitamente. Gana sobre el modelo:
+     * con `asCreated()` es `201` aunque `wasRecentlyCreated` sea falso.
+     * Asks for the response to be a `201` (with `Location`, the resource's `links.self`) even when the source is not a recently created model. A
+     * plain object (a domain entity, a DTO) has no `wasRecentlyCreated`, so the controller says it explicitly. It wins over the model: with
+     * `asCreated()` it is a `201` even if `wasRecentlyCreated` is false.
+     */
+    final public function asCreated(): static {
+      $this->created = true;
+
+      return $this;
+    }
+
     /**
      * Los atributos del recurso. Un valor `null` se conserva y un `$this->when(...)` que no aplica se omite.
      * The attributes of the resource. A `null` value is kept and a `$this->when(...)` that does not apply is left out.
@@ -37,7 +53,7 @@
      * A collection of resources of this class as a JSON:API document (see `ResourceCollection`). It replaces the one in `JsonResource`, which would
      * not give a full JSON:API document.
      *
-     * @param  mixed  $resource  un arreglo o una colección de modelos / an array or a collection of models
+     * @param  mixed  $resource  un arreglo o una colección de modelos u objetos / an array or a collection of models or objects
      *
      * @throws InvalidArgumentException si no es un arreglo ni algo que se pueda recorrer / if it is neither an array nor something traversable
      * @throws LogicException si es un paginador simple o de cursor / if it is a simple or cursor paginator
@@ -353,15 +369,15 @@
     }
 
     /**
-     * La respuesta HTTP: el documento con el `Content-Type` exacto de JSON:API, `200`, o `201` si el modelo se acaba de crear.
-     * The HTTP response: the document with the exact JSON:API `Content-Type`, `200`, or `201` if the model was just created.
+     * La respuesta HTTP: el documento con el `Content-Type` exacto de JSON:API, `200`, o `201` si el modelo se acaba de crear o se pidió con `asCreated()`.
+     * The HTTP response: the document with the exact JSON:API `Content-Type`, `200`, or `201` if the model was just created or it was asked for with `asCreated()`.
      *
      * @param  Request  $request
      */
     final public function toResponse($request): JsonResponse {
       $document = $this->document($request);
 
-      $status = $this->resource instanceof Model && $this->resource->wasRecentlyCreated ? 201 : 200;
+      $status = $this->created || ($this->resource instanceof Model && $this->resource->wasRecentlyCreated) ? 201 : 200;
       $response = new JsonResponse($document, $status, [], $this->jsonOptions());
       $response->headers->set('Content-Type', MediaType::JSON_API);
 

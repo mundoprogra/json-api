@@ -3,7 +3,6 @@
   namespace MundoProgra\JsonApi\Resources;
 
   use Illuminate\Contracts\Support\Responsable;
-  use Illuminate\Database\Eloquent\Model;
   use Illuminate\Http\JsonResponse;
   use Illuminate\Http\Request;
   use InvalidArgumentException;
@@ -45,24 +44,26 @@
     }
 
     /**
-     * Relación a uno. Con `null` la relación está vacía y sale como `data: null`.
-     * To-one relationship. With `null` the relationship is empty and comes out as `data: null`.
+     * Relación a uno. Con `null` la relación está vacía y sale como `data: null`. El objeto puede ser un modelo de Eloquent o cualquier otro (una
+     * entidad de dominio, un DTO): quien lo entiende es la clase de recurso.
+     * To-one relationship. With `null` the relationship is empty and comes out as `data: null`. The object can be an Eloquent model or any other
+     * (a domain entity, a DTO): the resource class is the one that understands it.
      *
      * @param  class-string<ResourceObject>  $resourceClass
      *
      * @throws InvalidArgumentException si la clase no es un ResourceObject / if the class is not a ResourceObject
      */
-    public static function one(?Model $model, string $resourceClass): self {
+    public static function one(?object $model, string $resourceClass): self {
       self::guard($resourceClass);
 
       return new self($model === null ? null : $resourceClass::make($model));
     }
 
     /**
-     * Relación a muchos. Con una lista vacía sale como `data: []`.
-     * To-many relationship. With an empty list it comes out as `data: []`.
+     * Relación a muchos. Con una lista vacía sale como `data: []`. Los objetos pueden ser modelos de Eloquent o cualquier otro.
+     * To-many relationship. With an empty list it comes out as `data: []`. The objects can be Eloquent models or any other.
      *
-     * @param  iterable<Model>  $models
+     * @param  iterable<object>  $models
      * @param  class-string<ResourceObject>  $resourceClass
      *
      * @throws InvalidArgumentException si la clase no es un ResourceObject / if the class is not a ResourceObject
