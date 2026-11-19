@@ -6,6 +6,7 @@
   use Illuminate\Database\Eloquent\Model;
   use InvalidArgumentException;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
+  use MundoProgra\JsonApi\Query\Eloquent\ApplyCriteria;
 
   /**
    * Carga por anticipado (`with()`) las relaciones que el cliente pide en `include`, con una lista blanca explícita de rutas.
@@ -41,6 +42,6 @@
         }
       }
 
-      return $asked === [] ? $query : $query->with($asked);
+      return ApplyCriteria::applyIncludes($query, $asked);
     }
   }

@@ -6,6 +6,7 @@
   use Illuminate\Database\Eloquent\Model;
   use InvalidArgumentException;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
+  use MundoProgra\JsonApi\Query\Eloquent\ApplyCriteria;
   use MundoProgra\JsonApi\Support\MemberName;
   use MundoProgra\JsonApi\Support\Settings;
 
@@ -23,10 +24,6 @@
    * `400` with `source.parameter = filter[name]` (the name as the client wrote it). The values are always bound.
    */
   final class Filtering {
-    // El carácter de escape del LIKE: `!` funciona igual en todas las bases de datos, a diferencia de `\`, que MySQL y otras tratan aparte.
-    // The LIKE escape character: `!` works the same in every database, unlike `\`, which MySQL and others treat separately.
-    private const ESCAPE = '!';
-
     /**
      * @template TModel of Model
      *
@@ -40,57 +37,24 @@
      * @throws JsonApiException si el cliente manda un filtro que no está permitido o tiene un valor que no es texto / if the client sends a filter that is not allowed or has a value that is not text
      */
     public static function apply(Builder $query, array $exact = [], array $partial = [], array $scopes = []): Builder {
-      $kinds = ['exact' => Columns::map($exact), 'partial' => Columns::map($partial), 'scopes' => Columns::map($scopes)];
-      $kindOf = self::kindOf($kinds);
+      $kinds = ApplyCriteria::kinds($exact, $partial, $scopes);
+      $kindOf = ApplyCriteria::kindOf($kinds);
 
       $request = app('request');
-      $filters = QueryParameters::of($request)->filter();
 
       self::reject($request->query->all()['filter'] ?? [], $kindOf);
 
-      foreach ($filters as $key => $value) {
-        if (!is_string($value) || $value === '') {
-          continue;
-        }
+      // Ya revisado lo que mandó el cliente, solo quedan los filtros con texto: lo demás lo hace el puente, igual que para `criteria()`.
+      // With what the client sent already checked, only the filters with text remain: the bridge does the rest, just as for `criteria()`.
+      $filters = [];
 
-        // Un nombre de solo dígitos llega como clave numérica: se vuelve a texto para buscarlo en las listas.
-        // A name made only of digits arrives as a numeric key: it is turned back into text to look it up in the lists.
-        $name = (string) $key;
-        $target = $kinds[$kindOf[$name]][$name];
-
-        // Solo hay tres clases de lista: lo que no es `exact` ni `partial` es un scope.
-        // There are only three kinds of list: whatever is not `exact` or `partial` is a scope.
-        match ($kindOf[$name]) {
-          'exact' => self::exact($query, Columns::qualify($query, $target), $value),
-          'partial' => self::partial($query, Columns::qualify($query, $target), $value),
-          default => $query->{$target}($value),
-        };
-      }
-
-      return $query;
-    }
-
-    /**
-     * En cuál lista está cada nombre; un nombre en más de una lista es un error del programador.
-     * Which list each name is in; a name in more than one list is a developer error.
-     *
-     * @param  array<string, array<string, string>>  $kinds
-     * @return array<string, string>
-     */
-    private static function kindOf(array $kinds): array {
-      $kindOf = [];
-
-      foreach ($kinds as $kind => $names) {
-        foreach (array_keys($names) as $name) {
-          if (isset($kindOf[$name])) {
-            throw new InvalidArgumentException(sprintf('The filter name "%s" is in more than one list (%s and %s).', $name, $kindOf[$name], $kind));
-          }
-
-          $kindOf[$name] = $kind;
+      foreach (QueryParameters::of($request)->filter() as $key => $value) {
+        if (is_string($value)) {
+          $filters[$key] = $value;
         }
       }
 
-      return $kindOf;
+      return ApplyCriteria::applyFilters($query, $filters, $kinds, $kindOf);
     }
 
     /**
@@ -122,32 +86,5 @@
       if ($violations !== []) {
         throw QueryParameters::exceptionFor($violations);
       }
-    }
-
-    /**
-     * @param  Builder<covariant Model>  $query
-     */
-    private static function exact(Builder $query, string $column, string $value): void {
-      $values = array_values(array_filter(explode(',', $value), fn(string $item) => $item !== ''));
-
-      match (count($values)) {
-        0 => null,
-        1 => $query->where($column, '=', $values[0]),
-        default => $query->whereIn($column, $values),
-      };
-    }
-
-    /**
-     * @param  Builder<covariant Model>  $query
-     */
-    private static function partial(Builder $query, string $column, string $value): void {
-      $escaped = str_replace([self::ESCAPE, '%', '_'], [self::ESCAPE . self::ESCAPE, self::ESCAPE . '%', self::ESCAPE . '_'], $value);
-      $wrapped = $query->getQuery()->getGrammar()->wrap($column);
-
-      // La columna sale de la lista blanca de la app (nunca del cliente) y va escapada con `Grammar::wrap()`; el valor del cliente va como parámetro.
-      // PHPStan solo ve un texto armado con una variable y no puede saber que es seguro.
-      // The column comes from the app whitelist (never from the client) and is escaped with `Grammar::wrap()`; the client value goes as a binding.
-      // PHPStan only sees a string built with a variable and cannot know it is safe.
-      $query->whereRaw($wrapped . " like ? escape '" . self::ESCAPE . "'", ['%' . $escaped . '%']); // @phpstan-ignore argument.type
     }
   }

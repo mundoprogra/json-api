@@ -6,6 +6,7 @@
   use Illuminate\Database\Eloquent\Model;
   use InvalidArgumentException;
   use MundoProgra\JsonApi\Exceptions\JsonApiException;
+  use MundoProgra\JsonApi\Query\Eloquent\ApplyCriteria;
 
   /**
    * Aplica el `sort` del cliente a una consulta de Eloquent, con una lista blanca explícita de nombres.
@@ -31,8 +32,6 @@
      * @throws JsonApiException si el cliente pide ordenar por algo que no está en la lista / if the client asks to sort by something that is not in the list
      */
     public static function apply(Builder $query, array $allowed, ?string $default = null): Builder {
-      $columns = Columns::map($allowed);
-
       // `Allowed` revisa los nombres y el `default` (los errores del programador salen aquí, antes de leer la petición).
       // `Allowed` checks the names and the `default` (developer errors come out here, before the request is read).
       $list = Allowed::make(sort: Columns::names($allowed), defaultSort: $default);
@@ -46,32 +45,8 @@
         }
       }
 
-      $sort = $asked !== [] ? $asked : $sort;
-
-      if ($sort === []) {
-        return $query;
-      }
-
-      $key = $query->getModel()->getQualifiedKeyName();
-      $applied = [];
-
-      foreach ($sort as $item) {
-        $column = Columns::qualify($query, $columns[$item['field']]);
-
-        if (in_array($column, $applied, true)) {
-          continue;
-        }
-
-        $applied[] = $column;
-        $query->orderBy($column, $item['descending'] ? 'desc' : 'asc');
-      }
-
-      // El desempate por la clave primaria: sin él, las filas con el mismo valor pueden repetirse o saltarse entre páginas.
-      // The tie-break on the primary key: without it, rows with the same value may repeat or be skipped between pages.
-      if (!in_array($key, $applied, true)) {
-        $query->orderBy($key, 'asc');
-      }
-
-      return $query;
+      // El orden pedido manda; sin él, el `default`. Aplicarlo (con el desempate por la clave primaria) lo hace el puente.
+      // The asked order rules; without it, the `default`. Applying it (with the primary key tie-break) is done by the bridge.
+      return ApplyCriteria::applySort($query, $asked !== [] ? $asked : $sort, $allowed);
     }
   }

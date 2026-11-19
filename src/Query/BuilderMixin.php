@@ -6,6 +6,7 @@
   use Illuminate\Database\Eloquent\Builder;
   use Illuminate\Database\Eloquent\Model;
   use Illuminate\Pagination\LengthAwarePaginator;
+  use MundoProgra\JsonApi\Query\Eloquent\ApplyCriteria;
 
   /**
    * Las macros del constructor de Eloquent que aplican la consulta de JSON:API a una consulta de la base de datos. Se registran de una vez con
@@ -33,7 +34,7 @@
         /** @var Builder<Model> $this */ // @phpstan-ignore varTag.nativeType
         $page = PageRequest::of(app('request'), $perPage, $maxPerPage);
 
-        return $this->paginate($page->size(), ['*'], 'page', $page->number());
+        return ApplyCriteria::applyPage($this, $page->size(), $page->number());
       };
     }
 
