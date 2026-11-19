@@ -17,6 +17,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Amplía el rango de composer.json (`^10.5||^11.0||^12.0||^13.0`) en vez de reemplazarlo (`^13.4`): el paquete sigue soportando PHP 8.1 a 8.5.
+    # Widens the composer.json range (`^10.5||^11.0||^12.0||^13.0`) instead of replacing it (`^13.4`): the package keeps supporting PHP 8.1 to 8.5.
+    versioning-strategy: widen
     labels:
       - "dependencies"
     cooldown:
