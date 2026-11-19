@@ -29,7 +29,7 @@
 
   // Las páginas de cada idioma, con el mismo nombre de archivo en los dos. / The pages of each language, with the same file name in both.
   $pages = [
-    'index', 'installation', 'getting-started', 'resources', 'relationship-endpoints', 'query-parameters', 'input-document',
+    'index', 'installation', 'getting-started', 'resources', 'relationship-endpoints', 'query-parameters', 'clean-architecture', 'input-document',
     'errors', 'activation', 'configuration', 'naming-style', 'known-limits', 'versioning',
   ];
 

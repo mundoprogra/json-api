@@ -10,7 +10,7 @@
   return [
     'groups' => [
       ['title' => ['es' => 'Empezar', 'en' => 'Start'], 'pages' => ['index', 'installation', 'getting-started']],
-      ['title' => ['es' => 'Guía', 'en' => 'Guide'], 'pages' => ['resources', 'relationship-endpoints', 'query-parameters', 'input-document', 'errors', 'activation']],
+      ['title' => ['es' => 'Guía', 'en' => 'Guide'], 'pages' => ['resources', 'relationship-endpoints', 'query-parameters', 'clean-architecture', 'input-document', 'errors', 'activation']],
       ['title' => ['es' => 'Referencia', 'en' => 'Reference'], 'pages' => ['configuration', 'naming-style', 'known-limits']],
       ['title' => ['es' => 'Proyecto', 'en' => 'Project'], 'pages' => ['versioning']],
     ],
@@ -22,6 +22,7 @@
       'resources' => ['es' => 'Recursos, colecciones y relaciones', 'en' => 'Resources, collections and relationships'],
       'relationship-endpoints' => ['es' => 'Endpoints de relación', 'en' => 'Relationship endpoints'],
       'query-parameters' => ['es' => 'Parámetros de consulta', 'en' => 'Query parameters'],
+      'clean-architecture' => ['es' => 'Uso con Clean Architecture', 'en' => 'Use with Clean Architecture'],
       'input-document' => ['es' => 'Leer el documento de entrada', 'en' => 'Reading the input document'],
       'errors' => ['es' => 'Errores', 'en' => 'Errors'],
       'activation' => ['es' => 'Cómo se activa', 'en' => 'How it switches on'],

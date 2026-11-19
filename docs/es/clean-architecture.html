@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Uso con Clean Architecture · MundoProgra JSON:API</title>
+  <meta name="description" content="JSON:API 1.1 de punta a punta para Laravel 10 a 13.">
+  <link rel="stylesheet" href="../assets/style.css">
+  <script defer src="../assets/docs.js"></script>
+</head>
+<body class="min-h-screen bg-white font-sans text-slate-700 antialiased dark:bg-slate-950 dark:text-slate-300">
+  <a href="#content" class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-indigo-600 focus:px-4 focus:py-2 focus:text-white">Saltar al contenido</a>
+  <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
+    <div class="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
+      <a href="index.html" class="flex items-center gap-2 font-semibold text-slate-900 dark:text-white"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" class="shrink-0"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#4338ca"/></linearGradient></defs><rect width="32" height="32" rx="8" fill="url(#g)"/><text x="16" y="21.5" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-weight="700" font-size="15" fill="#fff">{ }</text></svg><span>MundoProgra <span class="text-indigo-600 dark:text-indigo-400">JSON:API</span></span></a>
+      <nav class="ml-auto flex items-center gap-2 text-sm">
+        <a href="https://github.com/mundoprogra/json-api" class="hidden rounded-md px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 sm:inline-flex dark:text-slate-300 dark:hover:bg-slate-800">GitHub</a>
+        <a href="../en/clean-architecture.html" hreflang="en" lang="en" title="Read this page in English" class="rounded-full border border-slate-300 px-3 py-1 font-medium text-slate-700 hover:border-indigo-400 hover:text-indigo-700 dark:border-slate-700 dark:text-slate-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300">English</a>
+      </nav>
+    </div>
+  </header>
+  <details class="border-b border-slate-200 bg-slate-50 px-4 lg:hidden dark:border-slate-800 dark:bg-slate-900/60">
+    <summary class="cursor-pointer select-none py-3 text-sm font-medium text-slate-700 dark:text-slate-200">Menú</summary>
+    <nav class="pb-4" aria-label="Documentación"><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Empezar</p><ul class="space-y-0.5"><li><a href="index.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Inicio</a></li><li><a href="installation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Instalación</a></li><li><a href="getting-started.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Primeros pasos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Guía</p><ul class="space-y-0.5"><li><a href="resources.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Recursos, colecciones y relaciones</a></li><li><a href="relationship-endpoints.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Endpoints de relación</a></li><li><a href="query-parameters.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Parámetros de consulta</a></li><li><a href="clean-architecture.html" class="block rounded-md px-2 py-1.5 text-sm bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300" aria-current="page">Uso con Clean Architecture</a></li><li><a href="input-document.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Leer el documento de entrada</a></li><li><a href="errors.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Errores</a></li><li><a href="activation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Cómo se activa</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Referencia</p><ul class="space-y-0.5"><li><a href="configuration.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Configuración</a></li><li><a href="naming-style.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Estilo de los nombres</a></li><li><a href="known-limits.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Límites conocidos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Proyecto</p><ul class="space-y-0.5"><li><a href="versioning.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Versionado y soporte</a></li></ul></nav>
+  </details>
+  <div class="mx-auto grid max-w-7xl lg:grid-cols-[15rem_minmax(0,1fr)] 2xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto border-r border-slate-200 p-5 lg:block dark:border-slate-800">
+      <nav aria-label="Documentación"><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Empezar</p><ul class="space-y-0.5"><li><a href="index.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Inicio</a></li><li><a href="installation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Instalación</a></li><li><a href="getting-started.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Primeros pasos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Guía</p><ul class="space-y-0.5"><li><a href="resources.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Recursos, colecciones y relaciones</a></li><li><a href="relationship-endpoints.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Endpoints de relación</a></li><li><a href="query-parameters.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Parámetros de consulta</a></li><li><a href="clean-architecture.html" class="block rounded-md px-2 py-1.5 text-sm bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300" aria-current="page">Uso con Clean Architecture</a></li><li><a href="input-document.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Leer el documento de entrada</a></li><li><a href="errors.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Errores</a></li><li><a href="activation.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Cómo se activa</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Referencia</p><ul class="space-y-0.5"><li><a href="configuration.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Configuración</a></li><li><a href="naming-style.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Estilo de los nombres</a></li><li><a href="known-limits.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Límites conocidos</a></li></ul><p class="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500 first:mt-0 dark:text-slate-400">Proyecto</p><ul class="space-y-0.5"><li><a href="versioning.html" class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100">Versionado y soporte</a></li></ul></nav>
+    </aside>
+    <main id="content" class="min-w-0 px-4 py-10 sm:px-8 lg:px-12">
+      <div class="mx-auto max-w-4xl">
+        <p class="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-400">Guía</p>
+        <h1 id="top" class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Uso con Clean Architecture</h1>
+        <article class="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-indigo-400 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.875em] prose-code:font-medium prose-code:before:content-none prose-code:after:content-none dark:prose-code:bg-slate-800 prose-pre:rounded-xl prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:ring-1 prose-pre:ring-slate-800 prose-th:text-slate-900 dark:prose-th:text-white">
+<p class="lead">Si tu aplicación separa el Dominio de la Infraestructura, la consulta del cliente no tiene por qué llegar hasta el Dominio como una petición HTTP ni como un constructor de Eloquent. El paquete la entrega ya validada en un objeto simple (<code>ListCriteria</code>), y un puente la aplica a Eloquent desde tu repositorio.</p>
+
+<div class="callout">
+  <p><strong>No cambia nada para quien usa las macros.</strong> <code>jsonApiFilter()</code>, <code>jsonApiSort()</code>, <code>jsonApiInclude()</code> y <code>jsonApiPaginate()</code> siguen funcionando igual, y ahora comparten con el puente el mismo código. Esta página es para quien quiere llevar el paquete a una arquitectura por capas.</p>
+</div>
+
+<h2 id="flujo">El flujo</h2>
+
+<p>Cada pieza vive en su capa, y solo <code>ListCriteria</code> cruza hacia adentro:</p>
+
+<pre><code>Controlador (API)
+  Allowed + $request-&gt;jsonApiQuery()-&gt;criteria()   -&gt;  ListCriteria
+                                                          |
+Caso de uso (Aplicación)                                  v
+  ListArticles::handle(ListCriteria)  -&gt;  ArticleRepository (interfaz del Dominio)
+                                                          |
+Repositorio (Infraestructura)                             v
+  EloquentArticleRepository  -&gt;  ApplyCriteria  -&gt;  consulta de Eloquent  -&gt;  entidades
+                                                          |
+Controlador (API)                                         v
+  ArticleResource::collection(página de entidades)  -&gt;  documento JSON:API</code></pre>
+
+<p>Nada del Dominio importa una clase de Laravel, y nada de la API sabe de columnas.</p>
+
+<h2 id="allowed">1. Lo que permite la API: <code>Allowed</code></h2>
+
+<p><code>Allowed</code> es la lista blanca de la API: qué se puede filtrar, ordenar e incluir, con <strong>nombres de la API</strong> y nada más (ni columnas, ni scopes, ni Eloquent):</p>
+
+<pre><code>use MundoProgra\JsonApi\Query\Allowed;
+
+$allowed = Allowed::make(
+  filter: ['status', 'author', 'title', 'published'],
+  sort: ['id', 'title', 'created_at'],
+  include: ['author', 'tags', 'comments.author'],
+  defaultSort: '-id',
+);</code></pre>
+
+<p>Los nombres van en <strong>snake_case</strong>, como en las macros. Permitir una ruta (<code>comments.<wbr>author</code>) permite también sus prefijos (<code>comments</code>). Es inmutable y se revisa al construirlo: un nombre repetido o no válido, una pareja <code>'nombre' =&gt; 'columna'</code> o un orden por defecto que no está en la lista de orden es un error del programador (<code>InvalidArgumentException</code>), no un <code>400</code> para el cliente. A qué columna apunta cada nombre se decide después, en el repositorio.</p>
+
+<h2 id="criteria">2. La consulta validada: <code>criteria()</code></h2>
+
+<p>El controlador revisa la consulta contra <code>Allowed</code> y entrega el resultado al caso de uso:</p>
+
+<pre><code>use Illuminate\Http\Request;
+use MundoProgra\JsonApi\Query\Allowed;
+
+class ArticleController {
+  public function index(Request $request, ListArticles $listArticles) {
+    $criteria = $request-&gt;jsonApiQuery()-&gt;criteria($this-&gt;allowed(), perPage: 20, maxPerPage: 100);
+
+    return ArticleResource::collection($listArticles-&gt;handle($criteria));
+  }
+
+  private function allowed(): Allowed {
+    return Allowed::make(
+      filter: ['status', 'author', 'title', 'published'],
+      sort: ['id', 'title', 'created_at'],
+      include: ['author', 'tags', 'comments.author'],
+      defaultSort: '-id',
+    );
+  }
+}</code></pre>
+
+<p>El tamaño de página se decide igual que con <code>jsonApiPaginate()</code> (cliente, argumento, opciones del middleware y configuración, acotado por el máximo). <code>ListCriteria</code> no trae nada de Laravel, así que puede vivir en la capa de Aplicación:</p>
+
+<div class="overflow-x-auto"><table>
+  <thead>
+    <tr><th>Método</th><th>Qué devuelve</th></tr>
+  </thead>
+  <tbody>
+    <tr><td data-label="Método"><code>filters()</code> / <code>filter('status')</code></td><td data-label="Qué devuelve">Los filtros que pidió el cliente, con su valor como texto (<code>null</code> si no pidió ese filtro)</td></tr>
+    <tr><td data-label="Método"><code>sort()</code></td><td data-label="Qué devuelve">El orden, ya con el <code>default</code> si el cliente no pidió ninguno: una lista de <code>['field' =&gt; 'title', 'descending' =&gt; true]</code></td></tr>
+    <tr><td data-label="Método"><code>includes()</code></td><td data-label="Qué devuelve">Las rutas de <code>include</code> (<code>comments.<wbr>author</code>)</td></tr>
+    <tr><td data-label="Método"><code>pageNumber()</code>, <code>pageSize()</code>, <code>offset()</code></td><td data-label="Qué devuelve">La página, su tamaño y cuántas filas quedan antes de ella</td></tr>
+  </tbody>
+</table></div>
+
+<p>También se puede armar a mano, para probar un caso de uso sin HTTP:</p>
+
+<pre><code>use MundoProgra\JsonApi\Query\ListCriteria;
+
+$criteria = new ListCriteria(
+  pageSize: 10,
+  pageNumber: 2,
+  filters: ['status' =&gt; 'published'],
+  sort: [['field' =&gt; 'id', 'descending' =&gt; true]],
+  includes: ['author'],
+);</code></pre>
+
+<h3 id="errores">Cuando algo no está permitido</h3>
+
+<p>A diferencia de las macros, que se detienen en el primer problema, <code>criteria()</code> reúne <strong>todo</strong> lo que el cliente pidió fuera de la lista y lo responde junto en un solo <code>400</code>, en el orden <code>include</code>, <code>sort</code>, <code>filter</code>, <code>page</code>. Un filtro se señala con el nombre que escribió el cliente (<code>filter[blockedBy]</code>). Los errores son los de <a href="query-parameters.html">Parámetros de consulta</a> y <a href="errors.html">Errores</a>.</p>
+
+<h2 id="repositorio">3. El repositorio de Infraestructura: <code>ApplyCriteria</code></h2>
+
+<p>El repositorio traduce los nombres de la API a su modelo con un mapa y aplica el criterio. El mapa es el mismo de las macros: <code>exact</code> (igualdad; con comas, un <code>IN</code>), <code>partial</code> (<code>LIKE %valor%</code>), <code>scopes</code> y, para el orden, <code>sort</code>:</p>
+
+<pre><code>use Illuminate\Pagination\LengthAwarePaginator;
+use MundoProgra\JsonApi\Query\Eloquent\ApplyCriteria;
+use MundoProgra\JsonApi\Query\ListCriteria;
+
+class EloquentArticleRepository implements ArticleRepository {
+  public function paginate(ListCriteria $criteria): LengthAwarePaginator {
+    $query = ApplyCriteria::to(
+      ArticleModel::query(),
+      $criteria,
+      exact: ['status', 'author' =&gt; 'author_id'],
+      partial: ['title'],
+      scopes: ['published'],
+      sort: ['id', 'title', 'created_at'],
+    );
+
+    return ApplyCriteria::paginate($query, $criteria)
+      -&gt;through(fn(ArticleModel $row) =&gt; $this-&gt;toEntity($row));
+  }
+}</code></pre>
+
+<ul>
+  <li><code>to()</code> aplica los filtros, el orden y las inclusiones, en ese orden, y devuelve la misma consulta. <strong>No pagina</strong>: la página se pide aparte con <code>paginate()</code>, para que el repositorio pueda también contar o recorrer sin ella. Cada paso existe por separado: <code>filters()</code>, <code>sort()</code> e <code>includes()</code>.</li>
+  <li>El orden agrega la clave primaria al final (si no está ya) para que las páginas sean estables, y una columna a la que apuntan dos nombres se ordena una sola vez.</li>
+  <li>Las rutas de <code>include</code> se cargan tal cual como nombres de relación de Eloquent. Si en tu modelo se llaman distinto, haz tú el <code>with()</code> en vez de usar <code>to()</code>.</li>
+  <li>No lee la petición ni la configuración: todo viene en sus argumentos, así que se prueba con una base de datos y un <code>ListCriteria</code> armado a mano.</li>
+  <li>Un nombre que el criterio trae y el mapa no conoce es un <code>LogicException</code>, no un filtro ignorado: <code>Allowed</code> y el repositorio no coinciden, y es mejor verlo en la primera prueba que devolver filas de más sin avisar. Un mismo nombre en dos listas es un <code>InvalidArgumentException</code>.</li>
+</ul>
+
+<p>Si tu Dominio no debe conocer el paginador de Laravel, haz que el repositorio devuelva tu propio tipo de página y arma el <code>LengthAwarePaginator</code> en el controlador con <code>new LengthAwarePaginator($items, $total, $perPage, $page)</code>. Los <code>links</code> y el <code>meta</code> de paginación salen igual con objetos simples que con modelos.</p>
+
+<h2 id="recursos">4. Recursos desde entidades</h2>
+
+<p>Un <code>ResourceObject</code> no exige un modelo de Eloquent. Con una entidad o un DTO, el recurso declara <code>type()</code> e <code>id()</code> (no hay tabla ni clave de ruta de dónde sacarlos) y decide por su cuenta si una relación está presente, porque un objeto simple no tiene <code>whenLoaded()</code>:</p>
+
+<pre><code>class ArticleResource extends ResourceObject {
+  public function type(): string {
+    return 'articles';
+  }
+
+  public function id(): string {
+    return (string) $this-&gt;resource-&gt;id;
+  }
+
+  protected function jsonApiRoute(): ?string {
+    return 'articles.show';
+  }
+
+  protected function jsonApiAttributes(Request $request): array {
+    return ['title' =&gt; $this-&gt;resource-&gt;title];
+  }
+
+  protected function jsonApiRelationships(Request $request): array {
+    return [
+      'author' =&gt; $this-&gt;when(
+        property_exists($this-&gt;resource, 'author'),
+        fn() =&gt; Relationship::one($this-&gt;resource-&gt;author, AuthorResource::class),
+      ),
+    ];
+  }
+}</code></pre>
+
+<p><code>Relationship::one()</code> y <code>Relationship::many()</code> aceptan cualquier objeto: la clase de recurso que les pasas es la que lo entiende. Una relación a un objeto <code>null</code> sale como <code>data: null</code>. <code>fields[tipo]</code> lo aplica el propio recurso, por eso no forma parte de <code>ListCriteria</code>.</p>
+
+<h3 id="creado">La respuesta <code>201</code></h3>
+
+<p>Con un modelo recién creado el paquete responde <code>201</code> solo. Un objeto simple no tiene <code>wasRecentlyCreated</code>, así que el alta lo pide con <code>asCreated()</code>:</p>
+
+<pre><code>public function store(Request $request, CreateArticle $createArticle) {
+  $article = $createArticle-&gt;handle(/* ... */);
+
+  return ArticleResource::make($article)-&gt;asCreated();
+}</code></pre>
+
+<p>Responde <code>201</code> con la cabecera <code>Location</code> igual al <code>links.self</code> del recurso. Sin <code>asCreated()</code>, un objeto simple responde <code>200</code>; con él, gana incluso sobre un modelo que no es recién creado.</p>
+
+<h2 id="limites">Lo que no cubre</h2>
+
+<ul>
+  <li>Los valores de los filtros son siempre texto: convertirlos a número, fecha o enumeración lo hace el caso de uso o el repositorio.</li>
+  <li><code>ListCriteria</code> lleva el filtro, el orden, las inclusiones y la página; no lleva <code>fields</code>, que aplica el recurso al armar la respuesta.</li>
+</ul>
+
+        </article>
+        <nav class="mt-14 grid gap-4 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800"><a href="query-parameters.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500"><span class="block text-xs text-slate-500 dark:text-slate-400">← Anterior</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Parámetros de consulta</span></a><a href="input-document.html" class="group rounded-lg border border-slate-200 p-4 transition hover:border-indigo-400 dark:border-slate-800 dark:hover:border-indigo-500 text-right"><span class="block text-xs text-slate-500 dark:text-slate-400">Siguiente →</span><span class="mt-1 block font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">Leer el documento de entrada</span></a></nav>
+      </div>
+    </main>
+    <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pr-4 2xl:block"><nav aria-label="En esta página"><p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">En esta página</p><ul class="space-y-0.5 border-l border-slate-200 text-sm dark:border-slate-800"><li><a href="#flujo" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">El flujo</a></li><li><a href="#allowed" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">1. Lo que permite la API: Allowed</a></li><li><a href="#criteria" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">2. La consulta validada: criteria()</a></li><li><a href="#errores" class="-ml-px block border-l border-transparent py-1 pl-6 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Cuando algo no está permitido</a></li><li><a href="#repositorio" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">3. El repositorio de Infraestructura: ApplyCriteria</a></li><li><a href="#recursos" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">4. Recursos desde entidades</a></li><li><a href="#creado" class="-ml-px block border-l border-transparent py-1 pl-6 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">La respuesta 201</a></li><li><a href="#limites" class="-ml-px block border-l border-transparent py-1 pl-3 text-slate-500 hover:border-slate-400 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-100">Lo que no cubre</a></li></ul></nav></aside>
+  </div>
+  <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api">Código e issues</a> ·
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api/blob/master/CHANGELOG.md">Changelog</a> ·
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api/security/policy">Seguridad</a> ·
+    <a class="hover:text-indigo-600 dark:hover:text-indigo-400" href="https://github.com/mundoprogra/json-api/blob/master/LICENSE.md">Licencia MIT</a>
+  </footer>
+</body>
+</html>

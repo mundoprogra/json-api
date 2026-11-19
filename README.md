@@ -166,6 +166,7 @@ La referencia completa está en el sitio. **Si no abre**, las mismas páginas es
 | [Recursos, colecciones y relaciones](https://mundoprogra.github.io/json-api/es/resources.html) | `included`, campos dispersos, paginación, `links` y `meta` |
 | [Endpoints de relación](https://mundoprogra.github.io/json-api/es/relationship-endpoints.html) | Leer y escribir relaciones |
 | [Parámetros de consulta](https://mundoprogra.github.io/json-api/es/query-parameters.html) | Las cuatro macros y el tamaño de página |
+| [Uso con Clean Architecture](https://mundoprogra.github.io/json-api/es/clean-architecture.html) | `Allowed`, `ListCriteria` y `ApplyCriteria` para un repositorio de Infraestructura |
 | [Leer el documento de entrada](https://mundoprogra.github.io/json-api/es/input-document.html) | Qué valida el paquete y cómo escribir las reglas |
 | [Errores](https://mundoprogra.github.io/json-api/es/errors.html) | Los 19 códigos y el orden de las comprobaciones |
 | [Cómo se activa](https://mundoprogra.github.io/json-api/es/activation.html) | Alcance (`mode`, `path_prefix`, `except`) y los cuatro middleware |
@@ -379,6 +380,7 @@ The full reference is on the site. **If it does not open**, the same pages are i
 | [Resources, collections and relationships](https://mundoprogra.github.io/json-api/en/resources.html) | `included`, sparse fieldsets, pagination, `links` and `meta` |
 | [Relationship endpoints](https://mundoprogra.github.io/json-api/en/relationship-endpoints.html) | Reading and writing relationships |
 | [Query parameters](https://mundoprogra.github.io/json-api/en/query-parameters.html) | The four macros and the page size |
+| [Use with Clean Architecture](https://mundoprogra.github.io/json-api/en/clean-architecture.html) | `Allowed`, `ListCriteria` and `ApplyCriteria` for an Infrastructure repository |
 | [Reading the input document](https://mundoprogra.github.io/json-api/en/input-document.html) | What the package validates and how to write the rules |
 | [Errors](https://mundoprogra.github.io/json-api/en/errors.html) | The 19 codes and the order of the checks |
 | [How it switches on](https://mundoprogra.github.io/json-api/en/activation.html) | Scope (`mode`, `path_prefix`, `except`) and the four middleware |
