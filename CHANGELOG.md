@@ -2,7 +2,9 @@
 
 All notable changes to `json-api` will be documented in this file.
 
-## [Unreleased]
+## v0.2.0 - 2026-11-19
+
+Use with Clean Architecture: the client query reaches the Domain as a `ListCriteria` and is applied to Eloquent from the repository (see the new documentation page). The macros keep working exactly as before. In `0.x` the API may change between minor versions.
 
 ### Added
 
